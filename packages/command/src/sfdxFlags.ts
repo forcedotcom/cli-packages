@@ -314,11 +314,11 @@ const isOptionFlag = (f: SfdxFlagDefinition): f is IOptionFlag<any> => {
  */
 export function buildSfdxFlags(
   flagsConfig: SfdxFlagsConfig = {}
+  // tslint:disable-next-line no-any (matches oclif)
 ): Flags.Input<any> {
-  // tslint:disable-line no-any (matches oclif)
   // The default flag options for SFDX commands.
+  // tslint:disable-next-line no-any (matches oclif)
   const DEFAULT_SFDX_FLAGS: Flags.Input<any> = {
-    // tslint:disable-line no-any (matches oclif)
     json: buildFlag('json'),
     loglevel: buildFlag('loglevel')
   };

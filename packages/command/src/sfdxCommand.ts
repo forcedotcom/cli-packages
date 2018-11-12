@@ -90,8 +90,8 @@ export abstract class SfdxCommand extends Command {
   // Overrides @oclif/command static flags property.  Adds username flags
   // if the command supports them.  Builds flags defined by the command's
   // flagsConfig static property.
+  // tslint:disable-next-line no-any (matches oclif)
   static get flags(): Flags.Input<any> {
-    // tslint:disable-line no-any (matches oclif)
     const enableTargetUsername = !!(
       this.supportsUsername || this.requiresUsername
     );
@@ -373,8 +373,8 @@ export abstract class SfdxCommand extends Command {
   }
 
   // tslint:disable no-reserved-keywords
+  // tslint:disable-next-line no-any (matches oclif)
   protected async catch(err: any) {
-    // tslint:disable-line no-any (matches oclif)
     // Let oclif handle exit signal errors.
     if (err.code === 'EEXIT') {
       throw err;

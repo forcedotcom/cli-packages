@@ -90,8 +90,7 @@ export class UX {
    * @param {...any[]} args The messages or objects to log.
    * @returns {UX}
    */
-  public log(...args: any[]): UX {
-    // tslint:disable-line:no-any
+  public log(...args: string[]): UX {
     if (this.isOutputEnabled) {
       this.cli.log(...args);
     }
@@ -216,8 +215,7 @@ export class UX {
    * @param {...any[]} args The errors to log.
    * @returns {UX}
    */
-  public error(...args: any[]): UX {
-    // tslint:disable-line:no-any
+  public error(...args: Array<unknown>): UX {
     if (this.isOutputEnabled) {
       console.error(...args);
     }
@@ -249,8 +247,8 @@ export class UX {
    * @param {SfdxTableOptions} options The {@link SfdxTableOptions} to use for formatting.
    * @returns {UX}
    */
+  // tslint:disable-next-line no-any (matches oclif)
   public table(rows: any[], options: TableOptions = {}): UX {
-    // tslint:disable-line:no-any
     if (this.isOutputEnabled) {
       // This is either an array of column names or an already built Partial<OclifTableOptions>
       if (isArray(options)) {
