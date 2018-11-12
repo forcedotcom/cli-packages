@@ -1,0 +1,54 @@
+{
+  "name": "@salesforce/command",
+  "version": "0.2.5",
+  "description": "Salesforce CLI base command class",
+  "main": "lib/exported",
+  "repository": "https://github.com/forcedotcom/cli-packages",
+  "license": "BSD-3-Clause",
+  "scripts": {
+    "build": "yarn sfdx-build",
+    "clean": "yarn sfdx-clean",
+    "clean-all": "yarn sfdx-clean all",
+    "compile": "yarn sfdx-compile",
+    "docs": "yarn sfdx-docs",
+    "format": "yarn sfdx-format",
+    "lint": "yarn sfdx-lint",
+    "prepare": "npm run build",
+    "test": "yarn sfdx-test"
+  },
+  "keywords": [
+    "force",
+    "salesforce",
+    "sfdx",
+    "salesforcedx",
+    "sfdx-command"
+  ],
+  "files": [
+    "lib",
+    "messages",
+    "!lib/**/*.map"
+  ],
+  "dependencies": {
+    "@oclif/command": "^1.5.0",
+    "@oclif/errors": "^1.2.0",
+    "@oclif/parser": "^3.6.0",
+    "@oclif/plugin-help": "^2.1.0",
+    "@oclif/test": "^1.2.0",
+    "@salesforce/core": "0.23.1",
+    "@salesforce/kit": "0.12.1",
+    "@salesforce/ts-types": "0.17.4",
+    "chalk": "^2.4.0",
+    "cli-ux": "^4.8.0"
+  },
+  "devDependencies": {
+    "@oclif/config": "^1.7.0",
+    "@salesforce/dev-config": "1.1.5",
+    "@salesforce/dev-scripts": "^0.3.3",
+    "@salesforce/ts-sinon": "0.2.0",
+    "shelljs": "0.8.1"
+  },
+  "types": "lib/exported.d.ts",
+  "publishConfig": {
+    "access": "public"
+  }
+}

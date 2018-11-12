@@ -1,0 +1,34 @@
+{
+  "name": "root",
+  "private": true,
+  "scripts": {
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build",
+    "ci-test": "nyc yarn test",
+    "clean": "lerna run clean",
+    "clean-all": "lerna run clean-all",
+    "compile": "lerna run compile",
+    "docs": "lerna run docs",
+    "format": "lerna run format",
+    "install": "yarn sfdx-lerna-install",
+    "lint": "lerna run lint",
+    "postclean-all": "yarn sfdx-clean all",
+    "prepack": "lerna run prepack",
+    "test": "lerna run test"
+  },
+  "devDependencies": {
+    "@salesforce/dev-scripts": "^0.3.3",
+    "husky": "^1",
+    "lerna": "^3.4.3"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "husky": {
+    "hooks": {
+      "commit-msg": "yarn sfdx-husky-commit-msg",
+      "pre-commit": "yarn sfdx-husky-pre-commit",
+      "pre-push": "yarn sfdx-husky-pre-push"
+    }
+  }
+}
