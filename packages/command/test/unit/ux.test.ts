@@ -84,13 +84,9 @@ describe('UX', () => {
     ux.errorJson(logMsg);
 
     expect(loggerError.called).to.equal(true);
-    expect(loggerError.firstCall.args[0]).to.equal(
-      JSON.stringify(logMsg, null, 4)
-    );
+    expect(loggerError.firstCall.args[0]).to.equal(JSON.stringify(logMsg, null, 4));
     expect(consoleError.called).to.equal(true);
-    expect(consoleError.firstCall.args[0]).to.equal(
-      JSON.stringify(logMsg, null, 4)
-    );
+    expect(consoleError.firstCall.args[0]).to.equal(JSON.stringify(logMsg, null, 4));
   });
 
   it('error() should only log to the logger (logLevel = error) when output IS NOT enabled', () => {
@@ -191,8 +187,7 @@ describe('UX', () => {
     };
     const expectedMsg = `The ${depConfig.type} "${
       depConfig.name
-    }" has been deprecated and will be removed in v${depConfig.version +
-      1}.0 or later.`;
+    }" has been deprecated and will be removed in v${depConfig.version + 1}.0 or later.`;
     expect(UX.formatDeprecationWarning(depConfig)).to.equal(expectedMsg);
   });
 
@@ -215,8 +210,7 @@ describe('UX', () => {
     };
     let expectedMsg = `The ${depConfig.type} "${
       depConfig.name
-    }" has been deprecated and will be removed in v${depConfig.version +
-      1}.0 or later.`;
+    }" has been deprecated and will be removed in v${depConfig.version + 1}.0 or later.`;
     expectedMsg += ` Use "${depConfig.to}" instead. ${depConfig.message}`;
     expect(UX.formatDeprecationWarning(depConfig)).to.equal(expectedMsg);
   });
@@ -244,10 +238,7 @@ describe('UX', () => {
   it('table() should log to the logger and output in table format when output IS enabled with simple column config', () => {
     const retVal: any = {}; // tslint:disable-line:no-any
     const info = $$.SANDBOX.stub($$.TEST_LOGGER, 'info');
-    const tableGetter = () => (
-      x: typeof tableData,
-      y: typeof expectedOptions
-    ) => {
+    const tableGetter = () => (x: typeof tableData, y: typeof expectedOptions) => {
       retVal.x = x;
       retVal.y = y;
     };
@@ -260,11 +251,7 @@ describe('UX', () => {
     ];
     const options = ['foo', 'bar', 'baz'];
     const expectedOptions = {
-      columns: [
-        { key: 'foo', label: 'FOO' },
-        { key: 'bar', label: 'BAR' },
-        { key: 'baz', label: 'BAZ' }
-      ]
+      columns: [{ key: 'foo', label: 'FOO' }, { key: 'bar', label: 'BAR' }, { key: 'baz', label: 'BAZ' }]
     };
 
     const ux1 = ux.table(tableData, options);
@@ -296,8 +283,9 @@ describe('UX', () => {
         {
           key: 'bar',
           label: '*** BAR ***',
+          // tslint:disable-next-line:no-any
           format: (val: any) => (val != null ? val.toString() : '')
-        }, // tslint:disable-line:no-any
+        },
         { key: 'baz', label: 'ZaB' }
       ]
     };

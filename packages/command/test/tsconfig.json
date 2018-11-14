@@ -1,0 +1,5 @@
+// Generated - Do not modify. Controlled by @salesforce/dev-scripts
+{
+  "extends": "../../../node_modules/@salesforce/dev-config/tsconfig-test-strict",
+  "include": ["./**/*.ts"]
+}

@@ -1,8 +1,8 @@
+// Generated - Do not modify. Controlled by @salesforce/dev-scripts
 {
-  "extends": "./node_modules/@salesforce/dev-config/tsconfig.json",
+  "extends": "../../node_modules/@salesforce/dev-config/tsconfig-strict",
   "compilerOptions": {
-    "outDir": "lib",
-    "strict": true
+    "outDir": "lib"
   },
   "include": ["./src/**/*.ts"]
 }

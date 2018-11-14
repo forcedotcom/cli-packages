@@ -894,31 +894,23 @@
     jsonwebtoken "7.0.0"
     mkdirp "0.5.1"
 
-"@salesforce/dev-config@1.1.5":
-  version "1.1.5"
-  resolved "https://registry.npmjs.org/@salesforce/dev-config/-/dev-config-1.1.5.tgz#acf08bbe14d4f963dc33275399fada9e8a87e3c0"
-  integrity sha512-FfA/zI6d0BM9pv9ZF/BK4tJ2cZB4RGflDrTlwjRs0gE3eauiw+z85BwxSrusHajvfyNQ3gQ8jTDQ/2Nco5tfGQ==
-  dependencies:
-    tslint "5.11.0"
-    tslint-microsoft-contrib "5.2.0"
-
-"@salesforce/dev-config@^1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@salesforce/dev-config/-/dev-config-1.4.0.tgz#46f14a2743e4045d220ff6cbd113a4eaaa129ff0"
-  integrity sha512-W15xuDhu4laQTtFMgqGO0lKhKxjIhiov7l7sMtkEGODZrLPotvVCToYvhDu/I9QHnynE4eZ3JV3G4N7yObn4VQ==
+"@salesforce/dev-config@^1.4.1":
+  version "1.4.1"
+  resolved "https://registry.npmjs.org/@salesforce/dev-config/-/dev-config-1.4.1.tgz#5dfc29bac8c73acfd29f0545a208f1b42b0045a9"
+  integrity sha512-zVEpIXlswea+L11wK8z040RU3QYaf0kAI05IADOuR8EGFTt4PJ0jCeqN4KASTw2SI02Ih0m+imrRO1QITDIkDA==
   dependencies:
     tslint "^5"
     tslint-microsoft-contrib "^5"
     typescript "^3"
 
-"@salesforce/dev-scripts@^0.3.3":
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/@salesforce/dev-scripts/-/dev-scripts-0.3.3.tgz#a158e0476798187f41c8853a63e560f42f9f86a2"
-  integrity sha512-p+oYUrC3RSlT5K7hMrfllGap1HP7XldjDwhmBt9LaXBendpKFMAWeLOxsXqeEFL1q69ST5Kw86ZUeIdtpuINNQ==
+"@salesforce/dev-scripts@0.3.4":
+  version "0.3.4"
+  resolved "https://registry.npmjs.org/@salesforce/dev-scripts/-/dev-scripts-0.3.4.tgz#816ad762d80389965c00cb60c10fb7ae927ed23e"
+  integrity sha512-v4ayFr0fAddL55lmR9VC2zLaLcpiU04gHfYWcT/jSDDPHv0y/a0BmTW2Stjk+SbXHJlO2UutaIAC9Q41fmF7Aw==
   dependencies:
     "@commitlint/cli" "^7"
     "@commitlint/config-conventional" "^7"
-    "@salesforce/dev-config" "^1.4.0"
+    "@salesforce/dev-config" "^1.4.1"
     "@types/chai" "^4"
     "@types/mocha" "^5"
     "@types/node" "^10"
@@ -955,13 +947,14 @@
   dependencies:
     "@salesforce/ts-types" "0.12.0"
 
-"@salesforce/ts-sinon@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/@salesforce/ts-sinon/-/ts-sinon-0.2.0.tgz#214d21e3db6dd90b1d975271ca9b082949bc2bbb"
-  integrity sha512-eQNtgZOKkAzBf7Olzu/RpOcRf/5vRskJsl5f9rPZZWQrFsEtAw+WLedu1ME2oDH8ouI61qIzNGGIkdNhXR0VVQ==
+"@salesforce/ts-sinon@0.2.3":
+  version "0.2.3"
+  resolved "https://registry.npmjs.org/@salesforce/ts-sinon/-/ts-sinon-0.2.3.tgz#48b9ffabd25a5a3987c24396de023a81925b8f0f"
+  integrity sha512-R//JKvwUWE/2dVtT+pnXa8Q+qULAXvJF1iVuDQAuYlRmQjaoLT8OLzyiMvFfodYVgnSdyIBVDaygPC6Vg8002g==
   dependencies:
-    "@salesforce/ts-types" "0.12.0"
+    "@salesforce/ts-types" "^0.18.0"
     sinon "5.0.7"
+    tslib "^1.9.3"
 
 "@salesforce/ts-types@0.11.0":
   version "0.11.0"
@@ -977,6 +970,13 @@
   version "0.17.4"
   resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-0.17.4.tgz#8bcb5f77572eedfc43f037045d299d581072a176"
   integrity sha512-/blPcSWLrNuAcf/UvIFbUkYQ2Nt4BPsWf/Ol4ITOiA4Onbo5HHtz/CBFiXKL7GSffBgIFYE1lowtjTO11uDKGw==
+  dependencies:
+    tslib "^1"
+
+"@salesforce/ts-types@^0.18.0":
+  version "0.18.0"
+  resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-0.18.0.tgz#af4830fc021ce58c27f1ae7a9304c0a730e2610a"
+  integrity sha512-N99BWxaiAoA/oh9ttuvbiu6AuHJpcIKnVDht8/Ll7qhb9Bsj5rSw3YyW+g1PFh55hxVc5/41qokTGmqh3aY0ew==
   dependencies:
     tslib "^1"
 
@@ -5934,13 +5934,6 @@ tslib@^1, tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.0, tslib@^1.9.3:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.3.tgz#d7e4dd79245d85428c4d7e4822a79917954ca286"
   integrity sha512-4krF8scpejhaOgqzBEcGM7yDIEfi0/8+8zDRZhNZZ2kjmHJ4hv3zCbQWxoJGz1iw5U0Jl0nma13xzHXcncMavQ==
 
-tslint-microsoft-contrib@5.2.0:
-  version "5.2.0"
-  resolved "https://registry.npmjs.org/tslint-microsoft-contrib/-/tslint-microsoft-contrib-5.2.0.tgz#a0ef808691b8f8c6e7902a62cd06e9502a91dde2"
-  integrity sha512-gHVEIkTcMB9lS6UPEgEznV5ZmyhDs/aHyBS9E89S8aJiK1qLv22DmfCcda53S024T+WQkGAhLHUQF4Qn4nzCAA==
-  dependencies:
-    tsutils "^2.12.1 <2.29.0"
-
 tslint-microsoft-contrib@^5:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/tslint-microsoft-contrib/-/tslint-microsoft-contrib-5.2.1.tgz#a6286839f800e2591d041ea2800c77487844ad81"
@@ -5948,7 +5941,7 @@ tslint-microsoft-contrib@^5:
   dependencies:
     tsutils "^2.27.2 <2.29.0"
 
-tslint@5.11.0, tslint@^5:
+tslint@^5:
   version "5.11.0"
   resolved "https://registry.yarnpkg.com/tslint/-/tslint-5.11.0.tgz#98f30c02eae3cde7006201e4c33cb08b48581eed"
   integrity sha1-mPMMAurjzecAYgHkwzywi0hYHu0=
@@ -5966,17 +5959,17 @@ tslint@5.11.0, tslint@^5:
     tslib "^1.8.0"
     tsutils "^2.27.2"
 
-"tsutils@^2.12.1 <2.29.0", "tsutils@^2.27.2 <2.29.0":
-  version "2.28.0"
-  resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-2.28.0.tgz#6bd71e160828f9d019b6f4e844742228f85169a1"
-  integrity sha512-bh5nAtW0tuhvOJnx1GLRn5ScraRLICGyJV5wJhtRWOLsxW70Kk5tZtpK3O/hW6LDnqKS9mlUMPZj9fEMJ0gxqA==
-  dependencies:
-    tslib "^1.8.1"
-
 tsutils@^2.27.2:
   version "2.29.0"
   resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-2.29.0.tgz#32b488501467acbedd4b85498673a0812aca0b99"
   integrity sha512-g5JVHCIJwzfISaXpXE1qvNalca5Jwob6FjI4AoPlqMusJ6ftFE7IkkFoMhVLRgK+4Kx3gkzb8UZK5t5yTTvEmA==
+  dependencies:
+    tslib "^1.8.1"
+
+"tsutils@^2.27.2 <2.29.0":
+  version "2.28.0"
+  resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-2.28.0.tgz#6bd71e160828f9d019b6f4e844742228f85169a1"
+  integrity sha512-bh5nAtW0tuhvOJnx1GLRn5ScraRLICGyJV5wJhtRWOLsxW70Kk5tZtpK3O/hW6LDnqKS9mlUMPZj9fEMJ0gxqA==
   dependencies:
     tslib "^1.8.1"
 

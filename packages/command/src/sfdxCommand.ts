@@ -7,24 +7,8 @@
 
 import { Command, flags as Flags } from '@oclif/command';
 import { OutputArgs, OutputFlags } from '@oclif/parser';
-import {
-  ConfigAggregator,
-  Global,
-  Logger,
-  Messages,
-  Mode,
-  Org,
-  SfdxError,
-  SfdxProject
-} from '@salesforce/core';
-import {
-  AnyJson,
-  Dictionary,
-  get,
-  isBoolean,
-  JsonMap,
-  Optional
-} from '@salesforce/ts-types';
+import { ConfigAggregator, Global, Logger, Messages, Mode, Org, SfdxError, SfdxProject } from '@salesforce/core';
+import { AnyJson, Dictionary, get, isBoolean, JsonMap, Optional } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import { buildSfdxFlags, SfdxFlagsConfig } from './sfdxFlags';
 
@@ -92,12 +76,8 @@ export abstract class SfdxCommand extends Command {
   // flagsConfig static property.
   // tslint:disable-next-line no-any (matches oclif)
   static get flags(): Flags.Input<any> {
-    const enableTargetUsername = !!(
-      this.supportsUsername || this.requiresUsername
-    );
-    const enableTargetDevhubUsername = !!(
-      this.supportsDevhubUsername || this.requiresDevhubUsername
-    );
+    const enableTargetUsername = !!(this.supportsUsername || this.requiresUsername);
+    const enableTargetDevhubUsername = !!(this.supportsDevhubUsername || this.requiresDevhubUsername);
     const baseFlags: Partial<SfdxFlagsConfig> = {
       targetusername: enableTargetUsername,
       targetdevhubusername: enableTargetDevhubUsername,
@@ -108,21 +88,21 @@ export abstract class SfdxCommand extends Command {
   }
 
   // Set to true to add the "targetusername" flag to this command.
-  protected static supportsUsername: boolean = false;
+  protected static supportsUsername = false;
 
   // Set to true if this command MUST have a targetusername set, either via
   // a flag or by having a default.
-  protected static requiresUsername: boolean = false;
+  protected static requiresUsername = false;
 
   // Set to true to add the "targetdevhubusername" flag to this command.
-  protected static supportsDevhubUsername: boolean = false;
+  protected static supportsDevhubUsername = false;
 
   // Set to true if this command MUST have a targetdevhubusername set, either via
   // a flag or by having a default.
-  protected static requiresDevhubUsername: boolean = false;
+  protected static requiresDevhubUsername = false;
 
   // Set to true if this command MUST be run within a SFDX project.
-  protected static requiresProject: boolean = false;
+  protected static requiresProject = false;
 
   // Set to true if this command is deprecated.
   // protected static deprecated: boolean = false;
@@ -167,7 +147,7 @@ export abstract class SfdxCommand extends Command {
   // The parsed varargs for easy reference by this command
   protected varargs?: JsonMap;
 
-  private isJson: boolean = false;
+  private isJson = false;
 
   public async _run<T>(): Promise<Optional<T>> {
     // If a result is defined for the command, use that.  Otherwise check for a
@@ -204,11 +184,7 @@ export abstract class SfdxCommand extends Command {
       this.project = await SfdxProject.resolve();
     } catch (err) {
       if (err.name === 'InvalidProjectWorkspace') {
-        throw SfdxError.create(
-          '@salesforce/command',
-          'command',
-          'RequiresProjectError'
-        );
+        throw SfdxError.create('@salesforce/command', 'command', 'RequiresProjectError');
       }
       throw err;
     }
@@ -218,18 +194,11 @@ export abstract class SfdxCommand extends Command {
   protected async assignOrg(): Promise<void> {
     // Create an org from the username and set on this
     try {
-      this.org = await Org.create(
-        this.flags.targetusername,
-        this.configAggregator
-      );
+      this.org = await Org.create(this.flags.targetusername, this.configAggregator);
     } catch (err) {
       if (this.statics.requiresUsername) {
         if (err.name === 'NoUsername') {
-          throw SfdxError.create(
-            '@salesforce/command',
-            'command',
-            'RequiresUsernameError'
-          );
+          throw SfdxError.create('@salesforce/command', 'command', 'RequiresUsernameError');
         }
         throw err;
       }
@@ -240,21 +209,13 @@ export abstract class SfdxCommand extends Command {
   protected async assignHubOrg(): Promise<void> {
     // Create an org from the devhub username and set on this
     try {
-      this.hubOrg = await Org.create(
-        this.flags.targetdevhubusername,
-        this.configAggregator,
-        true
-      );
+      this.hubOrg = await Org.create(this.flags.targetdevhubusername, this.configAggregator, true);
     } catch (err) {
       // Throw an error if the command requires a devhub and there is no targetdevhubusername
       // flag set and no defaultdevhubusername set.
       if (this.statics.requiresDevhubUsername) {
         if (err.name === 'NoUsername') {
-          throw SfdxError.create(
-            '@salesforce/command',
-            'command',
-            'RequiresDevhubUsernameError'
-          );
+          throw SfdxError.create('@salesforce/command', 'command', 'RequiresDevhubUsernameError');
         }
         throw err;
       }
@@ -306,15 +267,10 @@ export abstract class SfdxCommand extends Command {
     await super.init();
 
     // Load messages
-    const messages: Messages = Messages.loadMessages(
-      '@salesforce/command',
-      'command'
-    );
+    const messages: Messages = Messages.loadMessages('@salesforce/command', 'command');
 
     // Turn off strict parsing if varargs are set.  Otherwise use static strict setting.
-    const strict = this.statics.varargs
-      ? !this.statics.varargs
-      : this.statics.strict;
+    const strict = this.statics.varargs ? !this.statics.varargs : this.statics.strict;
 
     // Parse the command to get flags and args
     const { args, flags, argv } = this.parse({
@@ -333,9 +289,7 @@ export abstract class SfdxCommand extends Command {
     }
 
     this.logger.info(
-      `Running command [${this.statics.name}] with flags [${JSON.stringify(
-        flags
-      )}] and args [${JSON.stringify(args)}]`
+      `Running command [${this.statics.name}] with flags [${JSON.stringify(flags)}] and args [${JSON.stringify(args)}]`
     );
 
     //
@@ -353,9 +307,7 @@ export abstract class SfdxCommand extends Command {
     // if it's overridden.
     const apiVersion = this.configAggregator.getInfo('apiVersion');
     if (apiVersion && apiVersion.value && !flags.apiversion) {
-      this.ux.warn(
-        messages.getMessage('apiVersionOverrideWarning', [apiVersion.value])
-      );
+      this.ux.warn(messages.getMessage('apiVersionOverrideWarning', [apiVersion.value]));
     }
 
     // Assign this.org if the command supports or requires a username.
@@ -364,10 +316,7 @@ export abstract class SfdxCommand extends Command {
     }
 
     // Assign this.hubOrg if the command supports or requires a devhub username.
-    if (
-      this.statics.supportsDevhubUsername ||
-      this.statics.requiresDevhubUsername
-    ) {
+    if (this.statics.supportsDevhubUsername || this.statics.requiresDevhubUsername) {
       await this.assignHubOrg();
     }
   }
@@ -381,8 +330,7 @@ export abstract class SfdxCommand extends Command {
     }
 
     // Convert all other errors to SfdxErrors for consistency and set the command name on the error.
-    const error: SfdxError =
-      err instanceof SfdxError ? err : SfdxError.wrap(err);
+    const error: SfdxError = err instanceof SfdxError ? err : SfdxError.wrap(err);
     error.setCommandName(this.statics.name);
 
     process.exitCode = process.exitCode || error.exitCode || 1;
@@ -427,11 +375,7 @@ export abstract class SfdxCommand extends Command {
 
     // If this command requires varargs, throw if none are provided.
     if (!args.length && !isBoolean(descriptor) && descriptor.required) {
-      throw SfdxError.create(
-        '@salesforce/command',
-        'command',
-        'VarargsRequired'
-      );
+      throw SfdxError.create('@salesforce/command', 'command', 'VarargsRequired');
     }
 
     // Validate the format of the varargs
@@ -439,23 +383,13 @@ export abstract class SfdxCommand extends Command {
       const split = arg.split('=');
 
       if (split.length !== 2) {
-        throw SfdxError.create(
-          '@salesforce/command',
-          'command',
-          'InvalidVarargsFormat',
-          [arg]
-        );
+        throw SfdxError.create('@salesforce/command', 'command', 'InvalidVarargsFormat', [arg]);
       }
 
       const [name, value] = split;
 
       if (varargs[name]) {
-        throw SfdxError.create(
-          '@salesforce/command',
-          'command',
-          'DuplicateVararg',
-          [name]
-        );
+        throw SfdxError.create('@salesforce/command', 'command', 'DuplicateVararg', [name]);
       }
 
       if (!isBoolean(descriptor) && descriptor.validator) {
@@ -476,9 +410,7 @@ export abstract class SfdxCommand extends Command {
    */
   protected formatError(error: SfdxError): string[] {
     const colorizedArgs: string[] = [];
-    const runningWith = error.commandName
-      ? ` running ${error.commandName}`
-      : '';
+    const runningWith = error.commandName ? ` running ${error.commandName}` : '';
     colorizedArgs.push(chalk.bold(`ERROR${runningWith}: `));
     colorizedArgs.push(chalk.red(error.message));
 
@@ -492,9 +424,7 @@ export abstract class SfdxCommand extends Command {
       }
     }
     if (error.stack && Global.getEnvironmentMode() === Mode.DEVELOPMENT) {
-      colorizedArgs.push(
-        chalk.red(`\n*** Internal Diagnostic ***\n\n${error.stack}\n******\n`)
-      );
+      colorizedArgs.push(chalk.red(`\n*** Internal Diagnostic ***\n\n${error.stack}\n******\n`));
     }
 
     return colorizedArgs;
