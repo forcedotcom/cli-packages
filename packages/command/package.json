@@ -13,6 +13,7 @@
     "docs": "yarn sfdx-docs",
     "format": "yarn sfdx-format",
     "lint": "yarn sfdx-lint",
+    "prepack": "yarn sfdx-build",
     "prepare": "npm run build",
     "test": "yarn sfdx-test"
   },
@@ -42,7 +43,6 @@
   },
   "devDependencies": {
     "@oclif/config": "^1.7.0",
-    "@salesforce/dev-config": "1.1.5",
     "@salesforce/dev-scripts": "^0.3.3",
     "@salesforce/ts-sinon": "0.2.0",
     "shelljs": "0.8.1"
