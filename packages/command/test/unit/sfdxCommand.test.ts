@@ -21,13 +21,21 @@ import {
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { cloneJson, isEmpty } from '@salesforce/kit';
 import { stubInterface } from '@salesforce/ts-sinon';
-import { Dictionary, JsonArray, keysOf, Optional, RequiredNonOptional } from '@salesforce/ts-types';
+import {
+  Dictionary,
+  ensureJsonMap,
+  JsonArray,
+  JsonMap,
+  keysOf,
+  Optional,
+  RequiredNonOptional
+} from '@salesforce/ts-types';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import chalk from 'chalk';
 import { join } from 'path';
 import { SinonStub } from 'sinon';
-import { SfdxCommand } from '../../src/sfdxCommand';
+import { SfdxCommand, SfdxResult } from '../../src/sfdxCommand';
 import { SfdxFlagDefinition, SfdxFlagsConfig } from '../../src/sfdxFlags';
 import { UX } from '../../src/ux';
 
@@ -162,6 +170,19 @@ describe('SfdxCommand', () => {
       expect(UX_OUTPUT[key], `test UX output for ${key}()`).to.deep.equal(_output[key]);
     });
   }
+
+  it('should type this', () => {
+    let result: JsonMap = {};
+    const x: SfdxResult = {
+      display(): void {
+        result = ensureJsonMap(this.data);
+      }
+    };
+    if (x.display) {
+      x.display.call({ data: { foo: 'bar' } });
+      expect(result).to.have.property('foo', 'bar');
+    }
+  });
 
   it('should always add SfdxCommand required flags (--json and --loglevel)', async () => {
     // Run the command
@@ -514,7 +535,7 @@ describe('SfdxCommand', () => {
     class TestCommand extends BaseTestCommand {}
     const tableColumnData = ['foo', 'bar', 'baz'];
     TestCommand['tableColumnData'] = tableColumnData;
-    TestCommand.output = [];
+    TestCommand.output = [] as JsonArray;
     const output = await TestCommand.run([]);
 
     expect(output).to.equal(TestCommand.output);
