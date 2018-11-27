@@ -6,7 +6,7 @@
  */
 
 import { flags as Flags } from '@oclif/command';
-import { EnumFlagOptions, IOptionFlag, IBooleanFlag } from '@oclif/parser/lib/flags';
+import { EnumFlagOptions, IOptionFlag } from '@oclif/parser/lib/flags';
 import { Logger, Messages, sfdc, SfdxError } from '@salesforce/core';
 import { toNumber } from '@salesforce/kit';
 import { Dictionary, ensure, isArray, isFunction, isString } from '@salesforce/ts-types';
@@ -101,32 +101,32 @@ interface SfdxFlagValidator {
   parse: SfdxFlagParser;
 }
 
-type SfdxBooleanFlag = Partial<IBooleanFlag<boolean> & { longDescription: string }>;
-type SfdxOptionFlag<T> = Partial<IOptionFlag<T> & { longDescription: string }>;
+// type SfdxBooleanFlag = Partial<IBooleanFlag<boolean> & { longDescription: string }>;
+// type SfdxOptionFlag<T> = Partial<IOptionFlag<T> & { longDescription: string }>;
 
-type SfdxFlagOptions<T> = Partial<(IBooleanFlag<boolean> | IOptionFlag<T>) & { longDescription: string }>;
+// type SfdxFlagOptions<T> = Partial<(IBooleanFlag<boolean> | IOptionFlag<T>) & { longDescription: string }>;
 
-const sfdxFlags = {
-  json(): SfdxBooleanFlag {
-    const jsonFlag = Flags.boolean({
-      description: messages.getMessage('jsonFlagDescription'),
-      required: false
-    });
-    return { ...jsonFlag, longDescription: messages.getMessage('jsonFlagLongDescription') };
-  },
-  array(options: SfdxOptionFlag<string[]> = {}): SfdxOptionFlag<string[]> {
-    const parse = (val: string) => {
-      validateType(!!val.split(','), val, 'array');
-      return val.split(',');
-    };
-    const arrayFlag = Flags.build(Object.assign(options, { parse }))();
-    return arrayFlag;
-  },
-  date(options: SfdxFlagOptions = {}) {},
-  id(options: SfdxFlagOptions = {}) {},
-  number(options: SfdxFlagOptions = {}) {},
-  override(options: SfdxFlagOptions = {}) {}
-};
+// const sfdxFlags = {
+//   json(): SfdxBooleanFlag {
+//     const jsonFlag = Flags.boolean({
+//       description: messages.getMessage('jsonFlagDescription'),
+//       required: false
+//     });
+//     return { ...jsonFlag, longDescription: messages.getMessage('jsonFlagLongDescription') };
+//   },
+//   array(options: SfdxOptionFlag<string[]> = {}): SfdxOptionFlag<string[]> {
+//     const parse = (val: string) => {
+//       validateType(!!val.split(','), val, 'array');
+//       return val.split(',');
+//     };
+//     const arrayFlag = Flags.build(Object.assign(options, { parse }))();
+//     return arrayFlag;
+//   },
+//   date(options: SfdxFlagOptions = {}) {},
+//   id(options: SfdxFlagOptions = {}) {},
+//   number(options: SfdxFlagOptions = {}) {},
+//   override(options: SfdxFlagOptions = {}) {}
+// };
 
 const FLAGTYPES: Readonly<Dictionary<SfdxFlagValidator>> = {
   array: {
