@@ -879,13 +879,13 @@
   dependencies:
     fancy-test "^1.4.1"
 
-"@salesforce/core@0.23.1":
-  version "0.23.1"
-  resolved "https://registry.npmjs.org/@salesforce/core/-/core-0.23.1.tgz#851cf17c5d91f282b160586df23752b41f0b88f0"
-  integrity sha512-cl9l4SpzKUDL5uymfDvKs0jI3Lwfxee5fAVl9aE9rR/Dbk06Tcg/rbbEf1mIjXYPGsD/3GkljwwJQqdx52OFEQ==
+"@salesforce/core@0.24.8":
+  version "0.24.8"
+  resolved "https://registry.npmjs.org/@salesforce/core/-/core-0.24.8.tgz#71680e7e4e9aeccba3660383eebb79861c19b8de"
+  integrity sha512-ptJQXrdO2v5XoBX86BColg5CQLZEV73y0tBJJtwDHVc9DqCxsn9Eq3HC8SnIcJCFfUHkVHIOe1hnSPhXW0ENLg==
   dependencies:
-    "@salesforce/kit" "0.7.0"
-    "@salesforce/ts-types" "0.11.0"
+    "@salesforce/kit" "0.13.3"
+    "@salesforce/ts-types" "0.19.3"
     "@types/jsforce" "1.8.12"
     bunyan-sfdx-no-dtrace "1.8.2"
     debug "^3.1.0"
@@ -893,6 +893,7 @@
     jsforce "1.8.4"
     jsonwebtoken "7.0.0"
     mkdirp "0.5.1"
+    sfdx-faye "^1.0.8"
 
 "@salesforce/dev-config@^1.4.1":
   version "1.4.1"
@@ -903,7 +904,7 @@
     tslint-microsoft-contrib "^5"
     typescript "^3"
 
-"@salesforce/dev-scripts@^0.3.3":
+"@salesforce/dev-scripts@0.3.7", "@salesforce/dev-scripts@^0.3.3":
   version "0.3.7"
   resolved "https://registry.npmjs.org/@salesforce/dev-scripts/-/dev-scripts-0.3.7.tgz#07d91880b2862505c8db800bcb2a0102a3a2f0ee"
   integrity sha512-Sh8+oYhHVpRJRZOKn8YVZ7i+u25xe2lCBxWlRtEg0HcHwoViJRzROIS0kF4WXEmRLWAxzguYyoHPPcLr63U3xw==
@@ -932,43 +933,27 @@
     typescript "^3"
     xunit-file "^1"
 
-"@salesforce/kit@0.12.1":
-  version "0.12.1"
-  resolved "https://registry.npmjs.org/@salesforce/kit/-/kit-0.12.1.tgz#0ccddb4111a4327fd69c1df3fd3f250089ffc5db"
-  integrity sha512-AGxHyH9vNgcsjdh1j3m6vkQpvt2d1xW7ZRjj4aW7h7vFoDq99mIc/5J8+Y6jW/FybD1TXygs6ZdeyK0HNf0oPw==
+"@salesforce/kit@0.13.3":
+  version "0.13.3"
+  resolved "https://registry.npmjs.org/@salesforce/kit/-/kit-0.13.3.tgz#359c2398ffa1a15e7936b28927a9b00426f54ead"
+  integrity sha512-a5pFcuUGIYHAjanhb9caZtvysb8yCfZrv+WVwP5uCYyP2+5Pw+qxvrbMO5uPFpnt4tD38Z1yPSVWo/jdbJRsdw==
   dependencies:
-    "@salesforce/ts-types" "^0.17.4"
+    "@salesforce/ts-types" "^0.19.3"
     tslib "^1"
 
-"@salesforce/kit@0.7.0":
-  version "0.7.0"
-  resolved "https://registry.npmjs.org/@salesforce/kit/-/kit-0.7.0.tgz#ffc74f811227584e2068feda196fd481c3485bc1"
-  integrity sha512-YLvn6teIkjVvO323ctfy2YQzALIdNMf6BrnJv0A7v6271/xLCZzItUIo1/DCE2u9uO5dZyLQbIUfIbZruJx+sQ==
+"@salesforce/ts-sinon@0.2.7":
+  version "0.2.7"
+  resolved "https://registry.npmjs.org/@salesforce/ts-sinon/-/ts-sinon-0.2.7.tgz#52032445e32eac13b7b89965d434df7bc27b80b1"
+  integrity sha512-D5YGBqLi7Mfsq4A1LMVW6ctAZjzrht6/ZCpQaHHt05yvcWtLG4tHJYWCSNlbFRF3hiy1i8KmpxqjfbM106jBEw==
   dependencies:
-    "@salesforce/ts-types" "0.12.0"
-
-"@salesforce/ts-sinon@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/@salesforce/ts-sinon/-/ts-sinon-0.2.0.tgz#214d21e3db6dd90b1d975271ca9b082949bc2bbb"
-  integrity sha512-eQNtgZOKkAzBf7Olzu/RpOcRf/5vRskJsl5f9rPZZWQrFsEtAw+WLedu1ME2oDH8ouI61qIzNGGIkdNhXR0VVQ==
-  dependencies:
-    "@salesforce/ts-types" "0.12.0"
+    "@salesforce/ts-types" "^0.19.3"
     sinon "5.0.7"
+    tslib "^1.9.3"
 
-"@salesforce/ts-types@0.11.0":
-  version "0.11.0"
-  resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-0.11.0.tgz#09146c909863652652f99d2808b38ca60db24a01"
-  integrity sha512-QLk6cwBHvRagCzWKvS9LW7XsV1N1YFQif2c/LsFsqU90ga1o9SsK2Hm/iu+cAwf1WDm6p8hvi69q9U7qnTh3wA==
-
-"@salesforce/ts-types@0.12.0":
-  version "0.12.0"
-  resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-0.12.0.tgz#174729945da894d36a731d74df41034fd91f91f2"
-  integrity sha512-uJQMzC0SGVTcwdNmq+zkiIPmSi+UNr15IQYU6USpFnQQ3vzu6ea8GT3fYBwf9eytiAWmPsN9ZPn5Dkx4e4oxDA==
-
-"@salesforce/ts-types@0.17.4", "@salesforce/ts-types@^0.17.4":
-  version "0.17.4"
-  resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-0.17.4.tgz#8bcb5f77572eedfc43f037045d299d581072a176"
-  integrity sha512-/blPcSWLrNuAcf/UvIFbUkYQ2Nt4BPsWf/Ol4ITOiA4Onbo5HHtz/CBFiXKL7GSffBgIFYE1lowtjTO11uDKGw==
+"@salesforce/ts-types@0.19.3", "@salesforce/ts-types@^0.19.3":
+  version "0.19.3"
+  resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-0.19.3.tgz#df19fbddf33bf8dbdc00a27852cf6ed93251467b"
+  integrity sha512-YhmeVI5p8qqSqjcSH1xExDd73w2eATeWlf4B/UPQK4ZKxBgoTErBWHQ4cy4ETOMcHitDPlOMHstFK7tRh4y1bg==
   dependencies:
     tslib "^1"
 
@@ -1263,7 +1248,7 @@ arrify@^1.0.0, arrify@^1.0.1:
   resolved "https://registry.npmjs.org/arrify/-/arrify-1.0.1.tgz#898508da2226f380df904728456849c1501a4b0d"
   integrity sha1-iYUI2iIm84DfkEcoRWhJwVAaSw0=
 
-asap@*, asap@^2.0.0, asap@~2.0.3:
+asap@*, asap@^2.0.0, asap@~2.0.3, asap@~2.0.6:
   version "2.0.6"
   resolved "https://registry.npmjs.org/asap/-/asap-2.0.6.tgz#e50347611d7e690943208bbdafebcbc2fb866d46"
   integrity sha1-5QNHYR1+aQlDIIu9r+vLwvuGbUY=
@@ -2071,7 +2056,7 @@ cross-spawn@^6.0.0, cross-spawn@^6.0.5:
     shebang-command "^1.2.0"
     which "^1.2.9"
 
-csprng@*:
+csprng@*, csprng@~0.1.2:
   version "0.1.2"
   resolved "https://registry.npmjs.org/csprng/-/csprng-0.1.2.tgz#4bc68f12fa368d252a59841cbaca974b18ab45e2"
   integrity sha1-S8aPEvo2jSUqWYQcusqXSxirReI=
@@ -2561,6 +2546,13 @@ faye-websocket@>=0.9.1:
   version "0.11.1"
   resolved "https://registry.npmjs.org/faye-websocket/-/faye-websocket-0.11.1.tgz#f0efe18c4f56e4f40afc7e06c719fd5ee6188f38"
   integrity sha1-8O/hjE9W5PQK/H4Gxxn9XuYYjzg=
+  dependencies:
+    websocket-driver ">=0.5.1"
+
+faye-websocket@~0.9.1:
+  version "0.9.4"
+  resolved "https://registry.npmjs.org/faye-websocket/-/faye-websocket-0.9.4.tgz#885934c79effb0409549e0c0a3801ed17a40cdad"
+  integrity sha1-iFk0x57/sECVSeDAo4Ae0XpAza0=
   dependencies:
     websocket-driver ">=0.5.1"
 
@@ -5467,6 +5459,18 @@ set-value@^2.0.0:
     is-plain-object "^2.0.3"
     split-string "^3.0.1"
 
+sfdx-faye@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.npmjs.org/sfdx-faye/-/sfdx-faye-1.0.8.tgz#90059898802198ffd5ce035a2da0b9ad606069b4"
+  integrity sha512-m9FYUiIG2JdJaoG8EpU2wKC/b83vXKGIqvs/XoVe/kMbpnPZ3ZEYiBXlMOmjIt8j2C1FZ0Q8ZY72wIYoIT2bhA==
+  dependencies:
+    asap "~2.0.6"
+    csprng "~0.1.2"
+    faye-websocket "~0.9.1"
+    tough-cookie "~2.4.3"
+    tunnel-agent "~0.6.0"
+    uglifyjs-webpack-plugin "~0.4.6"
+
 shebang-command@^1.2.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/shebang-command/-/shebang-command-1.2.0.tgz#44aac65b695b03398968c39f363fee5deafdf1ea"
@@ -5609,6 +5613,11 @@ sort-keys@^2.0.0:
   integrity sha1-ZYU1WEhh7JfXMNbPQYIuH1ZoQSg=
   dependencies:
     is-plain-obj "^1.0.0"
+
+source-list-map@^2.0.0:
+  version "2.0.1"
+  resolved "https://registry.npmjs.org/source-list-map/-/source-list-map-2.0.1.tgz#3993bd873bfc48479cca9ea3a547835c7c154b34"
+  integrity sha512-qnQ7gVMxGNxsiL4lEuJwe/To8UnK7fAnmbGEEH8RpLouuKbeEm0lhbQVFIrNSuB+G7tVrAlVsZgETT5nljf+Iw==
 
 source-map-resolve@^0.5.0:
   version "0.5.2"
@@ -6099,7 +6108,7 @@ tsutils@^2.27.2:
   dependencies:
     tslib "^1.8.1"
 
-tunnel-agent@*, tunnel-agent@^0.6.0:
+tunnel-agent@*, tunnel-agent@^0.6.0, tunnel-agent@~0.6.0:
   version "0.6.0"
   resolved "https://registry.npmjs.org/tunnel-agent/-/tunnel-agent-0.6.0.tgz#27a5dea06b36b04a0a9966774b290868f0fc40fd"
   integrity sha1-J6XeoGs2sEoKmWZ3SykIaPD8QP0=
@@ -6179,6 +6188,16 @@ uglify-js@2.7.5:
     uglify-to-browserify "~1.0.0"
     yargs "~3.10.0"
 
+uglify-js@^2.8.29:
+  version "2.8.29"
+  resolved "https://registry.npmjs.org/uglify-js/-/uglify-js-2.8.29.tgz#29c5733148057bb4e1f75df35b7a9cb72e6a59dd"
+  integrity sha1-KcVzMUgFe7Th913zW3qcty5qWd0=
+  dependencies:
+    source-map "~0.5.1"
+    yargs "~3.10.0"
+  optionalDependencies:
+    uglify-to-browserify "~1.0.0"
+
 uglify-js@^3.1.4:
   version "3.4.9"
   resolved "https://registry.npmjs.org/uglify-js/-/uglify-js-3.4.9.tgz#af02f180c1207d76432e473ed24a28f4a782bae3"
@@ -6191,6 +6210,15 @@ uglify-to-browserify@~1.0.0:
   version "1.0.2"
   resolved "https://registry.npmjs.org/uglify-to-browserify/-/uglify-to-browserify-1.0.2.tgz#6e0924d6bda6b5afe349e39a6d632850a0f882b7"
   integrity sha1-bgkk1r2mta/jSeOabWMoUKD4grc=
+
+uglifyjs-webpack-plugin@~0.4.6:
+  version "0.4.6"
+  resolved "https://registry.npmjs.org/uglifyjs-webpack-plugin/-/uglifyjs-webpack-plugin-0.4.6.tgz#b951f4abb6bd617e66f63eb891498e391763e309"
+  integrity sha1-uVH0q7a9YX5m9j64kUmOORdj4wk=
+  dependencies:
+    source-map "^0.5.6"
+    uglify-js "^2.8.29"
+    webpack-sources "^1.0.1"
 
 uid-number@0.0.6:
   version "0.0.6"
@@ -6301,6 +6329,14 @@ webidl-conversions@^4.0.2:
   version "4.0.2"
   resolved "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-4.0.2.tgz#a855980b1f0b6b359ba1d5d9fb39ae941faa63ad"
   integrity sha512-YQ+BmxuTgd6UXZW3+ICGfyqRyHXVlD5GtQr5+qjiNW7bF0cqrzX500HVXPBOvgXb5YnzDd+h0zqyv61KUD7+Sg==
+
+webpack-sources@^1.0.1:
+  version "1.3.0"
+  resolved "https://registry.npmjs.org/webpack-sources/-/webpack-sources-1.3.0.tgz#2a28dcb9f1f45fe960d8f1493252b5ee6530fa85"
+  integrity sha512-OiVgSrbGu7NEnEvQJJgdSFPl2qWKkWq5lHMhgiToIiN9w34EBnjYzSYs+VbL5KoYiLNtFFa7BZIKxRED3I32pA==
+  dependencies:
+    source-list-map "^2.0.0"
+    source-map "~0.6.1"
 
 websocket-driver@>=0.5.1:
   version "0.7.0"

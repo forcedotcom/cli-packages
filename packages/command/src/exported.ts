@@ -13,12 +13,4 @@ import { TableOptions, UX } from './ux';
 
 core.Messages.importMessagesDirectory(__dirname);
 
-export {
-  SfdxCommand,
-  SfdxResult,
-  SfdxFlagsConfig,
-  core,
-  flags,
-  TableOptions,
-  UX
-};
+export { SfdxCommand, SfdxResult, SfdxFlagsConfig, core, flags, TableOptions, UX };

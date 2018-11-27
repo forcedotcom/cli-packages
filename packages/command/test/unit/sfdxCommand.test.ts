@@ -51,10 +51,7 @@ interface TestCommandMeta {
   cmdInstance: SfdxCommand; // the command instance props
 }
 // An object to keep track of what is set on the test command constructor and instance by SfdxCommand
-let testCommandMeta: TestCommandMeta = {
-  cmd: {} as typeof SfdxCommand,
-  cmdInstance: {} as SfdxCommand
-};
+let testCommandMeta: TestCommandMeta;
 
 // The test command
 class BaseTestCommand extends SfdxCommand {
@@ -114,10 +111,6 @@ describe('SfdxCommand', () => {
   beforeEach(() => {
     process.exitCode = 0;
 
-    testCommandMeta = {
-      cmd: {} as typeof SfdxCommand,
-      cmdInstance: {} as SfdxCommand
-    };
     UX_OUTPUT = cloneJson(UX_OUTPUT_BASE);
     configAggregatorCreate = $$.SANDBOX.stub(ConfigAggregator, 'create').returns(
       DEFAULT_INSTANCE_PROPS.configAggregator
@@ -126,12 +119,12 @@ describe('SfdxCommand', () => {
     $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns({ is: () => false });
 
     // Stub all UX methods to update the UX_OUTPUT object
-    $$.SANDBOX.stub(UX.prototype, 'log').callsFake((args: any[]) => UX_OUTPUT.log.push(args)); // tslint:disable-line:no-any
-    $$.SANDBOX.stub(UX.prototype, 'logJson').callsFake((args: any[]) => UX_OUTPUT.logJson.push(args)); // tslint:disable-line:no-any
-    $$.SANDBOX.stub(UX.prototype, 'error').callsFake((...args: any[]) => UX_OUTPUT.error.push(args)); // tslint:disable-line:no-any
-    $$.SANDBOX.stub(UX.prototype, 'errorJson').callsFake((args: any[]) => UX_OUTPUT.errorJson.push(args)); // tslint:disable-line:no-any
-    $$.SANDBOX.stub(UX.prototype, 'table').callsFake((args: any[]) => UX_OUTPUT.table.push(args)); // tslint:disable-line:no-any
-    $$.SANDBOX.stub(UX.prototype, 'warn').callsFake((args: any[]) => UX_OUTPUT.warn.push(args)); // tslint:disable-line:no-any
+    $$.SANDBOX.stub(UX.prototype, 'log').callsFake((args: string[]) => UX_OUTPUT.log.push(args));
+    $$.SANDBOX.stub(UX.prototype, 'logJson').callsFake((args: string[]) => UX_OUTPUT.logJson.push(args));
+    $$.SANDBOX.stub(UX.prototype, 'error').callsFake((...args: string[]) => UX_OUTPUT.error.push(args));
+    $$.SANDBOX.stub(UX.prototype, 'errorJson').callsFake((args: string[]) => UX_OUTPUT.errorJson.push(args));
+    $$.SANDBOX.stub(UX.prototype, 'table').callsFake((args: string[]) => UX_OUTPUT.table.push(args));
+    $$.SANDBOX.stub(UX.prototype, 'warn').callsFake((args: string[]) => UX_OUTPUT.warn.push(args));
 
     // Ensure BaseTestCommand['result'] is not defined before all tests
     BaseTestCommand.result = {};
@@ -143,31 +136,31 @@ describe('SfdxCommand', () => {
   });
 
   function verifyCmdFlags(flags: RequiredNonOptional<Dictionary<SfdxFlagDefinition>>) {
-    const _flags = Object.assign({}, DEFAULT_CMD_PROPS.flags, flags);
+    const merged = Object.assign({}, DEFAULT_CMD_PROPS.flags, flags);
     const numOfFlagsMessage = 'Number of flag definitions for the command should match';
-    expect(keysOf(testCommandMeta.cmd.flags).length, numOfFlagsMessage).to.equal(keysOf(_flags).length);
-    keysOf(_flags).forEach(key => {
+    expect(keysOf(testCommandMeta.cmd.flags).length, numOfFlagsMessage).to.equal(keysOf(merged).length);
+    keysOf(merged).forEach(key => {
       expect(testCommandMeta.cmd.flags, `test for flag: ${key}`)
         .to.have.property(key)
-        .and.include(_flags[key]);
+        .and.include(merged[key]);
     });
   }
 
   function verifyInstanceProps(props: Dictionary = {}) {
-    const _props = Object.assign({}, DEFAULT_INSTANCE_PROPS, props);
+    const merged = Object.assign({}, DEFAULT_INSTANCE_PROPS, props);
     keysOf(testCommandMeta.cmdInstance)
-      .filter(key => !!_props[key])
+      .filter(key => !!merged[key])
       .forEach(key => {
-        expect(testCommandMeta.cmdInstance[key], `test for instance prop: ${key}`).to.deep.equal(_props[key]);
+        expect(testCommandMeta.cmdInstance[key], `test for instance prop: ${key}`).to.deep.equal(merged[key]);
       });
 
     expect(testCommandMeta.cmdInstance['ux']).to.be.ok.and.be.instanceof(UX);
   }
 
   function verifyUXOutput(output = {}) {
-    const _output = Object.assign({}, UX_OUTPUT_BASE, output);
-    keysOf(_output).forEach(key => {
-      expect(UX_OUTPUT[key], `test UX output for ${key}()`).to.deep.equal(_output[key]);
+    const out = Object.assign({}, UX_OUTPUT_BASE, output);
+    keysOf(out).forEach(key => {
+      expect(UX_OUTPUT[key], `test UX output for ${key}()`).to.deep.equal(out[key]);
     });
   }
 

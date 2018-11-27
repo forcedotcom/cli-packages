@@ -29,7 +29,7 @@ export interface SfdxResult {
  * define a string array of keys to use as table columns.
  */
 export class Result implements SfdxResult {
-  public data: AnyJson;
+  public data!: AnyJson; // assigned in SfdxCommand._run
   public tableColumnData?: TableOptions;
   public ux!: UX; // assigned in SfdxCommand.init
 
@@ -89,24 +89,24 @@ export abstract class SfdxCommand extends Command {
   }
 
   // Set to true to add the "targetusername" flag to this command.
-  protected static supportsUsername: boolean = false;
+  protected static supportsUsername = false;
 
   // Set to true if this command MUST have a targetusername set, either via
   // a flag or by having a default.
-  protected static requiresUsername: boolean = false;
+  protected static requiresUsername = false;
 
   // Set to true to add the "targetdevhubusername" flag to this command.
-  protected static supportsDevhubUsername: boolean = false;
+  protected static supportsDevhubUsername = false;
 
   // Set to true if this command MUST have a targetdevhubusername set, either via
   // a flag or by having a default.
-  protected static requiresDevhubUsername: boolean = false;
+  protected static requiresDevhubUsername = false;
 
   // Set to true if this command MUST be run within a SFDX project.
-  protected static requiresProject: boolean = false;
+  protected static requiresProject = false;
 
   // Set to true if this command is deprecated.
-  // protected static deprecated: boolean = false;
+  // protected static deprecated = false;
 
   // Convenience property for simple command output table formating.
   protected static tableColumnData: string[];
@@ -148,7 +148,7 @@ export abstract class SfdxCommand extends Command {
   // The parsed varargs for easy reference by this command
   protected varargs?: JsonMap;
 
-  private isJson: boolean = false;
+  private isJson = false;
 
   public async _run<T>(): Promise<Optional<T>> {
     // If a result is defined for the command, use that.  Otherwise check for a
@@ -195,7 +195,10 @@ export abstract class SfdxCommand extends Command {
   protected async assignOrg(): Promise<void> {
     // Create an org from the username and set on this
     try {
-      this.org = await Org.create(this.flags.targetusername, this.configAggregator);
+      this.org = await Org.create({
+        aliasOrUsername: this.flags.targetusername,
+        aggregator: this.configAggregator
+      });
     } catch (err) {
       if (this.statics.requiresUsername) {
         if (err.name === 'NoUsername') {
@@ -210,7 +213,11 @@ export abstract class SfdxCommand extends Command {
   protected async assignHubOrg(): Promise<void> {
     // Create an org from the devhub username and set on this
     try {
-      this.hubOrg = await Org.create(this.flags.targetdevhubusername, this.configAggregator, true);
+      this.hubOrg = await Org.create({
+        aliasOrUsername: this.flags.targetdevhubusername,
+        aggregator: this.configAggregator,
+        isDevHub: true
+      });
     } catch (err) {
       // Throw an error if the command requires a devhub and there is no targetdevhubusername
       // flag set and no defaultdevhubusername set.

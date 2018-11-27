@@ -70,7 +70,7 @@ export class UX {
   /**
    * Do not directly construct instances of this class -- use {@link UX.create} instead.
    */
-  constructor(private logger: Logger, private isOutputEnabled: boolean = true, ux?: typeof cli) {
+  constructor(private logger: Logger, private isOutputEnabled = true, ux?: typeof cli) {
     this.cli = ux || cli;
   }
 
