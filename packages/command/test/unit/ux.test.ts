@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
-
 import { Logger } from '@salesforce/core';
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { Dictionary, Optional } from '@salesforce/ts-types';
+import { expect } from 'chai';
 import chalk from 'chalk';
 import cli from 'cli-ux';
 import { UX } from '../../src/ux';
@@ -326,37 +325,54 @@ describe('UX', () => {
     expect(response).to.equal(answer);
   });
 
-  it('startSpinner() should call action.start()', () => {
-    const ux = new UX($$.TEST_LOGGER, true, cli);
-    const start = $$.SANDBOX.stub(cli.action, 'start');
-    ux.startSpinner('test message');
-    expect(start.called).to.equal(true);
-  });
+  describe('spinner tests', () => {
+    it('startSpinner() should call action.start()', () => {
+      const ux = new UX($$.TEST_LOGGER, true, cli);
+      const start = $$.SANDBOX.stub(cli.action, 'start');
+      ux.startSpinner('test message');
+      expect(start.called).to.equal(true);
+    });
 
-  it('pauseSpinner() should call action.pause()', () => {
-    const ux = new UX($$.TEST_LOGGER, true, cli);
-    const pause = $$.SANDBOX.stub(cli.action, 'pause');
-    ux.pauseSpinner(() => {});
-    expect(pause.called).to.equal(true);
-  });
+    it("startSpinner() shouldn't call action.start()", () => {
+      const ux = new UX($$.TEST_LOGGER, false, cli);
+      const start = $$.SANDBOX.stub(cli.action, 'start');
+      ux.startSpinner('test message');
+      expect(start.called).to.equal(false);
+    });
 
-  it('getSpinnerStatus() and setSpinnerStatus() get and set the status on action', () => {
-    const ux = new UX($$.TEST_LOGGER, true, cli);
-    ux.cli.action.task = {
-      action: 'spinner',
-      status: 'old status',
-      active: true
-    };
-    expect(ux.getSpinnerStatus()).to.equal('old status');
-    ux.setSpinnerStatus('new status');
-    expect(ux.cli.action.status).to.equal('new status');
-  });
+    it('pauseSpinner() should call action.pause()', () => {
+      const ux = new UX($$.TEST_LOGGER, true, cli);
+      const pause = $$.SANDBOX.stub(cli.action, 'pause');
+      ux.pauseSpinner(() => {});
+      expect(pause.called).to.equal(true);
+    });
 
-  it('stopSpinner() should call action.stop()', () => {
-    const ux = new UX($$.TEST_LOGGER, true, cli);
-    const stop = $$.SANDBOX.stub(cli.action, 'stop');
-    ux.stopSpinner('test message');
-    expect(stop.called).to.equal(true);
+    it("pauseSpinner() shouldn't call action.pause()", () => {
+      const ux = new UX($$.TEST_LOGGER, false, cli);
+      const pause = $$.SANDBOX.stub(cli.action, 'pause');
+      ux.pauseSpinner(() => {});
+      expect(pause.called).to.equal(false);
+    });
+
+    it('getSpinnerStatus() and setSpinnerStatus() get and set the status on action', () => {
+      const ux = new UX($$.TEST_LOGGER, false, cli);
+      ux.cli.action.task = { action: 'spinner', status: 'old status', active: true };
+      expect(ux.getSpinnerStatus()).to.equal(undefined);
+    });
+
+    it('stopSpinner() should call action.stop()', () => {
+      const ux = new UX($$.TEST_LOGGER, true, cli);
+      const stop = $$.SANDBOX.stub(cli.action, 'stop');
+      ux.stopSpinner('test message');
+      expect(stop.called).to.equal(true);
+    });
+
+    it("stopSpinner() shouldn't call action.stop()", () => {
+      const ux = new UX($$.TEST_LOGGER, false, cli);
+      const stop = $$.SANDBOX.stub(cli.action, 'stop');
+      ux.stopSpinner('test message');
+      expect(stop.called).to.equal(false);
+    });
   });
 
   describe('warn()', () => {

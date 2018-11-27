@@ -17,8 +17,9 @@ import { TableOptions, UX } from './ux';
 Messages.importMessagesDirectory(__dirname);
 
 export interface SfdxResult {
+  data?: AnyJson;
   tableColumnData?: TableOptions;
-  display?: () => void;
+  display?: (this: SfdxResult) => void;
 }
 
 /**

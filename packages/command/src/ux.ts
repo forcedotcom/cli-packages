@@ -131,7 +131,9 @@ export class UX {
    * @param {string} message The message displayed to the user.
    */
   public startSpinner(message: string): void {
-    this.cli.action.start(message);
+    if (this.isOutputEnabled) {
+      this.cli.action.start(message);
+    }
   }
 
   /**
@@ -140,8 +142,10 @@ export class UX {
    * @param {string} icon The string displayed to the user.
    * @returns {T} The result returned by the passed in function.
    */
-  public pauseSpinner<T>(fn: () => T, icon?: string): T {
-    return this.cli.action.pause(fn, icon);
+  public pauseSpinner<T>(fn: () => T, icon?: string): Optional<T> {
+    if (this.isOutputEnabled) {
+      return this.cli.action.pause(fn, icon);
+    }
   }
 
   /**
@@ -149,7 +153,9 @@ export class UX {
    * @param {string} status The message displayed to the user.
    */
   public setSpinnerStatus(status?: string): void {
-    this.cli.action.status = status;
+    if (this.isOutputEnabled) {
+      this.cli.action.status = status;
+    }
   }
 
   /**
@@ -157,7 +163,9 @@ export class UX {
    * @returns {Optional<string>}
    */
   public getSpinnerStatus(): Optional<string> {
-    return this.cli.action.status;
+    if (this.isOutputEnabled) {
+      return this.cli.action.status;
+    }
   }
 
   /**
@@ -165,7 +173,9 @@ export class UX {
    * @param {string} message The message displayed to the user.
    */
   public stopSpinner(message?: string): void {
-    this.cli.action.stop(message);
+    if (this.isOutputEnabled) {
+      this.cli.action.stop(message);
+    }
   }
 
   /**
