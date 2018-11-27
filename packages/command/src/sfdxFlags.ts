@@ -9,20 +9,11 @@ import { flags as Flags } from '@oclif/command';
 import { EnumFlagOptions, IOptionFlag } from '@oclif/parser/lib/flags';
 import { Logger, Messages, sfdc, SfdxError } from '@salesforce/core';
 import { toNumber } from '@salesforce/kit';
-import {
-  Dictionary,
-  ensure,
-  isArray,
-  isFunction,
-  isString
-} from '@salesforce/ts-types';
+import { Dictionary, ensure, isArray, isFunction, isString } from '@salesforce/ts-types';
 import { URL } from 'url';
 
 Messages.importMessagesDirectory(__dirname);
-const messages: Messages = Messages.loadMessages(
-  '@salesforce/command',
-  'flags'
-);
+const messages: Messages = Messages.loadMessages('@salesforce/command', 'flags');
 
 export type SfdxFlagParser = (val: string) => string;
 
@@ -49,12 +40,7 @@ const FLAGS: Readonly<Dictionary<SfdxFlagDefinition>> = {
     longDescription: messages.getMessage('apiversionFlagLongDescription'),
     parse: (val: string) => {
       if (sfdc.validateApiVersion(val)) return val;
-      throw SfdxError.create(
-        '@salesforce/command',
-        'flags',
-        'InvalidApiVersionError',
-        [val]
-      );
+      throw SfdxError.create('@salesforce/command', 'flags', 'InvalidApiVersionError', [val]);
     },
     required: false,
     type: 'string'
@@ -81,9 +67,7 @@ const FLAGS: Readonly<Dictionary<SfdxFlagDefinition>> = {
   targetdevhubusername: {
     char: 'v',
     description: messages.getMessage('targetdevhubusernameFlagDescription'),
-    longDescription: messages.getMessage(
-      'targetdevhubusernameFlagLongDescription'
-    ),
+    longDescription: messages.getMessage('targetdevhubusernameFlagLongDescription'),
     required: false,
     type: 'string'
   },
@@ -106,21 +90,11 @@ export type SfdxFlag = SfdxFlagDefinition | string | boolean;
 // Consumers can turn on/off SFDX flags or override certain flags.
 export interface SfdxFlagsConfig extends Dictionary<SfdxFlag> {}
 
-function validateType(
-  isValid: boolean,
-  path: string,
-  flagType: string,
-  correct?: string
-) {
+function validateType(isValid: boolean, path: string, flagType: string, correct?: string) {
   if (isValid) {
     return path;
   }
-  throw SfdxError.create(
-    '@salesforce/command',
-    'flags',
-    'InvalidFlagTypeError',
-    [path, flagType, correct || '']
-  );
+  throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [path, flagType, correct || '']);
 }
 
 interface SfdxFlagValidator {
@@ -133,49 +107,24 @@ const FLAGTYPES: Readonly<Dictionary<SfdxFlagValidator>> = {
   },
   date: {
     parse: (val: string) =>
-      validateType(
-        !!Date.parse(val),
-        val,
-        'date',
-        ` ${messages.getMessage('FormattingMessageDate')}`
-      )
+      validateType(!!Date.parse(val), val, 'date', ` ${messages.getMessage('FormattingMessageDate')}`)
   },
   datetime: {
     parse: (val: string) =>
-      validateType(
-        !!Date.parse(val),
-        val,
-        'datetime',
-        ` ${messages.getMessage('FormattingMessageDate')}`
-      )
+      validateType(!!Date.parse(val), val, 'datetime', ` ${messages.getMessage('FormattingMessageDate')}`)
   },
   directory: {
-    parse: (val: string) =>
-      validateType(
-        sfdc.validatePathDoesNotContainInvalidChars(val),
-        val,
-        'directory'
-      )
+    parse: (val: string) => validateType(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'directory')
   },
   email: {
     parse: (val: string) => validateType(sfdc.validateEmail(val), val, 'email')
   },
   filepath: {
-    parse: (val: string) =>
-      validateType(
-        sfdc.validatePathDoesNotContainInvalidChars(val),
-        val,
-        'filepath'
-      )
+    parse: (val: string) => validateType(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'filepath')
   },
   id: {
     parse: (val: string) =>
-      validateType(
-        sfdc.validateSalesforceId(val),
-        val,
-        'id',
-        ` ${messages.getMessage('FormattingMessageId')}`
-      )
+      validateType(sfdc.validateSalesforceId(val), val, 'id', ` ${messages.getMessage('FormattingMessageId')}`)
   },
   number: {
     parse: (val: string) => validateType(isFinite(toNumber(val)), val, 'number')
@@ -194,12 +143,7 @@ const FLAGTYPES: Readonly<Dictionary<SfdxFlagValidator>> = {
       } catch (err) {
         isValid = false;
       }
-      return validateType(
-        !!isValid,
-        val,
-        'url',
-        ` ${messages.getMessage('FormattingMessageUrl')}`
-      );
+      return validateType(!!isValid, val, 'url', ` ${messages.getMessage('FormattingMessageUrl')}`);
     }
   }
 };
@@ -218,9 +162,7 @@ const FLAGTYPES: Readonly<Dictionary<SfdxFlagValidator>> = {
  * @returns {Flags.Input<any} The flag for the command.
  */
 function buildCustomFlag(flag: Flags.Output) {
-  return FLAGTYPES[flag.type]
-    ? Flags.build(flag)(FLAGTYPES[flag.type])
-    : Flags.build(flag)();
+  return FLAGTYPES[flag.type] ? Flags.build(flag)(FLAGTYPES[flag.type]) : Flags.build(flag)();
 }
 
 /**
@@ -235,30 +177,16 @@ function buildCustomFlag(flag: Flags.Output) {
  */
 function validateCustomFlag(flag: SfdxFlagDefinition, key: string) {
   if (!/^(?!(?:[-]|[0-9]*$))[a-z0-9-]+$/.test(key)) {
-    throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagName', [
-      key
-    ]);
+    throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagName', [key]);
   }
   if (!flag.description || !isString(flag.description)) {
-    throw SfdxError.create(
-      '@salesforce/command',
-      'flags',
-      'MissingOrInvalidFlagDescription',
-      [key]
-    );
+    throw SfdxError.create('@salesforce/command', 'flags', 'MissingOrInvalidFlagDescription', [key]);
   }
   if (flag.char && (flag.char.length !== 1 || !/[a-zA-Z]/.test(flag.char))) {
-    throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagChar', [
-      key
-    ]);
+    throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagChar', [key]);
   }
   if (flag.longDescription !== undefined && !isString(flag.longDescription)) {
-    throw SfdxError.create(
-      '@salesforce/command',
-      'flags',
-      'InvalidLongDescriptionFormat',
-      [key]
-    );
+    throw SfdxError.create('@salesforce/command', 'flags', 'InvalidLongDescriptionFormat', [key]);
   }
 }
 
@@ -335,18 +263,11 @@ export function buildSfdxFlags(
       if (FLAGS[key]) {
         flags[key] = buildFlag(key);
       } else {
-        throw SfdxError.create(
-          '@salesforce/command',
-          'flags',
-          'UnknownFlagError',
-          [key]
-        );
+        throw SfdxError.create('@salesforce/command', 'flags', 'UnknownFlagError', [key]);
       }
     } else {
       // Add the command-defined flag config
-      const flag = ensure(
-        FLAGS[key] ? Object.assign({}, FLAGS[key], val) : val
-      );
+      const flag = ensure(FLAGS[key] ? Object.assign({}, FLAGS[key], val) : val);
       flags[key] = buildFlag(flag, key);
     }
     return flags;

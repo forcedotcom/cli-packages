@@ -25,10 +25,7 @@ import { Logger, LoggerLevel } from '@salesforce/core';
 import { isArray, Optional } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import { cli, IPromptOptions } from 'cli-ux';
-import {
-  TableColumn,
-  TableOptions as OclifTableOptions
-} from 'cli-ux/lib/styled/table';
+import { TableColumn, TableOptions as OclifTableOptions } from 'cli-ux/lib/styled/table';
 
 /**
  * Utilities for interacting with terminal I/O.
@@ -49,10 +46,7 @@ export class UX {
   public static formatDeprecationWarning(def: DeprecationDefinition): string {
     let msg =
       def.messageOverride ||
-      `The ${def.type} "${
-        def.name
-      }" has been deprecated and will be removed in v${(def.version || 0) +
-        1}.0 or later.`;
+      `The ${def.type} "${def.name}" has been deprecated and will be removed in v${(def.version || 0) + 1}.0 or later.`;
     if (def.to) {
       msg += ` Use "${def.to}" instead.`;
     }
@@ -76,11 +70,7 @@ export class UX {
   /**
    * Do not directly construct instances of this class -- use {@link UX.create} instead.
    */
-  constructor(
-    private logger: Logger,
-    private isOutputEnabled: boolean = true,
-    ux?: typeof cli
-  ) {
+  constructor(private logger: Logger, private isOutputEnabled = true, ux?: typeof cli) {
     this.cli = ux || cli;
   }
 
@@ -123,10 +113,7 @@ export class UX {
    * @param {IPromptOptions} options A prompt option configuration.
    * @returns {Promise<string>} The user input to the prompt.
    */
-  public async prompt(
-    name: string,
-    options: IPromptOptions = {}
-  ): Promise<string> {
+  public async prompt(name: string, options: IPromptOptions = {}): Promise<string> {
     return this.cli.prompt(name, options);
   }
 
