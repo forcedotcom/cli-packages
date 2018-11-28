@@ -6,7 +6,7 @@
  */
 
 import { flags as Flags } from '@oclif/command';
-import { EnumFlagOptions, IOptionFlag } from '@oclif/parser/lib/flags';
+import { Definition, EnumFlagOptions, IBooleanFlag, IOptionFlag } from '@oclif/parser/lib/flags';
 import { Logger, Messages, sfdc, SfdxError } from '@salesforce/core';
 import { toNumber } from '@salesforce/kit';
 import { Dictionary, ensure, isArray, isFunction, isString } from '@salesforce/ts-types';
@@ -15,7 +15,12 @@ import { URL } from 'url';
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/command', 'flags');
 
-export type SfdxFlagParser = (val: string) => string;
+export type SfdxFlagDefinition = Dictionary<any>;
+
+export type SfdxFlag = SfdxFlagDefinition | string | boolean;
+
+// Consumers can turn on/off SFDX flags or override certain flags.
+export interface SfdxFlagsConfig extends Dictionary<SfdxFlag> {}
 
 const FLAGS: Readonly<Dictionary<SfdxFlagDefinition>> = {
   // required by all commands
@@ -79,99 +84,99 @@ const FLAGS: Readonly<Dictionary<SfdxFlagDefinition>> = {
   }
 };
 
-// TODO: Ideally we'd get the oclif flag type and ours perfectly married, but apparently that's not a simple task...
-// ...in particular, IFlag seems to only allow type property values of `boolean` or `option`.
-// export type SfdxFlagDefinition = Partial<Flags.IFlag<any>> & { longDescription: string };
-// tslint:disable-next-line:no-any
-export type SfdxFlagDefinition = Dictionary<any>;
-
-export type SfdxFlag = SfdxFlagDefinition | string | boolean;
-
-// Consumers can turn on/off SFDX flags or override certain flags.
-export interface SfdxFlagsConfig extends Dictionary<SfdxFlag> {}
-
-function validateType(isValid: boolean, path: string, flagType: string, correct?: string) {
+function validateFlag(isValid: boolean, path: string, flagType: string, correct?: string) {
   if (isValid) {
     return path;
   }
   throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [path, flagType, correct || '']);
 }
 
-interface SfdxFlagValidator {
-  parse: SfdxFlagParser;
+export type FlagBase = { longDescription?: string };
+export type BooleanFlag = Partial<IBooleanFlag<boolean>> & FlagBase;
+export type OptionFlag<T> = Partial<IOptionFlag<T>> & FlagBase;
+export type ArrayFlag = OptionFlag<string[]> & { delimiter?: string };
+export type DateFlag = OptionFlag<Date>;
+export type StringFlag = OptionFlag<string>;
+export type NumberFlag = OptionFlag<number>;
+export type UrlFlag = OptionFlag<URL>;
+
+export type FlagOptions<T> = Partial<(IBooleanFlag<boolean> | IOptionFlag<T>)> & FlagBase;
+
+function define<T, O extends FlagBase>(options: O, parse: (val: string) => T): Definition<T> {
+  return Flags.build(Object.assign(options, { parse }));
 }
 
-// type SfdxBooleanFlag = Partial<IBooleanFlag<boolean> & { longDescription: string }>;
-// type SfdxOptionFlag<T> = Partial<IOptionFlag<T> & { longDescription: string }>;
-
-// type SfdxFlagOptions<T> = Partial<(IBooleanFlag<boolean> | IOptionFlag<T>) & { longDescription: string }>;
-
-// const sfdxFlags = {
-//   json(): SfdxBooleanFlag {
-//     const jsonFlag = Flags.boolean({
-//       description: messages.getMessage('jsonFlagDescription'),
-//       required: false
-//     });
-//     return { ...jsonFlag, longDescription: messages.getMessage('jsonFlagLongDescription') };
-//   },
-//   array(options: SfdxOptionFlag<string[]> = {}): SfdxOptionFlag<string[]> {
-//     const parse = (val: string) => {
-//       validateType(!!val.split(','), val, 'array');
-//       return val.split(',');
-//     };
-//     const arrayFlag = Flags.build(Object.assign(options, { parse }))();
-//     return arrayFlag;
-//   },
-//   date(options: SfdxFlagOptions = {}) {},
-//   id(options: SfdxFlagOptions = {}) {},
-//   number(options: SfdxFlagOptions = {}) {},
-//   override(options: SfdxFlagOptions = {}) {}
-// };
-
-const FLAGTYPES: Readonly<Dictionary<SfdxFlagValidator>> = {
-  array: {
-    parse: (val: string) => validateType(!!val.split(','), val, 'array')
+export const flags = {
+  array(options: ArrayFlag): Definition<string[]> {
+    return define(options, (val: string) => {
+      return val.split(options.delimiter || ',');
+    });
   },
-  date: {
-    parse: (val: string) =>
-      validateType(!!Date.parse(val), val, 'date', ` ${messages.getMessage('FormattingMessageDate')}`)
+  date(options: DateFlag): Definition<Date> {
+    return define(options, (val: string) => {
+      const parsed = Date.parse(val);
+      validateFlag(!isNaN(parsed), val, 'date', ` ${messages.getMessage('FormattingMessageDate')}`);
+      return new Date(parsed);
+    });
   },
-  datetime: {
-    parse: (val: string) =>
-      validateType(!!Date.parse(val), val, 'datetime', ` ${messages.getMessage('FormattingMessageDate')}`)
+  datetime(options: DateFlag): Definition<Date> {
+    return define(options, (val: string) => {
+      const parsed = Date.parse(val);
+      validateFlag(!isNaN(parsed), val, 'datetime', ` ${messages.getMessage('FormattingMessageDate')}`);
+      return new Date(parsed);
+    });
   },
-  directory: {
-    parse: (val: string) => validateType(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'directory')
+  directory(options: StringFlag): Definition<string> {
+    return define(options, (val: string) => {
+      return validateFlag(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'directory');
+    });
   },
-  email: {
-    parse: (val: string) => validateType(sfdc.validateEmail(val), val, 'email')
+  email(options: StringFlag): Definition<string> {
+    return define(options, (val: string) => {
+      return validateFlag(sfdc.validateEmail(val), val, 'email');
+    });
   },
-  filepath: {
-    parse: (val: string) => validateType(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'filepath')
+  filepath(options: StringFlag): Definition<string> {
+    return define(options, (val: string) => {
+      return validateFlag(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'filepath');
+    });
   },
-  id: {
-    parse: (val: string) =>
-      validateType(sfdc.validateSalesforceId(val), val, 'id', ` ${messages.getMessage('FormattingMessageId')}`)
+  id(options: StringFlag): Definition<string> {
+    return define(options, (val: string) => {
+      return validateFlag(sfdc.validateSalesforceId(val), val, 'id', ` ${messages.getMessage('FormattingMessageId')}`);
+    });
   },
-  number: {
-    parse: (val: string) => validateType(isFinite(toNumber(val)), val, 'number')
+  // TODO
+  // override(options: ...) { },
+  number(options: NumberFlag): Definition<number> {
+    return define(options, (val: string) => {
+      const parsed = toNumber(val);
+      validateFlag(isFinite(parsed), val, 'number');
+      return parsed;
+    });
   },
-  time: {
-    parse: (val: string) => {
+  json(): BooleanFlag {
+    const jsonFlag = Flags.boolean({
+      description: messages.getMessage('jsonFlagDescription'),
+      required: false
+    });
+    return { ...jsonFlag, longDescription: messages.getMessage('jsonFlagLongDescription') };
+  },
+  time(options: DateFlag): Definition<Date> {
+    return define(options, (val: string) => {
       const dateVal = new Date(`2000-01-02 ${val}`);
-      return validateType(!!Date.parse(dateVal.toDateString()), val, 'time');
-    }
+      validateFlag(!isNaN(Date.parse(dateVal.toDateString())), val, 'time');
+      return dateVal;
+    });
   },
-  url: {
-    parse: (val: string) => {
-      let isValid;
+  url(options: UrlFlag): Definition<URL> {
+    return define(options, (val: string) => {
       try {
-        isValid = new URL(val);
+        return new URL(val);
       } catch (err) {
-        isValid = false;
+        throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [val, 'url', '']);
       }
-      return validateType(!!isValid, val, 'url', ` ${messages.getMessage('FormattingMessageUrl')}`);
-    }
+    });
   }
 };
 
