@@ -21,22 +21,14 @@ import {
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { cloneJson, isEmpty } from '@salesforce/kit';
 import { stubInterface } from '@salesforce/ts-sinon';
-import {
-  Dictionary,
-  ensureJsonMap,
-  JsonArray,
-  JsonMap,
-  keysOf,
-  Optional,
-  RequiredNonOptional
-} from '@salesforce/ts-types';
+import { Dictionary, ensureJsonMap, JsonArray, JsonMap, keysOf, Optional } from '@salesforce/ts-types';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import chalk from 'chalk';
 import { join } from 'path';
 import { SinonStub } from 'sinon';
 import { SfdxCommand, SfdxResult } from '../../src/sfdxCommand';
-import { SfdxFlagDefinition, SfdxFlagsConfig } from '../../src/sfdxFlags';
+import { flags, FlagsConfig } from '../../src/sfdxFlags';
 import { UX } from '../../src/ux';
 
 chalk.enabled = false;
@@ -56,8 +48,8 @@ let testCommandMeta: TestCommandMeta;
 // The test command
 class BaseTestCommand extends SfdxCommand {
   public static output: string | JsonArray = 'default test output';
-  public static flagsConfig: SfdxFlagsConfig = {
-    flag1: { char: 'f', type: 'string', description: 'my desc' }
+  public static flagsConfig: FlagsConfig = {
+    flag1: flags.string({ char: 'f', description: 'my desc' })
   };
   public static result: Dictionary;
   protected get statics(): typeof BaseTestCommand {
@@ -131,12 +123,13 @@ describe('SfdxCommand', () => {
 
     // Ensure BaseTestCommand.flagsConfig is returned to base state
     BaseTestCommand.flagsConfig = {
-      flag1: { char: 'f', type: 'string', description: 'my desc' }
+      flag1: flags.string({ char: 'f', description: 'my desc' })
     };
   });
 
-  function verifyCmdFlags(flags: RequiredNonOptional<Dictionary<SfdxFlagDefinition>>) {
-    const merged = Object.assign({}, DEFAULT_CMD_PROPS.flags, flags);
+  // tslint:disable-next-line:no-any
+  function verifyCmdFlags(verifications: Dictionary<any>) {
+    const merged = Object.assign({}, DEFAULT_CMD_PROPS.flags, verifications);
     const numOfFlagsMessage = 'Number of flag definitions for the command should match';
     expect(keysOf(testCommandMeta.cmd.flags).length, numOfFlagsMessage).to.equal(keysOf(merged).length);
     keysOf(merged).forEach(key => {
@@ -321,7 +314,7 @@ describe('SfdxCommand', () => {
 
   it('should add an SFDX flag when enabled from flagsConfig', async () => {
     class TestCommand extends BaseTestCommand {}
-    TestCommand.flagsConfig.verbose = true;
+    TestCommand.flagsConfig.verbose = flags.builtin();
 
     // Run the command
     const output = await TestCommand.run([]);
@@ -878,14 +871,12 @@ describe('SfdxCommand', () => {
       url: ` ${messages.getMessage('FormattingMessageUrl')}`
     };
 
-    async function validateFlag(flagType: string, val: string, err: boolean) {
+    async function validateFlag(flagType: keyof typeof flags, val: string, err: boolean) {
+      const create = flags[flagType];
       class TestCommand extends BaseTestCommand {
         public static flagsConfig = {
-          doflag: {
-            char: 'i',
-            type: flagType,
-            description: 'my desc'
-          }
+          // @ts-ignore TODO: why isn't `create` invokable?!
+          doflag: create({ char: 'i', description: 'my desc' })
         };
       }
       const output = await TestCommand.run(['--doflag', val]);
@@ -995,11 +986,12 @@ describe('SfdxCommand', () => {
     it('should validate longDescription is string', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
-        myflag: {
+        myflag: flags.string({
           char: 'm',
+          // @ts-ignore ignore invalid longDescription value
           longDescription: false,
           description: 'my desc'
-        }
+        })
       };
 
       const output = await TestCommand.run(['--myflag', 'input']);
@@ -1009,9 +1001,8 @@ describe('SfdxCommand', () => {
     it('should validate description is defined', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
-        myflag: {
-          char: 'm'
-        }
+        // @ts-ignore ignore error about not providing description
+        myflag: flags.string({ char: 'm' })
       };
       const output = await TestCommand.run(['--myflag', 'input']);
       validateFlagAttributes(output, 'MissingOrInvalidFlagDescription', 'myflag');
@@ -1020,10 +1011,11 @@ describe('SfdxCommand', () => {
     it('should validate char length is one', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
-        myflag: {
+        myflag: flags.string({
+          // @ts-ignore ignore invalid char value length
           char: 'foo',
           description: 'bar'
-        }
+        })
       };
       const output = await TestCommand.run(['--myflag', 'input']);
       validateFlagAttributes(output, 'InvalidFlagChar', 'myflag');
@@ -1032,10 +1024,8 @@ describe('SfdxCommand', () => {
     it('should validate char is alphabetical', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
-        myflag: {
-          char: '5',
-          description: 'bar'
-        }
+        // @ts-ignore ignore invalid char value
+        myflag: flags.string({ char: '5', description: 'bar' })
       };
       const output = await TestCommand.run(['--myflag', 'input']);
       validateFlagAttributes(output, 'InvalidFlagChar', 'myflag');
@@ -1068,11 +1058,10 @@ describe('SfdxCommand', () => {
     it('should validate that undefined is not a valid flag type value', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
-        myflag: {
+        myflag: flags.number({
           char: 'm',
-          type: 'number',
           description: 'my desc'
-        }
+        })
       };
       // @ts-ignore Allow undefined array value against the compiler spec to test underlying engine
       const output = await TestCommand.run(['--myflag', undefined]);
@@ -1158,5 +1147,33 @@ describe('format', () => {
 
     const config = stubInterface<IConfig>($$.SANDBOX);
     expect(new TestCommand([], config).format(sfdxError)).to.deep.equal(expectedFormat);
+  });
+
+  it('should support all possible flag types', async () => {
+    let booleanValue: Optional<boolean>;
+
+    class FlagsTestCommand extends BaseTestCommand {
+      public static flagsConfig: FlagsConfig = {
+        boolean: flags.boolean({ char: 'f', description: 'foo' }),
+        // TODO: add remaining oclif types
+        array: flags.array({ description: 'woot' }),
+        email: flags.email({ description: 'some email' }),
+        // TODO: add remaining sfdx types
+        apiversion: flags.builtin()
+        // TODO: add remaining builtin types
+      };
+
+      public async run(): Promise<string | JsonArray> {
+        booleanValue = this.flags.boolean;
+        return 'done';
+      }
+    }
+
+    const config = stubInterface<IConfig>($$.SANDBOX);
+    const cmd = new FlagsTestCommand(['--boolean'], config);
+    await cmd.run();
+
+    expect(booleanValue).to.be.true;
+    // TODO: test all the flags
   });
 });

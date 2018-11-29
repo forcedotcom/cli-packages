@@ -6,302 +6,358 @@
  */
 
 import { flags as Flags } from '@oclif/command';
-import { Definition, EnumFlagOptions, IBooleanFlag, IOptionFlag } from '@oclif/parser/lib/flags';
+import { EnumFlagOptions, IBooleanFlag, IFlag, IOptionFlag } from '@oclif/parser/lib/flags';
 import { Logger, Messages, sfdc, SfdxError } from '@salesforce/core';
 import { toNumber } from '@salesforce/kit';
-import { Dictionary, ensure, isArray, isFunction, isString } from '@salesforce/ts-types';
+import { definiteEntriesOf, hasString, isKeyOf, isString, Optional } from '@salesforce/ts-types';
 import { URL } from 'url';
 
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/command', 'flags');
 
-export type SfdxFlagDefinition = Dictionary<any>;
+export namespace flags {
+  export type Array = Option<string[]> & { delimiter?: string };
+  export type Base<T> = Partial<IFlag<T>> & Describable;
+  export type Boolean = Partial<IBooleanFlag<boolean>> & flags.Base<boolean>;
+  export type Builtin = {};
+  export type Describable = { description: string; longDescription?: string };
+  export type DateTime = Option<Date>;
+  export type Enum = Partial<EnumFlagOptions<Optional<string>>> & Describable;
+  export type Number = Option<number>;
+  export type Option<T> = Partial<IOptionFlag<Optional<T>>> & flags.Base<Optional<T>>;
+  export type String = Option<string>;
+  export type Url = Option<URL>;
+}
 
-export type SfdxFlag = SfdxFlagDefinition | string | boolean;
+const requiredBuiltinFlags = {
+  json(): flags.Boolean {
+    return {
+      ...Flags.boolean(),
+      description: messages.getMessage('jsonFlagDescription'),
+      longDescription: messages.getMessage('jsonFlagLongDescription')
+    };
+  },
 
-// Consumers can turn on/off SFDX flags or override certain flags.
-export interface SfdxFlagsConfig extends Dictionary<SfdxFlag> {}
-
-const FLAGS: Readonly<Dictionary<SfdxFlagDefinition>> = {
-  // required by all commands
-  json: {
-    description: messages.getMessage('jsonFlagDescription'),
-    longDescription: messages.getMessage('jsonFlagLongDescription'),
-    required: false,
-    type: 'boolean'
-  },
-  loglevel: {
-    description: messages.getMessage('loglevelFlagDescription'),
-    longDescription: messages.getMessage('loglevelFlagLongDescription'),
-    required: false,
-    options: Logger.LEVEL_NAMES,
-    type: 'enum'
-  },
-  // supported by SOME commands
-  // to include in --help, register flag in flagsConfig, eg { verbose: true }; include
-  // description and longDescription to override default descriptions
-  apiversion: {
-    description: messages.getMessage('apiversionFlagDescription'),
-    longDescription: messages.getMessage('apiversionFlagLongDescription'),
-    parse: (val: string) => {
-      if (sfdc.validateApiVersion(val)) return val;
-      throw SfdxError.create('@salesforce/command', 'flags', 'InvalidApiVersionError', [val]);
-    },
-    required: false,
-    type: 'string'
-  },
-  concise: {
-    description: messages.getMessage('conciseFlagDescription'),
-    longDescription: messages.getMessage('conciseFlagLongDescription'),
-    required: false,
-    type: 'boolean'
-  },
-  quiet: {
-    description: messages.getMessage('quietFlagDescription'),
-    longDescription: messages.getMessage('quietFlagLongDescription'),
-    required: false,
-    type: 'boolean'
-  },
-  targetusername: {
-    char: 'u',
-    description: messages.getMessage('targetusernameFlagDescription'),
-    longDescription: messages.getMessage('targetusernameFlagLongDescription'),
-    required: false,
-    type: 'string'
-  },
-  targetdevhubusername: {
-    char: 'v',
-    description: messages.getMessage('targetdevhubusernameFlagDescription'),
-    longDescription: messages.getMessage('targetdevhubusernameFlagLongDescription'),
-    required: false,
-    type: 'string'
-  },
-  verbose: {
-    description: messages.getMessage('verboseFlagDescription'),
-    longDescription: messages.getMessage('verboseFlagLongDescription'),
-    required: false,
-    type: 'boolean'
+  loglevel(): flags.String {
+    return build(
+      {
+        options: Logger.LEVEL_NAMES,
+        required: false,
+        description: messages.getMessage('loglevelFlagDescription'),
+        longDescription: messages.getMessage('loglevelFlagLongDescription')
+      },
+      (val: string) => {
+        if (Logger.LEVEL_NAMES.includes(val)) return val;
+        throw SfdxError.create('@salesforce/command', 'flags', 'InvalidLoggerLevelError', [val]);
+      }
+    );
   }
 };
 
-function validateFlag(isValid: boolean, path: string, flagType: string, correct?: string) {
-  if (isValid) {
-    return path;
+const builtinFlags = {
+  apiversion(): flags.String {
+    return build(
+      {
+        description: messages.getMessage('apiversionFlagDescription'),
+        longDescription: messages.getMessage('apiversionFlagLongDescription')
+      },
+      (val: string) => {
+        if (sfdc.validateApiVersion(val)) return val;
+        throw SfdxError.create('@salesforce/command', 'flags', 'InvalidApiVersionError', [val]);
+      }
+    );
+  },
+
+  concise(): flags.Boolean {
+    return merge(Flags.boolean(), {
+      description: messages.getMessage('conciseFlagDescription'),
+      longDescription: messages.getMessage('conciseFlagLongDescription')
+    });
+  },
+
+  quiet(): flags.Boolean {
+    return merge(Flags.boolean(), {
+      description: messages.getMessage('quietFlagDescription'),
+      longDescription: messages.getMessage('quietFlagLongDescription')
+    });
+  },
+
+  targetdevhubusername(): flags.String {
+    return merge(Flags.build({ char: 'v' })(), {
+      description: messages.getMessage('targetdevhubusernameFlagDescription'),
+      longDescription: messages.getMessage('targetdevhubusernameFlagLongDescription')
+    });
+  },
+
+  targetusername(): flags.String {
+    return merge(Flags.build({ char: 'u' })(), {
+      description: messages.getMessage('targetusernameFlagDescription'),
+      longDescription: messages.getMessage('targetusernameFlagLongDescription')
+    });
+  },
+
+  verbose(): flags.Boolean {
+    return merge(Flags.boolean(), {
+      description: messages.getMessage('verboseFlagDescription'),
+      longDescription: messages.getMessage('verboseFlagLongDescription')
+    });
   }
-  throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [path, flagType, correct || '']);
+};
+
+function validateValue(isValid: boolean, value: string, flagType: string, correct?: string) {
+  if (isValid) return value;
+  throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [value, flagType, correct || '']);
 }
 
-export type FlagBase = { longDescription?: string };
-export type BooleanFlag = Partial<IBooleanFlag<boolean>> & FlagBase;
-export type OptionFlag<T> = Partial<IOptionFlag<T>> & FlagBase;
-export type ArrayFlag = OptionFlag<string[]> & { delimiter?: string };
-export type DateFlag = OptionFlag<Date>;
-export type StringFlag = OptionFlag<string>;
-export type NumberFlag = OptionFlag<number>;
-export type UrlFlag = OptionFlag<URL>;
+export type FlagsConfig = {
+  [key: string]: Optional<flags.Base<unknown> | flags.Builtin>;
 
-export type FlagOptions<T> = Partial<(IBooleanFlag<boolean> | IOptionFlag<T>)> & FlagBase;
+  /**
+   * TODO
+   */
+  apiversion?: flags.Builtin;
 
-function define<T, O extends FlagBase>(options: O, parse: (val: string) => T): Definition<T> {
-  return Flags.build(Object.assign(options, { parse }));
+  /**
+   * TODO
+   */
+  concise?: flags.Builtin;
+
+  /**
+   * TODO
+   */
+  quiet?: flags.Builtin;
+
+  /**
+   * TODO
+   */
+  targetdevhubusername?: flags.Builtin;
+
+  /**
+   * TODO
+   */
+  targetusername?: flags.Builtin;
+
+  /**
+   * TODO
+   */
+  verbose?: flags.Builtin;
+};
+
+function merge<T>(flag: IFlag<T>, describable: flags.Describable): flags.Base<T> {
+  return {
+    ...flag,
+    description: describable.description,
+    longDescription: describable.longDescription
+  };
+}
+
+function build<T>(options: flags.Option<T>, parse: (val: string) => T): flags.Option<T> {
+  return merge(Flags.build(Object.assign(options, { parse }))(), options);
 }
 
 export const flags = {
-  array(options: ArrayFlag): Definition<string[]> {
-    return define(options, (val: string) => {
+  // oclif
+
+  boolean(options: flags.Boolean): flags.Boolean {
+    return merge(Flags.boolean(options), options);
+  },
+
+  // TODO: work out the typings for this beast
+  // enum(options: flags.Enum): flags.Enum {
+  //   return merge(Flags.enum(options), options);
+  // },
+
+  // TODO: does it make sense to require description and longDescription here?  make sure we test this out...
+  help(options: flags.Boolean): flags.Boolean {
+    return merge(Flags.help(options), options);
+  },
+
+  integer(options: flags.Number): flags.Number {
+    return merge(Flags.integer(options), options);
+  },
+
+  option<T>(options: { parse: (val: string, context: unknown) => T } & flags.Option<T>): flags.Option<T> {
+    return merge(Flags.option(options), options);
+  },
+
+  string(options: flags.String): flags.String {
+    return merge(Flags.string(options), options);
+  },
+
+  // sfdx
+
+  /**
+   * A delimited list of strings with the delimiter defaulting to `,`, e.g., "one,two,three".
+   */
+  array(options: flags.Array): flags.Array {
+    return build(options, (val: string) => {
       return val.split(options.delimiter || ',');
     });
   },
-  date(options: DateFlag): Definition<Date> {
-    return define(options, (val: string) => {
+
+  /**
+   * A valid date, e.g., "01-02-2000" or "01/02/2000 01:02:34".
+   */
+  date(options: flags.DateTime): flags.DateTime {
+    return build(options, (val: string) => {
       const parsed = Date.parse(val);
-      validateFlag(!isNaN(parsed), val, 'date', ` ${messages.getMessage('FormattingMessageDate')}`);
+      validateValue(!isNaN(parsed), val, 'date', ` ${messages.getMessage('FormattingMessageDate')}`);
       return new Date(parsed);
     });
   },
-  datetime(options: DateFlag): Definition<Date> {
-    return define(options, (val: string) => {
+
+  /**
+   * A valid datetime, e.g., "01-02-2000" or "01/02/2000 01:02:34".
+   */
+  datetime(options: flags.DateTime): flags.DateTime {
+    return build(options, (val: string) => {
       const parsed = Date.parse(val);
-      validateFlag(!isNaN(parsed), val, 'datetime', ` ${messages.getMessage('FormattingMessageDate')}`);
+      validateValue(!isNaN(parsed), val, 'datetime', ` ${messages.getMessage('FormattingMessageDate')}`);
       return new Date(parsed);
     });
   },
-  directory(options: StringFlag): Definition<string> {
-    return define(options, (val: string) => {
-      return validateFlag(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'directory');
+
+  /**
+   * **See** [@salesforce/core#sfdc.validatePathDoesNotContainInvalidChars](https://forcedotcom.github.io/sfdx-core/globals.html#validatepathdoesnotcontaininvalidchars), e.g. "this/is/my/path".
+   */
+  directory(options: flags.String): flags.String {
+    return build(options, (val: string) => {
+      return validateValue(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'directory');
     });
   },
-  email(options: StringFlag): Definition<string> {
-    return define(options, (val: string) => {
-      return validateFlag(sfdc.validateEmail(val), val, 'email');
+
+  /**
+   * **See** [@salesforce/core#sfdc.validateEmail](https://forcedotcom.github.io/sfdx-core/globals.html#validateemail), e.g., "me@my.org".
+   */
+  email(options: flags.String): flags.String {
+    return build(options, (val: string) => {
+      return validateValue(sfdc.validateEmail(val), val, 'email');
     });
   },
-  filepath(options: StringFlag): Definition<string> {
-    return define(options, (val: string) => {
-      return validateFlag(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'filepath');
+
+  /**
+   * **See** [@salesforce/core#sfdc.validatePathDoesNotContainInvalidChars](https://forcedotcom.github.io/sfdx-core/globals.html#validatepathdoesnotcontaininvalidchars), e.g. "this/is/my/path".
+   */
+  filepath(options: flags.String): flags.String {
+    return build(options, (val: string) => {
+      return validateValue(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'filepath');
     });
   },
-  id(options: StringFlag): Definition<string> {
-    return define(options, (val: string) => {
-      return validateFlag(sfdc.validateSalesforceId(val), val, 'id', ` ${messages.getMessage('FormattingMessageId')}`);
+
+  /**
+   * **See** [@salesforce/core#sfdc.validateSalesforceId](https://forcedotcom.github.io/sfdx-core/globals.html#validatesalesforceid), e.g., "00Dxxxxxxxxxxxx".
+   */
+  id(options: flags.String): flags.String {
+    return build(options, (val: string) => {
+      return validateValue(sfdc.validateSalesforceId(val), val, 'id', ` ${messages.getMessage('FormattingMessageId')}`);
     });
   },
-  // TODO
-  // override(options: ...) { },
-  number(options: NumberFlag): Definition<number> {
-    return define(options, (val: string) => {
+
+  /**
+   * An integer or floating point number, e.g., "42".
+   */
+  number(options: flags.Number): flags.Number {
+    return build(options, (val: string) => {
       const parsed = toNumber(val);
-      validateFlag(isFinite(parsed), val, 'number');
+      validateValue(isFinite(parsed), val, 'number');
       return parsed;
     });
   },
-  json(): BooleanFlag {
-    const jsonFlag = Flags.boolean({
-      description: messages.getMessage('jsonFlagDescription'),
-      required: false
-    });
-    return { ...jsonFlag, longDescription: messages.getMessage('jsonFlagLongDescription') };
-  },
-  time(options: DateFlag): Definition<Date> {
-    return define(options, (val: string) => {
+
+  /**
+   * A valid time, e.g., "01:02:03".
+   */
+  time(options: flags.DateTime): flags.DateTime {
+    return build(options, (val: string) => {
       const dateVal = new Date(`2000-01-02 ${val}`);
-      validateFlag(!isNaN(Date.parse(dateVal.toDateString())), val, 'time');
+      validateValue(!isNaN(Date.parse(dateVal.toDateString())), val, 'time');
       return dateVal;
     });
   },
-  url(options: UrlFlag): Definition<URL> {
-    return define(options, (val: string) => {
+
+  /**
+   * A valid url, e.g., "http://www.salesforce.com".
+   */
+  url(options: flags.Url): flags.Url {
+    return build(options, (val: string) => {
       try {
         return new URL(val);
       } catch (err) {
         throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [val, 'url', '']);
       }
     });
+  },
+
+  // builtins
+
+  /**
+   * TODO
+   */
+  builtin(options: flags.Builtin = {}): flags.Builtin {
+    // type='builtin' is added here as an internal discriminator used by buildSfdxFlags
+    return { ...options, type: 'builtin' };
   }
 };
 
 /**
- * Builds a custom flag; parses and validates Salesforce supported flag types. E.g., { type: 'filepath' }. These include:
- *      1. array: a comma-separated list of strings, E.g., "one,two,three"
- *      2. date, datetime: a valid date, E.g., "01-02-2000" or "01/02/2000 01:02:34"
- *      3. directory, filepath: see {SfdxUtil.validatePathDoesNotContainInvalidChars}, E.g. "this/is/my/path"
- *      4. email: see {SfdxUtil.validateEmail}, E.g., "me@my.org"
- *      5. id: see {SfdxUtil.validateSalesforceId}, E.g., "00Dxxxxxxxxxxxx"
- *      6. number: an integer or floating point number, E.g., "42"
- *      7. time: a valid time, E.g., "01:02:03"
- *      8. url: a valid url, E.g., "http://www.salesforce.com"
- * @param {Flags.Output} flag The flag configuration.
- * @returns {Flags.Input<any} The flag for the command.
- */
-function buildCustomFlag(flag: Flags.Output) {
-  return FLAGTYPES[flag.type] ? Flags.build(flag)(FLAGTYPES[flag.type]) : Flags.build(flag)();
-}
-
-/**
  * Validate the custom flag configuration. This includes:
- *      1. The flag name is in all lowercase.
- *      2. A string description is provided.
- *      3. If a char attribute is provided, it is one alphabetical character in length
- *      4. If a long description is provided, it is a string
+ *
+ * 1. The flag name is in all lowercase.
+ * 2. A string description is provided.
+ * 3. If a char attribute is provided, it is one alphabetical character in length.
+ * 4. If a long description is provided, it is a string.
+ *
  * @param {SfdxFlagDefinition} flag The flag configuration.
  * @param {string} key The flag name.
  * @throws SfdxError If the criteria is not meet.
  */
-function validateCustomFlag(flag: SfdxFlagDefinition, key: string) {
+function validateCustomFlag<T>(key: string, flag: flags.Base<T>): flags.Base<T> {
   if (!/^(?!(?:[-]|[0-9]*$))[a-z0-9-]+$/.test(key)) {
     throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagName', [key]);
-  }
-  if (!flag.description || !isString(flag.description)) {
-    throw SfdxError.create('@salesforce/command', 'flags', 'MissingOrInvalidFlagDescription', [key]);
   }
   if (flag.char && (flag.char.length !== 1 || !/[a-zA-Z]/.test(flag.char))) {
     throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagChar', [key]);
   }
+  if (!flag.description || !isString(flag.description)) {
+    throw SfdxError.create('@salesforce/command', 'flags', 'MissingOrInvalidFlagDescription', [key]);
+  }
   if (flag.longDescription !== undefined && !isString(flag.longDescription)) {
     throw SfdxError.create('@salesforce/command', 'flags', 'InvalidLongDescriptionFormat', [key]);
   }
+  return flag;
 }
-
-/**
- *  Build a flag, taking either the name of an SFDX flag or a flag definition.
- *  Uses the type in the definition if there is a builder for it, otherwise
- *  it builds a custom flag.
- * @param {string | SfdxFlagsConfig} flag The name of an SFDX flag or a flag configuration.
- * @param {string} [key] The flag name.
- * @returns {Flags.Input<any} The flag for the command.
- */
-function buildFlag(flag: string | SfdxFlagDefinition, key?: string) {
-  const f = isString(flag) ? ensure(FLAGS[flag]) : flag;
-  // Validate custom flags only; SFDX flags unnecessary
-  if (key) {
-    validateCustomFlag(f, key);
-  }
-  switch (f.type) {
-    case 'boolean':
-      return Flags.boolean(f);
-    case 'enum':
-      return isEnumFlag(f) ? Flags.enum(f) : buildCustomFlag(f);
-    case 'option':
-      return isOptionFlag(f) ? Flags.option(f) : buildCustomFlag(f);
-    case 'string':
-      return Flags.string(f);
-    default:
-      return buildCustomFlag(f);
-  }
-}
-
-// tslint:disable-next-line:no-any
-const isEnumFlag = (f: SfdxFlagDefinition): f is EnumFlagOptions<any> => {
-  return f.type === 'enum' && isArray(f.options);
-};
-
-// tslint:disable-next-line:no-any
-const isOptionFlag = (f: SfdxFlagDefinition): f is IOptionFlag<any> => {
-  return f.type === 'option' && isFunction(f.parse);
-};
 
 /**
  * Builds flags for a command given a configuration object.  Supports the following use cases:
  *     1. Enabling common SFDX flags. E.g., { verbose: true }
- *     2. Disabling common SFDX flags. E.g., { apiversion: false }
- *     3. Overriding common SFDX flags.  E.g., { targetusername: { required: true } }
- *     4. Defining typed flags.  E.g., { myFlag: { char: '-m', type: 'array' }}
- *     5. Defining oclif flags.  E.g., { myFlag: Flags.boolean({ char: '-f' }) }
- *     6. Defining custom flag types.  E.g., { myCustomFlag: { parse: (val) => parseInt(val, 10) }}
+ *     4. Defining typed flags. E.g., { myFlag: Flags.array({ char: '-a' }) }
+ *     4. Defining custom typed flags. E.g., { myFlag: Flags.custom({ parse: (val) => parseInt(val, 10) }) }
  *
- * @param {SfdxFlagsConfig} flagsConfig The configuration object for a flag.  @see {@link SfdxFlagsConfig}
- * @returns {Flags.Input<any} The flags for the command.
+ * @param {FlagsConfig} flagsConfig The configuration object for a flag.  @see {@link FlagsConfig}
+ * @returns {Flags.Output} The flags for the command.
  */
-export function buildSfdxFlags(
-  flagsConfig: SfdxFlagsConfig = {}
-  // tslint:disable-next-line no-any (matches oclif)
-): Flags.Input<any> {
-  // The default flag options for SFDX commands.
-  // tslint:disable-next-line no-any (matches oclif)
-  const DEFAULT_SFDX_FLAGS: Flags.Input<any> = {
-    json: buildFlag('json'),
-    loglevel: buildFlag('loglevel')
-  };
+export function buildSfdxFlags(flagsConfig: FlagsConfig): Flags.Output {
+  const output: Flags.Output = {};
 
-  return Object.entries(flagsConfig).reduce((flags, [key, val]) => {
-    // All commands MUST support json and loglevel flags
-    if (key === 'json' || key === 'loglevel') {
-      return flags;
-    } else if (val === false) {
-      // Turn off the flag
-      delete flags[key];
-    } else if (val === true) {
-      // Turn on the flag if it's a known SFDX flag
-      if (FLAGS[key]) {
-        flags[key] = buildFlag(key);
-      } else {
-        throw SfdxError.create('@salesforce/command', 'flags', 'UnknownFlagError', [key]);
+  // Required flag options for all SFDX commands
+  output.json = requiredBuiltinFlags.json();
+  output.loglevel = requiredBuiltinFlags.loglevel();
+
+  // Process configuration for custom and builtin flags
+  definiteEntriesOf(flagsConfig).forEach(([key, flag]) => {
+    if (isBuiltin(flag)) {
+      if (isKeyOf(builtinFlags, key)) {
+        output[key] = builtinFlags[key];
       }
+      throw SfdxError.create('@salesforce/command', 'flags', 'UnknownBuiltinFlagType', [key]);
     } else {
-      // Add the command-defined flag config
-      const flag = ensure(FLAGS[key] ? Object.assign({}, FLAGS[key], val) : val);
-      flags[key] = buildFlag(flag, key);
+      output[key] = validateCustomFlag(key, flag);
     }
-    return flags;
-  }, DEFAULT_SFDX_FLAGS);
+  });
+
+  return output;
+}
+
+function isBuiltin(flag: object): flag is flags.Builtin {
+  return hasString(flag, 'type') && flag.type === 'builtin';
 }
