@@ -188,89 +188,102 @@ export const flags = {
   // oclif
 
   /**
-   * TODO
+   * A flag type whose presence indicates a `true` boolean value. Produces false when not present.
    */
   boolean: buildBoolean,
 
   /**
-   * TODO
+   * A flag type with a fixed enumeration of possible option values. Produces a validated string from the `options` list.
    */
   enum: buildEnum,
 
   /**
-   * TODO
+   * A flag type useful for overriding the short `char` trigger for emitting CLI help. Emits help and exits the CLI.
    */
   help: buildHelp,
 
   /**
-   * TODO
+   * A flag type that accepts basic integer values. For floats, binary, octal, and hex, see {@link flags.number}.
+   * Produces an integer `number`.
    */
   integer: buildInteger,
 
   /**
-   * TODO
+   * A flag type for custom string processing. Accepts a `parse` function that converts a `string` value to a type `T`.
+   * Produces a type `T`.
    */
   option: buildOption,
 
   /**
-   * TODO
+   * A flag type for returning a raw `string` value without further preprocessing. Produces a string.
    */
   string: buildString,
 
   /**
-   * TODO
+   * A flag type for emitting CLI version information. Emits the CLI version and exits the CLI.
    */
   version: buildVersion,
 
   // sfdx
 
   /**
-   * A delimited list of strings with the delimiter defaulting to `,`, e.g., "one,two,three".
+   * A flag type for a delimited list of strings with the delimiter defaulting to `,`, e.g., "one,two,three". Accepts
+   * an optional `delimiter` string and/or a custom value `map` function for converting parsed `string` values into
+   * a type `T`. Produces a parsed and possibly mapped array.
    */
   array: buildArray,
 
   /**
-   * A valid date, e.g., "01-02-2000" or "01/02/2000 01:02:34".
+   * A flag type for a valid date, e.g., "01-02-2000" or "01/02/2000 01:02:34". Produces a parsed `Date`.
    */
   date: buildDate,
 
   /**
-   * A valid datetime, e.g., "01-02-2000" or "01/02/2000 01:02:34".
+   * A flag type for a valid datetime, e.g., "01-02-2000" or "01/02/2000 01:02:34". Produces a parsed `Date`.
    */
   datetime: buildDatetime,
 
   /**
+   * A flag type for valid directory paths. Produces a validated string.
+   *
    * **See** [@salesforce/core#sfdc.validatePathDoesNotContainInvalidChars](https://forcedotcom.github.io/sfdx-core/globals.html#validatepathdoesnotcontaininvalidchars), e.g. "this/is/my/path".
    */
   directory: buildDirectory,
 
   /**
+   * A flag type for valid email addresses. Produces a validated string.
+   *
    * **See** [@salesforce/core#sfdc.validateEmail](https://forcedotcom.github.io/sfdx-core/globals.html#validateemail), e.g., "me@my.org".
    */
   email: buildEmail,
 
   /**
+   * A flag type for valid file paths. Produces a validated string.
+   *
    * **See** [@salesforce/core#sfdc.validatePathDoesNotContainInvalidChars](https://forcedotcom.github.io/sfdx-core/globals.html#validatepathdoesnotcontaininvalidchars), e.g. "this/is/my/path".
    */
   filepath: buildFilepath,
 
   /**
+   * A flag type for valid Salesforce IDs. Produces a validated string.
+   *
    * **See** [@salesforce/core#sfdc.validateSalesforceId](https://forcedotcom.github.io/sfdx-core/globals.html#validatesalesforceid), e.g., "00Dxxxxxxxxxxxx".
    */
   id: buildId,
 
   /**
-   * An integer or floating point number, e.g., "42".
+   * A flag type for valid integer or floating point number, e.g., "42". Additionally supports binary, octal, and hex
+   * notation. Produces a parsed `number`.
    */
   number: buildNumber,
 
   /**
-   * A valid time, e.g., "01:02:03".
+   * A flag type for a valid time, e.g., "01:02:03".
    */
   time: buildTime,
 
   /**
-   * A valid url, e.g., "http://www.salesforce.com".
+   * A flag type for a valid url, e.g., "http://www.salesforce.com". Produces a parsed `URL` instance.
    */
   url: buildUrl,
 
