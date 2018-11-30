@@ -1130,8 +1130,8 @@ describe('SfdxCommand', () => {
         // sfdx
         '--array=1,2,3',
         '--intarray=1,2,3',
-        '--date=01-02-2000',
-        '--datetime=01/02/2000 01:02:34',
+        '--date=01-02-2000 GMT',
+        '--datetime=01/02/2000 01:02:34 GMT',
         '--email=bill@thecat.org',
 
         // builtins
@@ -1151,8 +1151,8 @@ describe('SfdxCommand', () => {
 
       expect(inputs.array).to.deep.equal(['1', '2', '3']);
       expect(inputs.intarray).to.deep.equal([1, 2, 3]);
-      expect(inputs.date.toISOString()).to.equal('2000-01-02T07:00:00.000Z');
-      expect(inputs.datetime.toISOString()).to.equal('2000-01-02T08:02:34.000Z');
+      expect(inputs.date.toISOString()).to.equal('2000-01-02T00:00:00.000Z');
+      expect(inputs.datetime.toISOString()).to.equal('2000-01-02T01:02:34.000Z');
       expect(inputs.email).to.equal('bill@thecat.org');
 
       expect(inputs.apiversion).to.equal('42.0');
