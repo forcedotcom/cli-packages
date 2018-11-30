@@ -1148,30 +1148,32 @@ describe('format', () => {
     expect(new TestCommand([], config).format(sfdxError)).to.deep.equal(expectedFormat);
   });
 
-  it('should support all possible flag types', async () => {
-    // let booleanValue: Optional<boolean>;
+  // it('should support all possible flag types', async () => {
+  //   let booleanValue: Optional<boolean>;
 
-    // class FlagsTestCommand extends BaseTestCommand {
-    //   public static flagsConfig: FlagsConfig = {
-    //     boolean: flags.boolean({ char: 'f', description: 'foo' }),
-    //     // TODO: add remaining oclif types
-    //     array: flags.array({ description: 'woot' }),
-    //     email: flags.email({ description: 'some email' }),
-    //     // TODO: add remaining sfdx types
-    //     apiversion: flags.builtin()
-    //     // TODO: add remaining builtin types
-    //   };
+  //   class FlagsTestCommand extends BaseTestCommand {
+  //     public static flagsConfig: FlagsConfig = {
+  //       boolean: flags.boolean({ char: 'f', description: 'foo' }),
+  //       version: flags.version(),
+  //       // TODO: add remaining oclif types
+  //       array: flags.array({ description: 'woot' }),
+  //       email: flags.email({ description: 'some email' }),
+  //       // TODO: add remaining sfdx types
+  //       apiversion: flags.builtin()
+  //       // TODO: add remaining builtin types
+  //     };
 
-    //   public async run(): Promise<string | JsonArray> {
-    //     console.log(this);
-    //     booleanValue = this.flags.boolean;
-    //     return 'done';
-    //   }
-    // }
+  //     public async run() {
+  //       await super.run();
+  //       booleanValue = this.flags.boolean;
+  //       return this.statics.output;
+  //     }
+  //   }
 
-    // await FlagsTestCommand.run(['--boolean']);
+  //   const output = await FlagsTestCommand.run(['--boolean']);
+  //   expect(output).to.equal(TestCommand.output);
 
-    // expect(booleanValue).to.be.true;
-    // TODO: test all the flags
-  });
+  //   expect(booleanValue).to.be.true;
+  //   // TODO: test all the flags
+  // });
 });

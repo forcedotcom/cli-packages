@@ -5,7 +5,7 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { flags as Flags } from '@oclif/command';
+import { flags as OclifFlags } from '@oclif/command';
 import * as Parser from '@oclif/parser';
 import { EnumFlagOptions, IBooleanFlag, IFlag, IOptionFlag } from '@oclif/parser/lib/flags';
 import { Logger, Messages, sfdc, SfdxError } from '@salesforce/core';
@@ -25,26 +25,30 @@ function merge<T>(kind: flags.Kind, flag: IFlag<T>, describable: flags.Describab
   };
 }
 
-function option<T>(kind: flags.Kind, options: flags.Option<T>, parse: (val: string) => T): flags.Discriminated<flags.Option<T>> {
-  return merge(kind, Flags.build(Object.assign(options, { parse }))(), options);
+function option<T>(
+  kind: flags.Kind,
+  options: flags.Option<T>,
+  parse: (val: string) => T
+): flags.Discriminated<flags.Option<T>> {
+  return merge(kind, OclifFlags.build(Object.assign(options, { parse }))(), options);
 }
 
 export namespace flags {
   export type Array = Option<string[]> & { delimiter?: string };
-  export type Any<T> = Partial<Flags.IFlag<T>> & Describable;
+  export type Any<T> = Partial<OclifFlags.IFlag<T>> & Describable;
   export type BaseBoolean<T> = Partial<IBooleanFlag<T>>;
   export type Boolean<T> = BaseBoolean<T> & Describable;
   export type Builtin = { type: 'builtin' };
   export type DateTime = Option<Date>;
-  export type Describable = { description: string; longDescription?: string; };
+  export type Describable = { description: string; longDescription?: string };
   export type Discriminant = { kind: Kind };
   export type Discriminated<T> = T & Discriminant;
   export type Enum<T> = EnumFlagOptions<T> & Describable;
   export type Kind = keyof typeof flags;
-  export type Input<T extends Parser.flags.Output> = Flags.Input<T>;
+  export type Input<T extends Parser.flags.Output> = OclifFlags.Input<T>;
   export type Number = Option<number>;
   export type Option<T> = Partial<IOptionFlag<Optional<T>>> & Describable;
-  export type Output = Flags.Output;
+  export type Output = OclifFlags.Output;
   export type String = Option<string>;
   export type Url = Option<URL>;
 }
@@ -53,7 +57,7 @@ export const flags = {
   // oclif
 
   boolean<T = boolean>(options: flags.Boolean<T>): flags.Discriminated<flags.Boolean<T>> {
-    return merge('boolean', Flags.boolean(options), options);
+    return merge('boolean', OclifFlags.boolean(options), options);
   },
 
   enum<T>(options: flags.Enum<T>): flags.Discriminated<flags.Enum<T>> {
@@ -68,26 +72,28 @@ export const flags = {
   },
 
   help(options: flags.BaseBoolean<boolean>): flags.Discriminated<flags.Boolean<void>> {
-    const flag = Flags.help(options);
-    return merge('help', Flags.help(options), {
+    const flag = OclifFlags.help(options);
+    return merge('help', OclifFlags.help(options), {
       description: ensure(flag.description)
     });
   },
 
   integer(options: flags.Number): flags.Discriminated<flags.Number> {
-    return merge('integer', Flags.integer(options), options);
+    return merge('integer', OclifFlags.integer(options), options);
   },
 
-  option<T>(options: { parse: (val: string, context: unknown) => T } & flags.Option<T>): flags.Discriminated<flags.Option<T>> {
-    return merge('option', Flags.option(options), options);
+  option<T>(
+    options: { parse: (val: string, context: unknown) => T } & flags.Option<T>
+  ): flags.Discriminated<flags.Option<T>> {
+    return merge('option', OclifFlags.option(options), options);
   },
 
   string(options: flags.String): flags.Discriminated<flags.String> {
-    return merge('string', Flags.string(options), options);
+    return merge('string', OclifFlags.string(options), options);
   },
 
-  version(options: flags.BaseBoolean<boolean>): flags.Discriminated<flags.Boolean<void>> {
-    const flag = Flags.version(options);
+  version(options?: flags.BaseBoolean<boolean>): flags.Discriminated<flags.Boolean<void>> {
+    const flag = OclifFlags.version(options);
     return merge('version', flag, {
       description: ensure(flag.description)
     });
@@ -192,7 +198,8 @@ export const flags = {
       try {
         return new URL(val);
       } catch (err) {
-        throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [val, 'url', '']);
+        const correct = ` ${messages.getMessage('FormattingMessageUrl')}`;
+        throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [val, 'url', correct || '']);
       }
     });
   },
@@ -235,7 +242,7 @@ const requiredBuiltinFlags = {
 
 const optionalBuiltinFlags = {
   apiversion(): flags.Discriminated<flags.String> {
-    return flags.string({
+    const flag = flags.string({
       description: messages.getMessage('apiversionFlagDescription'),
       longDescription: messages.getMessage('apiversionFlagLongDescription'),
       parse: (val: string) => {
@@ -243,6 +250,7 @@ const optionalBuiltinFlags = {
         throw SfdxError.create('@salesforce/command', 'flags', 'InvalidApiVersionError', [val]);
       }
     });
+    return flag;
   },
 
   concise(): flags.Discriminated<flags.Boolean<boolean>> {
@@ -371,7 +379,8 @@ export function buildSfdxFlags(flagsConfig: FlagsConfig): flags.Output {
   definiteEntriesOf(flagsConfig).forEach(([key, flag]) => {
     if (isBuiltin(flag)) {
       if (isKeyOf(optionalBuiltinFlags, key)) {
-        output[key] = optionalBuiltinFlags[key];
+        output[key] = optionalBuiltinFlags[key]();
+        return;
       }
       throw SfdxError.create('@salesforce/command', 'flags', 'UnknownBuiltinFlagType', [key]);
     } else {

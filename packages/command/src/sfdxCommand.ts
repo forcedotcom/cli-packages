@@ -10,7 +10,7 @@ import { OutputArgs, OutputFlags } from '@oclif/parser';
 import { ConfigAggregator, Global, Logger, Messages, Mode, Org, SfdxError, SfdxProject } from '@salesforce/core';
 import { AnyJson, Dictionary, get, isBoolean, JsonMap, Optional } from '@salesforce/ts-types';
 import chalk from 'chalk';
-import { buildSfdxFlags, flags as Flags, FlagsConfig } from './sfdxFlags';
+import { buildSfdxFlags, flags, FlagsConfig } from './sfdxFlags';
 import { TableOptions, UX } from './ux';
 
 Messages.importMessagesDirectory(__dirname);
@@ -75,14 +75,14 @@ export abstract class SfdxCommand extends Command {
   // if the command supports them.  Builds flags defined by the command's
   // flagsConfig static property.
   // tslint:disable-next-line no-any (matches oclif)
-  static get flags(): Flags.Input<any> {
+  static get flags(): flags.Input<any> {
     const baseFlags: FlagsConfig = {};
 
     const enableTargetUsername = !!(this.supportsUsername || this.requiresUsername);
     const enableTargetDevhubUsername = !!(this.supportsDevhubUsername || this.requiresDevhubUsername);
-    if (enableTargetUsername) baseFlags.targetusername = Flags.builtin();
-    if (enableTargetDevhubUsername) baseFlags.targetdevhubusername = Flags.builtin();
-    if (enableTargetUsername || enableTargetDevhubUsername) baseFlags.apiversion = Flags.builtin();
+    if (enableTargetUsername) baseFlags.targetusername = flags.builtin();
+    if (enableTargetDevhubUsername) baseFlags.targetdevhubusername = flags.builtin();
+    if (enableTargetUsername || enableTargetDevhubUsername) baseFlags.apiversion = flags.builtin();
 
     return buildSfdxFlags({ ...baseFlags, ...this.flagsConfig });
   }
