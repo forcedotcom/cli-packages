@@ -9,7 +9,7 @@ import { flags as OclifFlags } from '@oclif/command';
 import * as Parser from '@oclif/parser';
 import { EnumFlagOptions, IBooleanFlag, IFlag, IOptionFlag } from '@oclif/parser/lib/flags';
 import { Logger, Messages, sfdc, SfdxError } from '@salesforce/core';
-import { toNumber } from '@salesforce/kit';
+import { Duration, toNumber } from '@salesforce/kit';
 import { definiteEntriesOf, ensure, hasString, isKeyOf, isString, Optional } from '@salesforce/ts-types';
 import { URL } from 'url';
 
@@ -43,12 +43,15 @@ export namespace flags {
   export type Describable = { description: string; longDescription?: string };
   export type Discriminant = { kind: Kind };
   export type Discriminated<T> = T & Discriminant;
+  export type Milliseconds = Option<Duration>;
+  export type Minutes = Option<Duration>;
   export type Enum<T> = EnumFlagOptions<T> & Describable;
   export type Kind = keyof typeof flags;
   export type Input<T extends Parser.flags.Output> = OclifFlags.Input<T>;
   export type Number = Option<number>;
   export type Option<T> = Partial<IOptionFlag<Optional<T>>> & Describable;
   export type Output = OclifFlags.Output;
+  export type Seconds = Option<Duration>;
   export type String = Option<string>;
   export type Url = Option<URL>;
 }
@@ -149,6 +152,18 @@ function buildId(options: flags.String): flags.Discriminated<flags.String> {
   });
 }
 
+function buildMilliseconds(options: flags.Milliseconds): flags.Discriminated<flags.Milliseconds> {
+  return option('milliseconds', options, (val: string) => {
+    return Duration.milliseconds(parseInt(val, 10));
+  });
+}
+
+function buildMinutes(options: flags.Minutes): flags.Discriminated<flags.Minutes> {
+  return option('minutes', options, (val: string) => {
+    return Duration.minutes(parseInt(val, 10));
+  });
+}
+
 function buildNumber(options: flags.Number): flags.Discriminated<flags.Number> {
   return option('number', options, (val: string) => {
     const parsed = toNumber(val);
@@ -157,11 +172,9 @@ function buildNumber(options: flags.Number): flags.Discriminated<flags.Number> {
   });
 }
 
-function buildTime(options: flags.DateTime): flags.Discriminated<flags.DateTime> {
-  return option('time', options, (val: string) => {
-    const dateVal = new Date(`2000-01-02 ${val}`);
-    validateValue(!isNaN(Date.parse(dateVal.toDateString())), val, 'time');
-    return dateVal;
+function buildSeconds(options: flags.Seconds): flags.Discriminated<flags.Seconds> {
+  return option('milliseconds', options, (val: string) => {
+    return Duration.seconds(parseInt(val, 10));
   });
 }
 
@@ -246,30 +259,40 @@ export const flags = {
   /**
    * A flag type for valid directory paths. Produces a validated string.
    *
-   * **See** [@salesforce/core#sfdc.validatePathDoesNotContainInvalidChars](https://forcedotcom.github.io/sfdx-core/globals.html#validatepathdoesnotcontaininvalidchars), e.g. "this/is/my/path".
+   * **See** [@salesforce/core#sfdc.validatePathDoesNotContainInvalidChars](https://forcedotcom.github.io/sfdx-core/globals.html#sfdc), e.g. "this/is/my/path".
    */
   directory: buildDirectory,
 
   /**
    * A flag type for valid email addresses. Produces a validated string.
    *
-   * **See** [@salesforce/core#sfdc.validateEmail](https://forcedotcom.github.io/sfdx-core/globals.html#validateemail), e.g., "me@my.org".
+   * **See** [@salesforce/core#sfdc.validateEmail](https://forcedotcom.github.io/sfdx-core/globals.html#sfdc), e.g., "me@my.org".
    */
   email: buildEmail,
 
   /**
    * A flag type for valid file paths. Produces a validated string.
    *
-   * **See** [@salesforce/core#sfdc.validatePathDoesNotContainInvalidChars](https://forcedotcom.github.io/sfdx-core/globals.html#validatepathdoesnotcontaininvalidchars), e.g. "this/is/my/path".
+   * **See** [@salesforce/core#sfdc.validatePathDoesNotContainInvalidChars](https://forcedotcom.github.io/sfdx-core/globals.html#sfdc), e.g. "this/is/my/path".
    */
   filepath: buildFilepath,
 
   /**
    * A flag type for valid Salesforce IDs. Produces a validated string.
    *
-   * **See** [@salesforce/core#sfdc.validateSalesforceId](https://forcedotcom.github.io/sfdx-core/globals.html#validatesalesforceid), e.g., "00Dxxxxxxxxxxxx".
+   * **See** [@salesforce/core#sfdc.validateSalesforceId](https://forcedotcom.github.io/sfdx-core/globals.html#sfdc), e.g., "00Dxxxxxxxxxxxx".
    */
   id: buildId,
+
+  /**
+   * A flag type for a valid `Duration` in milliseconds, e.g., "5000".
+   */
+  milliseconds: buildMilliseconds,
+
+  /**
+   * A flag type for a valid `Duration` in minutes, e.g., "2".
+   */
+  minutes: buildMinutes,
 
   /**
    * A flag type for valid integer or floating point number, e.g., "42". Additionally supports binary, octal, and hex
@@ -278,9 +301,9 @@ export const flags = {
   number: buildNumber,
 
   /**
-   * A flag type for a valid time, e.g., "01:02:03".
+   * A flag type for a valid `Duration` in seconds, e.g., "5".
    */
-  time: buildTime,
+  seconds: buildSeconds,
 
   /**
    * A flag type for a valid url, e.g., "http://www.salesforce.com". Produces a parsed `URL` instance.

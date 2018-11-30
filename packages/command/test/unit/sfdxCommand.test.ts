@@ -18,7 +18,7 @@ import {
   SfdxProject
 } from '@salesforce/core';
 import { testSetup } from '@salesforce/core/lib/testSetup';
-import { cloneJson, isEmpty } from '@salesforce/kit';
+import { cloneJson, Duration, isEmpty } from '@salesforce/kit';
 import { stubInterface } from '@salesforce/ts-sinon';
 import { Dictionary, ensureJsonMap, JsonArray, JsonMap, keysOf, Optional } from '@salesforce/ts-types';
 import { fail } from 'assert';
@@ -26,6 +26,7 @@ import { expect } from 'chai';
 import chalk from 'chalk';
 import { join } from 'path';
 import { SinonStub } from 'sinon';
+import { URL } from 'url';
 import { SfdxCommand, SfdxResult } from '../../src/sfdxCommand';
 import { flags, FlagsConfig } from '../../src/sfdxFlags';
 import { UX } from '../../src/ux';
@@ -964,14 +965,6 @@ describe('SfdxCommand', () => {
       return validateFlag('url', 'htttp://salesforce.com', false);
     });
 
-    it('should validate time flag type for an invalid time', async () => {
-      return validateFlag('time', '100:100:100', true);
-    });
-
-    it('should validate time flag type for a correct time', async () => {
-      return validateFlag('time', '01:02:20', false);
-    });
-
     // tslint:disable-next-line:no-any
     function validateFlagAttributes(output: any, errName: string, flagName: string) {
       const sfdxError = SfdxError.create('@salesforce/command', 'flags', errName, [flagName]);
@@ -1097,8 +1090,10 @@ describe('SfdxCommand', () => {
           email: flags.email({ description: 'some email' }),
           filepath: flags.filepath({ description: 'filepath' }),
           id: flags.id({ description: 'id' }),
+          milliseconds: flags.milliseconds({ description: 'milliseconds' }),
+          minutes: flags.minutes({ description: 'minutes' }),
           number: flags.number({ description: 'number' }),
-          time: flags.time({ description: 'time' }),
+          seconds: flags.seconds({ description: 'seconds' }),
           url: flags.url({ description: 'url' }),
 
           // builtins
@@ -1122,10 +1117,11 @@ describe('SfdxCommand', () => {
         // oclif
         '--boolean',
         '--enum=e',
+        // --help exits, so skip it in this test
         '--integer=10',
         '--option=o',
         '--string=s',
-        // '--version', // TODO: figure out why this exits
+        // --version exits, so skip it in this test
 
         // sfdx
         '--array=1,2,3',
@@ -1133,6 +1129,13 @@ describe('SfdxCommand', () => {
         '--date=01-02-2000 GMT',
         '--datetime=01/02/2000 01:02:34 GMT',
         '--email=bill@thecat.org',
+        '--filepath=/home/someone/.config',
+        '--id=00Dxxxxxxxxxxxx',
+        '--milliseconds=5000',
+        '--minutes=2',
+        '--number=0xdeadbeef',
+        '--seconds=5',
+        '--url=http://example.com/foo/bar',
 
         // builtins
         '--apiversion=42.0',
@@ -1154,6 +1157,13 @@ describe('SfdxCommand', () => {
       expect(inputs.date.toISOString()).to.equal('2000-01-02T00:00:00.000Z');
       expect(inputs.datetime.toISOString()).to.equal('2000-01-02T01:02:34.000Z');
       expect(inputs.email).to.equal('bill@thecat.org');
+      expect(inputs.filepath).to.equal('/home/someone/.config');
+      expect(inputs.id).to.equal('00Dxxxxxxxxxxxx');
+      expect(inputs.milliseconds).to.deep.equal(Duration.milliseconds(5000));
+      expect(inputs.minutes).to.deep.equal(Duration.minutes(2));
+      expect(inputs.number).to.equal(3735928559); // 0xdeadbeef
+      expect(inputs.seconds).to.deep.equal(Duration.seconds(5));
+      expect(inputs.url).to.deep.equal(new URL('http://example.com/foo/bar'));
 
       expect(inputs.apiversion).to.equal('42.0');
       expect(inputs.concise).to.be.true;
