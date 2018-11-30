@@ -34,7 +34,7 @@ function option<T>(
 }
 
 export namespace flags {
-  export type Array = Option<string[]> & { delimiter?: string };
+  export type Array<T> = Option<T[]> & { delimiter?: string };
   export type Any<T> = Partial<OclifFlags.IFlag<T>> & Describable;
   export type BaseBoolean<T> = Partial<IBooleanFlag<T>>;
   export type Boolean<T> = BaseBoolean<T> & Describable;
@@ -53,169 +53,233 @@ export namespace flags {
   export type Url = Option<URL>;
 }
 
+// oclif
+
+function buildBoolean<T = boolean>(options: flags.Boolean<T>): flags.Discriminated<flags.Boolean<T>> {
+  return merge('boolean', OclifFlags.boolean(options), options);
+}
+
+function buildEnum<T>(options: flags.Enum<T>): flags.Discriminated<flags.Enum<T>> {
+  return {
+    kind: 'enum',
+    type: 'option',
+    ...options,
+    options: options.options,
+    description: options.description,
+    longDescription: options.longDescription
+  };
+}
+
+function buildHelp(options: flags.BaseBoolean<boolean>): flags.Discriminated<flags.Boolean<void>> {
+  const flag = OclifFlags.help(options);
+  return merge('help', OclifFlags.help(options), {
+    description: ensure(flag.description)
+  });
+}
+
+function buildInteger(options: flags.Number): flags.Discriminated<flags.Number> {
+  return merge('integer', OclifFlags.integer(options), options);
+}
+
+function buildOption<T>(
+  options: { parse: (val: string, context: unknown) => T } & flags.Option<T>
+): flags.Discriminated<flags.Option<T>> {
+  return merge('option', OclifFlags.option(options), options);
+}
+
+function buildString(options: flags.String): flags.Discriminated<flags.String> {
+  return merge('string', OclifFlags.string(options), options);
+}
+
+function buildVersion(options?: flags.BaseBoolean<boolean>): flags.Discriminated<flags.Boolean<void>> {
+  const flag = OclifFlags.version(options);
+  return merge('version', flag, {
+    description: ensure(flag.description)
+  });
+}
+
+// sfdx
+
+function buildArray(options: flags.Array<string>): flags.Discriminated<flags.Array<string>>;
+function buildArray<T>(options: flags.Array<T>, map: (val: string) => T): flags.Discriminated<flags.Array<T>>;
+function buildArray<T>(options: flags.Array<T>, map?: (val: string) => T): flags.Discriminated<flags.Array<T>> {
+  return option('array', options, val => {
+    const vals = val.split(options.delimiter || ',');
+    return map ? vals.map(map) : vals;
+  });
+}
+
+function buildDate(options: flags.DateTime): flags.Discriminated<flags.DateTime> {
+  return option('date', options, (val: string) => {
+    const parsed = Date.parse(val);
+    validateValue(!isNaN(parsed), val, 'date', ` ${messages.getMessage('FormattingMessageDate')}`);
+    return new Date(parsed);
+  });
+}
+
+function buildDatetime(options: flags.DateTime): flags.Discriminated<flags.DateTime> {
+  return option('datetime', options, (val: string) => {
+    const parsed = Date.parse(val);
+    validateValue(!isNaN(parsed), val, 'datetime', ` ${messages.getMessage('FormattingMessageDate')}`);
+    return new Date(parsed);
+  });
+}
+
+function buildDirectory(options: flags.String): flags.Discriminated<flags.String> {
+  return option('directory', options, (val: string) => {
+    return validateValue(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'directory');
+  });
+}
+
+function buildEmail(options: flags.String): flags.Discriminated<flags.String> {
+  return option('email', options, (val: string) => {
+    return validateValue(sfdc.validateEmail(val), val, 'email');
+  });
+}
+
+function buildFilepath(options: flags.String): flags.Discriminated<flags.String> {
+  return option('filepath', options, (val: string) => {
+    return validateValue(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'filepath');
+  });
+}
+
+function buildId(options: flags.String): flags.Discriminated<flags.String> {
+  return option('id', options, (val: string) => {
+    return validateValue(sfdc.validateSalesforceId(val), val, 'id', ` ${messages.getMessage('FormattingMessageId')}`);
+  });
+}
+
+function buildNumber(options: flags.Number): flags.Discriminated<flags.Number> {
+  return option('number', options, (val: string) => {
+    const parsed = toNumber(val);
+    validateValue(isFinite(parsed), val, 'number');
+    return parsed;
+  });
+}
+
+function buildTime(options: flags.DateTime): flags.Discriminated<flags.Discriminant> {
+  return option('time', options, (val: string) => {
+    const dateVal = new Date(`2000-01-02 ${val}`);
+    validateValue(!isNaN(Date.parse(dateVal.toDateString())), val, 'time');
+    return dateVal;
+  });
+}
+
+function buildUrl(options: flags.Url): flags.Discriminated<flags.Url> {
+  return option('url', options, (val: string) => {
+    try {
+      return new URL(val);
+    } catch (err) {
+      const correct = ` ${messages.getMessage('FormattingMessageUrl')}`;
+      throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [val, 'url', correct || '']);
+    }
+  });
+}
+
+function buildBuiltin(options: flags.Builtin = { type: 'builtin' }): flags.Builtin {
+  if (options.type !== 'builtin') {
+    throw new SfdxError(`Invalid builtin flag type '${options.type}'`, 'InvalidBuiltinFlagTypeError');
+  }
+  // simply echo back the options for later processing in buildSfdxFlags
+  return options;
+}
+
 export const flags = {
   // oclif
 
-  boolean<T = boolean>(options: flags.Boolean<T>): flags.Discriminated<flags.Boolean<T>> {
-    return merge('boolean', OclifFlags.boolean(options), options);
-  },
+  /**
+   * TODO
+   */
+  boolean: buildBoolean,
 
-  enum<T>(options: flags.Enum<T>): flags.Discriminated<flags.Enum<T>> {
-    return {
-      kind: 'enum',
-      type: 'option',
-      ...options,
-      options: options.options,
-      description: options.description,
-      longDescription: options.longDescription
-    };
-  },
+  /**
+   * TODO
+   */
+  enum: buildEnum,
 
-  help(options: flags.BaseBoolean<boolean>): flags.Discriminated<flags.Boolean<void>> {
-    const flag = OclifFlags.help(options);
-    return merge('help', OclifFlags.help(options), {
-      description: ensure(flag.description)
-    });
-  },
+  /**
+   * TODO
+   */
+  help: buildHelp,
 
-  integer(options: flags.Number): flags.Discriminated<flags.Number> {
-    return merge('integer', OclifFlags.integer(options), options);
-  },
+  /**
+   * TODO
+   */
+  integer: buildInteger,
 
-  option<T>(
-    options: { parse: (val: string, context: unknown) => T } & flags.Option<T>
-  ): flags.Discriminated<flags.Option<T>> {
-    return merge('option', OclifFlags.option(options), options);
-  },
+  /**
+   * TODO
+   */
+  option: buildOption,
 
-  string(options: flags.String): flags.Discriminated<flags.String> {
-    return merge('string', OclifFlags.string(options), options);
-  },
+  /**
+   * TODO
+   */
+  string: buildString,
 
-  version(options?: flags.BaseBoolean<boolean>): flags.Discriminated<flags.Boolean<void>> {
-    const flag = OclifFlags.version(options);
-    return merge('version', flag, {
-      description: ensure(flag.description)
-    });
-  },
+  /**
+   * TODO
+   */
+  version: buildVersion,
 
   // sfdx
 
   /**
    * A delimited list of strings with the delimiter defaulting to `,`, e.g., "one,two,three".
    */
-  array(options: flags.Array): flags.Discriminated<flags.Array> {
-    return option('array', options, (val: string) => {
-      return val.split(options.delimiter || ',');
-    });
-  },
+  array: buildArray,
 
   /**
    * A valid date, e.g., "01-02-2000" or "01/02/2000 01:02:34".
    */
-  date(options: flags.DateTime): flags.Discriminated<flags.DateTime> {
-    return option('date', options, (val: string) => {
-      const parsed = Date.parse(val);
-      validateValue(!isNaN(parsed), val, 'date', ` ${messages.getMessage('FormattingMessageDate')}`);
-      return new Date(parsed);
-    });
-  },
+  date: buildDate,
 
   /**
    * A valid datetime, e.g., "01-02-2000" or "01/02/2000 01:02:34".
    */
-  datetime(options: flags.DateTime): flags.Discriminated<flags.DateTime> {
-    return option('datetime', options, (val: string) => {
-      const parsed = Date.parse(val);
-      validateValue(!isNaN(parsed), val, 'datetime', ` ${messages.getMessage('FormattingMessageDate')}`);
-      return new Date(parsed);
-    });
-  },
+  datetime: buildDatetime,
 
   /**
    * **See** [@salesforce/core#sfdc.validatePathDoesNotContainInvalidChars](https://forcedotcom.github.io/sfdx-core/globals.html#validatepathdoesnotcontaininvalidchars), e.g. "this/is/my/path".
    */
-  directory(options: flags.String): flags.Discriminated<flags.String> {
-    return option('directory', options, (val: string) => {
-      return validateValue(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'directory');
-    });
-  },
+  directory: buildDirectory,
 
   /**
    * **See** [@salesforce/core#sfdc.validateEmail](https://forcedotcom.github.io/sfdx-core/globals.html#validateemail), e.g., "me@my.org".
    */
-  email(options: flags.String): flags.Discriminated<flags.String> {
-    return option('email', options, (val: string) => {
-      return validateValue(sfdc.validateEmail(val), val, 'email');
-    });
-  },
+  email: buildEmail,
 
   /**
    * **See** [@salesforce/core#sfdc.validatePathDoesNotContainInvalidChars](https://forcedotcom.github.io/sfdx-core/globals.html#validatepathdoesnotcontaininvalidchars), e.g. "this/is/my/path".
    */
-  filepath(options: flags.String): flags.Discriminated<flags.String> {
-    return option('filepath', options, (val: string) => {
-      return validateValue(sfdc.validatePathDoesNotContainInvalidChars(val), val, 'filepath');
-    });
-  },
+  filepath: buildFilepath,
 
   /**
    * **See** [@salesforce/core#sfdc.validateSalesforceId](https://forcedotcom.github.io/sfdx-core/globals.html#validatesalesforceid), e.g., "00Dxxxxxxxxxxxx".
    */
-  id(options: flags.String): flags.Discriminated<flags.String> {
-    return option('id', options, (val: string) => {
-      return validateValue(sfdc.validateSalesforceId(val), val, 'id', ` ${messages.getMessage('FormattingMessageId')}`);
-    });
-  },
+  id: buildId,
 
   /**
    * An integer or floating point number, e.g., "42".
    */
-  number(options: flags.Number): flags.Discriminated<flags.Number> {
-    return option('number', options, (val: string) => {
-      const parsed = toNumber(val);
-      validateValue(isFinite(parsed), val, 'number');
-      return parsed;
-    });
-  },
+  number: buildNumber,
 
   /**
    * A valid time, e.g., "01:02:03".
    */
-  time(options: flags.DateTime): flags.Discriminated<flags.Discriminant> {
-    return option('time', options, (val: string) => {
-      const dateVal = new Date(`2000-01-02 ${val}`);
-      validateValue(!isNaN(Date.parse(dateVal.toDateString())), val, 'time');
-      return dateVal;
-    });
-  },
+  time: buildTime,
 
   /**
    * A valid url, e.g., "http://www.salesforce.com".
    */
-  url(options: flags.Url): flags.Discriminated<flags.Url> {
-    return option('url', options, (val: string) => {
-      try {
-        return new URL(val);
-      } catch (err) {
-        const correct = ` ${messages.getMessage('FormattingMessageUrl')}`;
-        throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [val, 'url', correct || '']);
-      }
-    });
-  },
+  url: buildUrl,
 
   // builtins
 
   /**
    * Declares a flag definition to be one of the builtin types, for automatic configuration.
    */
-  builtin(options: flags.Builtin = { type: 'builtin' }): flags.Builtin {
-    if (options.type !== 'builtin') {
-      throw new SfdxError(`Invalid builtin flag type '${options.type}'`, 'InvalidBuiltinFlagTypeError');
-    }
-    // simply echo back the options for later processing in buildSfdxFlags
-    return options;
-  }
+  builtin: buildBuiltin
 };
 
 const requiredBuiltinFlags = {

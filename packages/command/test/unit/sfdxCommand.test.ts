@@ -1148,32 +1148,34 @@ describe('format', () => {
     expect(new TestCommand([], config).format(sfdxError)).to.deep.equal(expectedFormat);
   });
 
-  // it('should support all possible flag types', async () => {
-  //   let booleanValue: Optional<boolean>;
+  it('should support all possible flag types', async () => {
+    class FlagsTestCommand extends BaseTestCommand {
+      public static flagsConfig: FlagsConfig = {
+        boolean: flags.boolean({ char: 'f', description: 'foo' }),
+        version: flags.version(),
+        // TODO: add remaining oclif types
+        array: flags.array({ description: 'woot' }),
+        intarray: flags.array({ description: 'woot' }, v => parseInt(v, 10)),
+        email: flags.email({ description: 'some email' }),
+        // TODO: add remaining sfdx types
+        apiversion: flags.builtin()
+        // TODO: add remaining builtin types
+      };
 
-  //   class FlagsTestCommand extends BaseTestCommand {
-  //     public static flagsConfig: FlagsConfig = {
-  //       boolean: flags.boolean({ char: 'f', description: 'foo' }),
-  //       version: flags.version(),
-  //       // TODO: add remaining oclif types
-  //       array: flags.array({ description: 'woot' }),
-  //       email: flags.email({ description: 'some email' }),
-  //       // TODO: add remaining sfdx types
-  //       apiversion: flags.builtin()
-  //       // TODO: add remaining builtin types
-  //     };
+      public async run() {
+        await super.run();
 
-  //     public async run() {
-  //       await super.run();
-  //       booleanValue = this.flags.boolean;
-  //       return this.statics.output;
-  //     }
-  //   }
+        expect(this.flags.boolean).to.be.true;
+        expect(this.flags.array).to.deep.equal(['1', '2', '3']);
+        expect(this.flags.intarray).to.deep.equal([1, 2, 3]);
 
-  //   const output = await FlagsTestCommand.run(['--boolean']);
-  //   expect(output).to.equal(TestCommand.output);
+        // TODO: test all the flags
 
-  //   expect(booleanValue).to.be.true;
-  //   // TODO: test all the flags
-  // });
+        return this.statics.output;
+      }
+    }
+
+    const output = await FlagsTestCommand.run(['--boolean', '--apiversion=42.0', '--array=1,2,3', '--intarray=1,2,3']);
+    expect(output).to.equal(TestCommand.output);
+  });
 });
