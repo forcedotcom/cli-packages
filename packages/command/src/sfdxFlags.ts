@@ -63,7 +63,7 @@ function buildEnum<T>(options: flags.Enum<T>): flags.Discriminated<flags.Enum<T>
   return {
     kind: 'enum',
     type: 'option',
-    ...options,
+    ...OclifFlags.enum(options),
     options: options.options,
     description: options.description,
     longDescription: options.longDescription
@@ -157,7 +157,7 @@ function buildNumber(options: flags.Number): flags.Discriminated<flags.Number> {
   });
 }
 
-function buildTime(options: flags.DateTime): flags.Discriminated<flags.Discriminant> {
+function buildTime(options: flags.DateTime): flags.Discriminated<flags.DateTime> {
   return option('time', options, (val: string) => {
     const dateVal = new Date(`2000-01-02 ${val}`);
     validateValue(!isNaN(Date.parse(dateVal.toDateString())), val, 'time');
@@ -359,34 +359,34 @@ export type FlagsConfig = {
   [key: string]: Optional<flags.Boolean<unknown> | flags.Option<unknown> | flags.Builtin>;
 
   /**
-   * TODO
+   * Adds the apiversion built-in flag to allow for overriding the API
+   * version when executing the command.
    */
   apiversion?: flags.Builtin;
 
   /**
-   * TODO
+   * Adds the concise built-in flag to allow a command to support concise output,
+   * which is useful when the output can be overly verbose, such as test results.
+   * Note that this must be implemented by the command.
    */
   concise?: flags.Builtin;
 
   /**
-   * TODO
+   * Adds the quiet built-in flag to allow a command to completely suppress output.
+   * Note that this must be implemented by the command.
    */
   quiet?: flags.Builtin;
 
   /**
-   * TODO
-   */
-  targetdevhubusername?: flags.Builtin;
-
-  /**
-   * TODO
-   */
-  targetusername?: flags.Builtin;
-
-  /**
-   * TODO
+   * Adds the verbose built-in flag to allow a command to support verbose output,
+   * which is useful to display additional command results.
+   * Note that this must be implemented by the command.
    */
   verbose?: flags.Builtin;
+
+  // not supported on flagsConfig in any form -- use related static boolean properties instead
+  targetdevhubusername?: never;
+  targetusername?: never;
 };
 
 function validateValue(isValid: boolean, value: string, kind: string, correct?: string) {
@@ -429,15 +429,23 @@ function validateCustomFlag<T>(key: string, flag: flags.Any<T>): flags.Any<T> {
  *     4. Defining custom typed flags. E.g., { myFlag: Flags.custom({ parse: (val) => parseInt(val, 10) }) }
  *
  * @param {FlagsConfig} flagsConfig The configuration object for a flag.  @see {@link FlagsConfig}
+ * @param options Extra configuration options.
  * @returns {flags.Output} The flags for the command.
  * @ignore
  */
-export function buildSfdxFlags(flagsConfig: FlagsConfig): flags.Output {
+export function buildSfdxFlags(
+  flagsConfig: FlagsConfig,
+  options: { targetdevhubusername: boolean; targetusername: boolean }
+): flags.Output {
   const output: flags.Output = {};
 
   // Required flag options for all SFDX commands
   output.json = requiredBuiltinFlags.json();
   output.loglevel = requiredBuiltinFlags.loglevel();
+
+  if (options.targetdevhubusername) output.targetdevhubusername = optionalBuiltinFlags.targetdevhubusername();
+  if (options.targetusername) output.targetusername = optionalBuiltinFlags.targetusername();
+  if (options.targetdevhubusername || options.targetusername) output.apiversion = optionalBuiltinFlags.apiversion();
 
   // Process configuration for custom and builtin flags
   definiteEntriesOf(flagsConfig).forEach(([key, flag]) => {

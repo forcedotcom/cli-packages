@@ -76,15 +76,10 @@ export abstract class SfdxCommand extends Command {
   // flagsConfig static property.
   // tslint:disable-next-line no-any (matches oclif)
   static get flags(): Flags.Input<any> {
-    const baseFlags: FlagsConfig = {};
-
-    const enableTargetUsername = !!(this.supportsUsername || this.requiresUsername);
-    const enableTargetDevhubUsername = !!(this.supportsDevhubUsername || this.requiresDevhubUsername);
-    if (enableTargetUsername) baseFlags.targetusername = Flags.builtin();
-    if (enableTargetDevhubUsername) baseFlags.targetdevhubusername = Flags.builtin();
-    if (enableTargetUsername || enableTargetDevhubUsername) baseFlags.apiversion = Flags.builtin();
-
-    return buildSfdxFlags({ ...baseFlags, ...this.flagsConfig });
+    return buildSfdxFlags(this.flagsConfig, {
+      targetdevhubusername: !!(this.supportsUsername || this.requiresUsername),
+      targetusername: !!(this.supportsDevhubUsername || this.requiresDevhubUsername)
+    });
   }
 
   // Set to true to add the "targetusername" flag to this command.

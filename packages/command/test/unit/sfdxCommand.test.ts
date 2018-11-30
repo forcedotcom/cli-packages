@@ -1071,6 +1071,84 @@ describe('SfdxCommand', () => {
       });
     });
   });
+
+  describe('flags', () => {
+    it.only('should support all possible flag types', async () => {
+      class FlagsTestCommand extends BaseTestCommand {
+        public static flagsConfig: FlagsConfig = {
+          // oclif
+          boolean: flags.boolean({ description: 'boolean' }),
+          enum: flags.enum({ description: 'enum', options: ['e', 'f'] }),
+          help: flags.help({ char: 'h' }),
+          integer: flags.integer({ description: 'integer' }),
+          option: flags.option({ description: 'custom', parse: (val: string) => val }),
+          string: flags.string({ description: 'string' }),
+          // version: flags.version(),
+
+          // sfdx
+          array: flags.array({ description: 'woot' }),
+          intarray: flags.array({ description: 'woot' }, v => parseInt(v, 10)),
+          date: flags.date({ description: 'date' }),
+          datetime: flags.datetime({ description: 'datetime' }),
+          directory: flags.directory({ description: 'directory' }),
+          email: flags.email({ description: 'some email' }),
+          filepath: flags.filepath({ description: 'filepath' }),
+          id: flags.id({ description: 'id' }),
+          number: flags.number({ description: 'number' }),
+          time: flags.time({ description: 'time' }),
+          url: flags.url({ description: 'url' }),
+
+          // builtins
+          apiversion: flags.builtin(),
+          concise: flags.builtin(),
+          quiet: flags.builtin(),
+          verbose: flags.builtin()
+        };
+
+        public static supportsUsername = true;
+        public static supportsDevhubUsername = true;
+
+        public async run() {
+          await super.run();
+
+          expect(this.flags.boolean).to.be.true;
+          expect(this.flags.enum).to.equal('e');
+          expect(this.flags.integer).to.equal(10);
+
+          expect(this.flags.array).to.deep.equal(['1', '2', '3']);
+          expect(this.flags.intarray).to.deep.equal([1, 2, 3]);
+
+          // TODO: test all the flags
+
+          return this.statics.output;
+        }
+      }
+
+      await FlagsTestCommand.run([
+        // oclif
+        '--boolean',
+        '--enum=e',
+        '--integer=10',
+        '--option=o',
+        '--string=s',
+        // '--version', // TODO: figure out why this exits
+        // sfdx
+        '--apiversion=42.0',
+        '--array=1,2,3',
+        '--intarray=1,2,3',
+        '--date=',
+        '--datetime=',
+        '--email=bill@thecat.org',
+        // builtins
+        '--apiversion=42.0',
+        '--concise',
+        '--quiet',
+        '--verbose',
+        '--targetdevhubusername=foo',
+        '--targetusername=bar'
+      ]);
+    });
+  });
 });
 
 describe('format', () => {
@@ -1146,36 +1224,5 @@ describe('format', () => {
 
     const config = stubInterface<IConfig>($$.SANDBOX);
     expect(new TestCommand([], config).format(sfdxError)).to.deep.equal(expectedFormat);
-  });
-
-  it('should support all possible flag types', async () => {
-    class FlagsTestCommand extends BaseTestCommand {
-      public static flagsConfig: FlagsConfig = {
-        boolean: flags.boolean({ char: 'f', description: 'foo' }),
-        version: flags.version(),
-        // TODO: add remaining oclif types
-        array: flags.array({ description: 'woot' }),
-        intarray: flags.array({ description: 'woot' }, v => parseInt(v, 10)),
-        email: flags.email({ description: 'some email' }),
-        // TODO: add remaining sfdx types
-        apiversion: flags.builtin()
-        // TODO: add remaining builtin types
-      };
-
-      public async run() {
-        await super.run();
-
-        expect(this.flags.boolean).to.be.true;
-        expect(this.flags.array).to.deep.equal(['1', '2', '3']);
-        expect(this.flags.intarray).to.deep.equal([1, 2, 3]);
-
-        // TODO: test all the flags
-
-        return this.statics.output;
-      }
-    }
-
-    const output = await FlagsTestCommand.run(['--boolean', '--apiversion=42.0', '--array=1,2,3', '--intarray=1,2,3']);
-    expect(output).to.equal(TestCommand.output);
   });
 });
