@@ -154,13 +154,17 @@ function buildId(options: flags.String): flags.Discriminated<flags.String> {
 
 function buildMilliseconds(options: flags.Milliseconds): flags.Discriminated<flags.Milliseconds> {
   return option('milliseconds', options, (val: string) => {
-    return Duration.milliseconds(parseInt(val, 10));
+    const parsed = toNumber(val);
+    validateValue(Number.isInteger(parsed), val, 'milliseconds');
+    return Duration.milliseconds(parsed);
   });
 }
 
 function buildMinutes(options: flags.Minutes): flags.Discriminated<flags.Minutes> {
   return option('minutes', options, (val: string) => {
-    return Duration.minutes(parseInt(val, 10));
+    const parsed = toNumber(val);
+    validateValue(Number.isInteger(parsed), val, 'minutes');
+    return Duration.minutes(parsed);
   });
 }
 
@@ -173,7 +177,9 @@ function buildNumber(options: flags.Number): flags.Discriminated<flags.Number> {
 }
 
 function buildSeconds(options: flags.Seconds): flags.Discriminated<flags.Seconds> {
-  return option('milliseconds', options, (val: string) => {
+  return option('seconds', options, (val: string) => {
+    const parsed = toNumber(val);
+    validateValue(Number.isInteger(parsed), val, 'seconds');
     return Duration.seconds(parseInt(val, 10));
   });
 }
