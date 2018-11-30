@@ -1074,6 +1074,9 @@ describe('SfdxCommand', () => {
 
   describe('flags', () => {
     it('should support all possible flag types', async () => {
+      // tslint:disable-next-line:no-any
+      let inputs: Dictionary<any> = {};
+
       class FlagsTestCommand extends BaseTestCommand {
         public static flagsConfig: FlagsConfig = {
           // oclif
@@ -1081,7 +1084,7 @@ describe('SfdxCommand', () => {
           enum: flags.enum({ description: 'enum', options: ['e', 'f'] }),
           help: flags.help({ char: 'h' }),
           integer: flags.integer({ description: 'integer' }),
-          option: flags.option({ description: 'custom', parse: (val: string) => val }),
+          option: flags.option({ description: 'custom', parse: (val: string) => val.toUpperCase() }),
           string: flags.string({ description: 'string' }),
           version: flags.version(),
 
@@ -1110,16 +1113,7 @@ describe('SfdxCommand', () => {
 
         public async run() {
           await super.run();
-
-          expect(this.flags.boolean).to.be.true;
-          expect(this.flags.enum).to.equal('e');
-          expect(this.flags.integer).to.equal(10);
-
-          expect(this.flags.array).to.deep.equal(['1', '2', '3']);
-          expect(this.flags.intarray).to.deep.equal([1, 2, 3]);
-
-          // TODO: test all the flags
-
+          inputs = this.flags;
           return this.statics.output;
         }
       }
@@ -1132,13 +1126,14 @@ describe('SfdxCommand', () => {
         '--option=o',
         '--string=s',
         // '--version', // TODO: figure out why this exits
+
         // sfdx
-        '--apiversion=42.0',
         '--array=1,2,3',
         '--intarray=1,2,3',
-        '--date=',
-        '--datetime=',
+        '--date=01-02-2000',
+        '--datetime=01/02/2000 01:02:34',
         '--email=bill@thecat.org',
+
         // builtins
         '--apiversion=42.0',
         '--concise',
@@ -1147,6 +1142,24 @@ describe('SfdxCommand', () => {
         '--targetdevhubusername=foo',
         '--targetusername=bar'
       ]);
+
+      expect(inputs.boolean).to.be.true;
+      expect(inputs.enum).to.equal('e');
+      expect(inputs.integer).to.equal(10);
+      expect(inputs.option).to.equal('O');
+      expect(inputs.string).to.equal('s');
+
+      expect(inputs.array).to.deep.equal(['1', '2', '3']);
+      expect(inputs.intarray).to.deep.equal([1, 2, 3]);
+      expect(inputs.date.toISOString()).to.equal('2000-01-02T07:00:00.000Z');
+      expect(inputs.datetime.toISOString()).to.equal('2000-01-02T08:02:34.000Z');
+      expect(inputs.email).to.equal('bill@thecat.org');
+
+      expect(inputs.apiversion).to.equal('42.0');
+      expect(inputs.concise).to.be.true;
+      expect(inputs.verbose).to.be.true;
+      expect(inputs.targetdevhubusername).to.equal('foo');
+      expect(inputs.targetusername).to.equal('bar');
     });
   });
 });
