@@ -2,7 +2,7 @@
 
 # Description
 
-This repository contains (or will contain) the core Salesforce CLI, the base command, and core plugins.
+This repository contains (or will contain) the core Salesforce CLI, the base command, and core plug-ins.
 
 ## Packages
 
@@ -27,7 +27,7 @@ If you are interested in building these packages locally, please take a look at 
 # Related Docs and Repositories
 
 * @forcedotcom/cli-packages - Base Salesforce CLI command
-* @forcedotcom/sfdx-plugin-generate - The generator plugin for building plugins for the Salesforce CLI
+* @forcedotcom/sfdx-plugin-generate - The generator plug-in for building plug-ins for Salesforce CLI
 
 # [cli-packages](https://github.com/forcedotcom/cli-packages)/[packages](https://github.com/forcedotcom/cli-packages/tree/develop/packages)/command/
 
@@ -39,7 +39,7 @@ This is the base command class for Salesforce CLI. Extend this class for conveni
 
 ## Check Your Salesforce CLI Version
 
-Commands that extend `SfdxCommand` can only be used with Salesforce CLI version 6.8.2 or later. To check your Salesforce CLI version:
+Commands that extend `SfdxCommand` can be used only with Salesforce CLI version 6.8.2 or later. To check your Salesforce CLI version:
 
 ```
 `$ sfdx --version`
@@ -47,7 +47,7 @@ Commands that extend `SfdxCommand` can only be used with Salesforce CLI version 
 
 ## Features
 
-To learn more about the features of the Command Library see the **[Salesforce CLI Plug-In Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins.htm) **
+To learn more about the features of the Command Library see the _[Salesforce CLI Plug-In Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins.htm)_.
 
 ## Contributing 
 
@@ -56,5 +56,5 @@ If you are interested in contributing, please take a look at the [CONTRIBUTING](
 # Related Docs and Repositories
 
 * @forcedotcom/cli-packages - Base Salesforce CLI command
-* @forcedotcom/sfdx-plugin-generate - The generator plugin for building plugins for the Salesforce CLI
+* @forcedotcom/sfdx-plugin-generate - The generator plug-in for building plug-ins for Salesforce CLI
 * [@oclif/command](https://github.com/oclif/command) - Base command for oclif
