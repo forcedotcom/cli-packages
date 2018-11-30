@@ -882,7 +882,7 @@ describe('SfdxCommand', () => {
       if (err) {
         const sfdxError = SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [
           val,
-          TestCommand.flagsConfig.doflag.type,
+          TestCommand.flagsConfig.doflag.kind,
           ERR_NEXT_STEPS[flagType] || ''
         ]);
         expect(output).to.equal(undefined);
