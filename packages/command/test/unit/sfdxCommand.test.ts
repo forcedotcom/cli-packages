@@ -1073,7 +1073,7 @@ describe('SfdxCommand', () => {
   });
 
   describe('flags', () => {
-    it.only('should support all possible flag types', async () => {
+    it('should support all possible flag types', async () => {
       class FlagsTestCommand extends BaseTestCommand {
         public static flagsConfig: FlagsConfig = {
           // oclif
@@ -1083,7 +1083,7 @@ describe('SfdxCommand', () => {
           integer: flags.integer({ description: 'integer' }),
           option: flags.option({ description: 'custom', parse: (val: string) => val }),
           string: flags.string({ description: 'string' }),
-          // version: flags.version(),
+          version: flags.version(),
 
           // sfdx
           array: flags.array({ description: 'woot' }),

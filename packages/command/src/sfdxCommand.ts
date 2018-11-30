@@ -77,8 +77,8 @@ export abstract class SfdxCommand extends Command {
   // tslint:disable-next-line no-any (matches oclif)
   static get flags(): Flags.Input<any> {
     return buildSfdxFlags(this.flagsConfig, {
-      targetdevhubusername: !!(this.supportsUsername || this.requiresUsername),
-      targetusername: !!(this.supportsDevhubUsername || this.requiresDevhubUsername)
+      targetdevhubusername: !!(this.supportsDevhubUsername || this.requiresDevhubUsername),
+      targetusername: !!(this.supportsUsername || this.requiresUsername)
     });
   }
 
