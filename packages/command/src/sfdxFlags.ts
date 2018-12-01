@@ -492,11 +492,10 @@ export function buildSfdxFlags(
   // Process configuration for custom and builtin flags
   definiteEntriesOf(flagsConfig).forEach(([key, flag]) => {
     if (isBuiltin(flag)) {
-      if (isKeyOf(optionalBuiltinFlags, key)) {
-        output[key] = optionalBuiltinFlags[key]();
-        return;
+      if (!isKeyOf(optionalBuiltinFlags, key)) {
+        throw SfdxError.create('@salesforce/command', 'flags', 'UnknownBuiltinFlagType', [key]);
       }
-      throw SfdxError.create('@salesforce/command', 'flags', 'UnknownBuiltinFlagType', [key]);
+      output[key] = optionalBuiltinFlags[key]();
     } else {
       output[key] = validateCustomFlag(key, flag);
     }
