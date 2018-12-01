@@ -15,7 +15,7 @@ import { buildSfdxFlags, flags } from '../../src/sfdxFlags';
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/command', 'flags');
 
-describe.only('SfdxFlags', () => {
+describe('SfdxFlags', () => {
   const containsRequiredFlags = (rv: flags.Output) => {
     expect(rv.json).to.include({ type: 'boolean', kind: 'boolean' });
     expect(rv.loglevel).to.include({ optionType: 'enum', kind: 'enum' });
