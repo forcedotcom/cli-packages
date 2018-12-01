@@ -19,6 +19,7 @@
   "InvalidFlagTypeError": "The flag value \"%s\" is not in the correct format for \"%s.\"%s",
   "InvalidLongDescriptionFormat": "The flag %s's longDescription attribute must be a string.",
   "UnknownFlagError": "Cannot enable unknown flag: %s",
+  "UnknownBuiltinFlagType": "No built-in flag named '%s'.",
   "MissingOrInvalidFlagDescription": "The flag %s is missing the description attribute, or the description is not a string.",
   "InvalidFlagChar": "The flag %s's char attribute must be one alphabetical character long.",
   "InvalidFlagName": "The flag %s's name must be a lowercase string that may contain numbers and hyphens.",

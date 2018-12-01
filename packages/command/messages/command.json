@@ -6,6 +6,5 @@
   "OrgCreateError": "Could not connect to org with username '%s'\nDue to:\n%s: %s",
   "VarargsRequired": "Provide required name=value pairs for the command. Enclose any values that contain spaces in double quotes.",
   "InvalidVarargsFormat": "Setting variables must be in the format <key>=<value> or <key>=\"<value with spaces>\" but found %s.",
-  "DuplicateVararg": "Cannot set variable name '%s' twice for the same command.",
-  "UnknownBuiltinFlagType": "No built-in flag named '%s'."
+  "DuplicateVararg": "Cannot set variable name '%s' twice for the same command."
 }

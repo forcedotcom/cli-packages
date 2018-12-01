@@ -199,7 +199,6 @@ function buildBuiltin(options: flags.Builtin = { type: 'builtin' }): flags.Built
   if (options.type !== 'builtin') {
     throw new SfdxError(`Invalid builtin flag type '${options.type}'`, 'InvalidBuiltinFlagTypeError');
   }
-  // simply echo back the options for later processing in buildSfdxFlags
   return options;
 }
 
@@ -477,7 +476,7 @@ function validateCustomFlag<T>(key: string, flag: flags.Any<T>): flags.Any<T> {
  */
 export function buildSfdxFlags(
   flagsConfig: FlagsConfig,
-  options: { targetdevhubusername: boolean; targetusername: boolean }
+  options: { targetdevhubusername?: boolean; targetusername?: boolean }
 ): flags.Output {
   const output: flags.Output = {};
 
