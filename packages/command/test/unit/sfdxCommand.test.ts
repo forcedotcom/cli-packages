@@ -1083,7 +1083,7 @@ describe('SfdxCommand', () => {
 
           // sfdx
           array: flags.array({ description: 'woot' }),
-          intarray: flags.array({ description: 'woot' }, v => parseInt(v, 10)),
+          intarray: flags.array({ description: 'woot', map: v => parseInt(v, 10) }),
           date: flags.date({ description: 'date' }),
           datetime: flags.datetime({ description: 'datetime' }),
           directory: flags.directory({ description: 'directory' }),

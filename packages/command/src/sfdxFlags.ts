@@ -34,7 +34,7 @@ function option<T>(
 }
 
 export namespace flags {
-  export type Array<T> = Option<T[]> & { delimiter?: string };
+  export type Array<T> = Option<T[]> & { delimiter?: string; map?: (val: string) => T };
   export type Any<T> = Partial<OclifFlags.IFlag<T>> & Describable;
   export type BaseBoolean<T> = Partial<IBooleanFlag<T>>;
   export type Boolean<T> = BaseBoolean<T> & Describable;
@@ -103,12 +103,10 @@ function buildVersion(options?: flags.BaseBoolean<boolean>): flags.Discriminated
 
 // sfdx
 
-function buildArray(options: flags.Array<string>): flags.Discriminated<flags.Array<string>>;
-function buildArray<T>(options: flags.Array<T>, map: (val: string) => T): flags.Discriminated<flags.Array<T>>;
-function buildArray<T>(options: flags.Array<T>, map?: (val: string) => T): flags.Discriminated<flags.Array<T>> {
+function buildArray<T>(options: flags.Array<T>): flags.Discriminated<flags.Array<T>> {
   return option('array', options, val => {
     const vals = val.split(options.delimiter || ',');
-    return map ? vals.map(map) : vals;
+    return options.map ? vals.map(options.map) : vals;
   });
 }
 
@@ -246,8 +244,9 @@ export const flags = {
 
   /**
    * A flag type for a delimited list of strings with the delimiter defaulting to `,`, e.g., "one,two,three". Accepts
-   * an optional `delimiter` string and/or a custom value `map` function for converting parsed `string` values into
-   * a type `T`. Produces a parsed and possibly mapped array.
+   * an optional `delimiter` `string` and/or a custom `map` function for converting parsed `string` values into
+   * a type `T`. Produces a parsed (and possibly mapped) array of type `T` where `T` defaults to `string` if no
+   * custom `map` function was provided.
    */
   array: buildArray,
 
