@@ -5,13 +5,12 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command, flags as Flags } from '@oclif/command';
+import Command from '@oclif/command';
 import { OutputArgs, OutputFlags } from '@oclif/parser';
 import { ConfigAggregator, Global, Logger, Messages, Mode, Org, SfdxError, SfdxProject } from '@salesforce/core';
 import { AnyJson, Dictionary, get, isBoolean, JsonMap, Optional } from '@salesforce/ts-types';
 import chalk from 'chalk';
-import { buildSfdxFlags, SfdxFlagsConfig } from './sfdxFlags';
-
+import { buildSfdxFlags, flags as Flags, FlagsConfig } from './sfdxFlags';
 import { TableOptions, UX } from './ux';
 
 Messages.importMessagesDirectory(__dirname);
@@ -77,15 +76,10 @@ export abstract class SfdxCommand extends Command {
   // flagsConfig static property.
   // tslint:disable-next-line no-any (matches oclif)
   static get flags(): Flags.Input<any> {
-    const enableTargetUsername = !!(this.supportsUsername || this.requiresUsername);
-    const enableTargetDevhubUsername = !!(this.supportsDevhubUsername || this.requiresDevhubUsername);
-    const baseFlags: Partial<SfdxFlagsConfig> = {
-      targetusername: enableTargetUsername,
-      targetdevhubusername: enableTargetDevhubUsername,
-      apiversion: enableTargetUsername || enableTargetDevhubUsername
-    };
-
-    return buildSfdxFlags(Object.assign(baseFlags, this.flagsConfig));
+    return buildSfdxFlags(this.flagsConfig, {
+      targetdevhubusername: !!(this.supportsDevhubUsername || this.requiresDevhubUsername),
+      targetusername: !!(this.supportsUsername || this.requiresUsername)
+    });
   }
 
   // Set to true to add the "targetusername" flag to this command.
@@ -112,7 +106,7 @@ export abstract class SfdxCommand extends Command {
   protected static tableColumnData: string[];
 
   // Property to inherit, override, and configure flags
-  protected static flagsConfig: SfdxFlagsConfig;
+  protected static flagsConfig: FlagsConfig;
 
   // Use for full control over command output formating and display, or to override
   // certain pieces of default display behavior.

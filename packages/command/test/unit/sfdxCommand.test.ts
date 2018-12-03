@@ -5,7 +5,6 @@
  * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { flags as Flags } from '@oclif/command';
 import { IConfig } from '@oclif/config';
 import {
   ConfigAggregator,
@@ -19,24 +18,17 @@ import {
   SfdxProject
 } from '@salesforce/core';
 import { testSetup } from '@salesforce/core/lib/testSetup';
-import { cloneJson, isEmpty } from '@salesforce/kit';
+import { cloneJson, Duration, isEmpty } from '@salesforce/kit';
 import { stubInterface } from '@salesforce/ts-sinon';
-import {
-  Dictionary,
-  ensureJsonMap,
-  JsonArray,
-  JsonMap,
-  keysOf,
-  Optional,
-  RequiredNonOptional
-} from '@salesforce/ts-types';
+import { Dictionary, ensureJsonMap, JsonArray, JsonMap, keysOf, Optional } from '@salesforce/ts-types';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import chalk from 'chalk';
 import { join } from 'path';
 import { SinonStub } from 'sinon';
+import { URL } from 'url';
 import { SfdxCommand, SfdxResult } from '../../src/sfdxCommand';
-import { SfdxFlagDefinition, SfdxFlagsConfig } from '../../src/sfdxFlags';
+import { flags, FlagsConfig } from '../../src/sfdxFlags';
 import { UX } from '../../src/ux';
 
 chalk.enabled = false;
@@ -56,8 +48,8 @@ let testCommandMeta: TestCommandMeta;
 // The test command
 class BaseTestCommand extends SfdxCommand {
   public static output: string | JsonArray = 'default test output';
-  public static flagsConfig: SfdxFlagsConfig = {
-    flag1: { char: 'f', type: 'string', description: 'my desc' }
+  public static flagsConfig: FlagsConfig = {
+    flag1: flags.string({ char: 'f', description: 'my desc' })
   };
   public static result: Dictionary;
   protected get statics(): typeof BaseTestCommand {
@@ -77,7 +69,7 @@ class BaseTestCommand extends SfdxCommand {
 const DEFAULT_CMD_PROPS = {
   flags: {
     json: { type: 'boolean' },
-    loglevel: { optionType: 'enum' }
+    loglevel: { type: 'option' }
   }
 };
 
@@ -131,12 +123,13 @@ describe('SfdxCommand', () => {
 
     // Ensure BaseTestCommand.flagsConfig is returned to base state
     BaseTestCommand.flagsConfig = {
-      flag1: { char: 'f', type: 'string', description: 'my desc' }
+      flag1: flags.string({ char: 'f', description: 'my desc' })
     };
   });
 
-  function verifyCmdFlags(flags: RequiredNonOptional<Dictionary<SfdxFlagDefinition>>) {
-    const merged = Object.assign({}, DEFAULT_CMD_PROPS.flags, flags);
+  // tslint:disable-next-line:no-any
+  function verifyCmdFlags(verifications: Dictionary<any>) {
+    const merged = Object.assign({}, DEFAULT_CMD_PROPS.flags, verifications);
     const numOfFlagsMessage = 'Number of flag definitions for the command should match';
     expect(keysOf(testCommandMeta.cmd.flags).length, numOfFlagsMessage).to.equal(keysOf(merged).length);
     keysOf(merged).forEach(key => {
@@ -321,7 +314,7 @@ describe('SfdxCommand', () => {
 
   it('should add an SFDX flag when enabled from flagsConfig', async () => {
     class TestCommand extends BaseTestCommand {}
-    TestCommand.flagsConfig.verbose = true;
+    TestCommand.flagsConfig.verbose = flags.builtin();
 
     // Run the command
     const output = await TestCommand.run([]);
@@ -400,7 +393,7 @@ describe('SfdxCommand', () => {
     // Run the command
     class TestCommand extends BaseTestCommand {
       public static flagsConfig = {
-        help: Flags.help({ char: 'h' })
+        help: flags.help({ char: 'h' })
       };
       // tslint:disable-next-line no-any (matches oclif)
       public log(message?: any): void {
@@ -432,7 +425,7 @@ describe('SfdxCommand', () => {
     // Run the command
     class TestCommand extends BaseTestCommand {
       public static flagsConfig = {
-        foo: Flags.boolean({ char: 'h', description: 'foo' })
+        foo: flags.boolean({ char: 'h', description: 'foo' })
       };
       // tslint:disable-next-line no-any (matches oclif)
       public log(message?: any): void {
@@ -878,21 +871,19 @@ describe('SfdxCommand', () => {
       url: ` ${messages.getMessage('FormattingMessageUrl')}`
     };
 
-    async function validateFlag(flagType: string, val: string, err: boolean) {
+    async function validateFlag(flagType: keyof typeof flags, val: string, err: boolean) {
+      const create = flags[flagType];
       class TestCommand extends BaseTestCommand {
         public static flagsConfig = {
-          doflag: {
-            char: 'i',
-            type: flagType,
-            description: 'my desc'
-          }
+          // @ts-ignore TODO: why isn't `create` invokable?!
+          doflag: create({ char: 'i', description: 'my desc' })
         };
       }
       const output = await TestCommand.run(['--doflag', val]);
       if (err) {
         const sfdxError = SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [
           val,
-          TestCommand.flagsConfig.doflag.type,
+          TestCommand.flagsConfig.doflag.kind,
           ERR_NEXT_STEPS[flagType] || ''
         ]);
         expect(output).to.equal(undefined);
@@ -974,14 +965,6 @@ describe('SfdxCommand', () => {
       return validateFlag('url', 'htttp://salesforce.com', false);
     });
 
-    it('should validate time flag type for an invalid time', async () => {
-      return validateFlag('time', '100:100:100', true);
-    });
-
-    it('should validate time flag type for a correct time', async () => {
-      return validateFlag('time', '01:02:20', false);
-    });
-
     // tslint:disable-next-line:no-any
     function validateFlagAttributes(output: any, errName: string, flagName: string) {
       const sfdxError = SfdxError.create('@salesforce/command', 'flags', errName, [flagName]);
@@ -995,11 +978,12 @@ describe('SfdxCommand', () => {
     it('should validate longDescription is string', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
-        myflag: {
+        myflag: flags.string({
           char: 'm',
+          // @ts-ignore ignore invalid longDescription value
           longDescription: false,
           description: 'my desc'
-        }
+        })
       };
 
       const output = await TestCommand.run(['--myflag', 'input']);
@@ -1009,9 +993,8 @@ describe('SfdxCommand', () => {
     it('should validate description is defined', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
-        myflag: {
-          char: 'm'
-        }
+        // @ts-ignore ignore error about not providing description
+        myflag: flags.string({ char: 'm' })
       };
       const output = await TestCommand.run(['--myflag', 'input']);
       validateFlagAttributes(output, 'MissingOrInvalidFlagDescription', 'myflag');
@@ -1020,10 +1003,11 @@ describe('SfdxCommand', () => {
     it('should validate char length is one', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
-        myflag: {
+        myflag: flags.string({
+          // @ts-ignore ignore invalid char value length
           char: 'foo',
           description: 'bar'
-        }
+        })
       };
       const output = await TestCommand.run(['--myflag', 'input']);
       validateFlagAttributes(output, 'InvalidFlagChar', 'myflag');
@@ -1032,10 +1016,8 @@ describe('SfdxCommand', () => {
     it('should validate char is alphabetical', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
-        myflag: {
-          char: '5',
-          description: 'bar'
-        }
+        // @ts-ignore ignore invalid char value
+        myflag: flags.string({ char: '5', description: 'bar' })
       };
       const output = await TestCommand.run(['--myflag', 'input']);
       validateFlagAttributes(output, 'InvalidFlagChar', 'myflag');
@@ -1056,7 +1038,7 @@ describe('SfdxCommand', () => {
     it('should validate flag name is all lowercase for oclif type flags', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
-        myFlag: Flags.boolean({
+        myFlag: flags.boolean({
           char: 'm',
           description: 'foobar'
         })
@@ -1068,11 +1050,10 @@ describe('SfdxCommand', () => {
     it('should validate that undefined is not a valid flag type value', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
-        myflag: {
+        myflag: flags.number({
           char: 'm',
-          type: 'number',
           description: 'my desc'
-        }
+        })
       };
       // @ts-ignore Allow undefined array value against the compiler spec to test underlying engine
       const output = await TestCommand.run(['--myflag', undefined]);
@@ -1081,6 +1062,114 @@ describe('SfdxCommand', () => {
       verifyUXOutput({
         error: [['ERROR running TestCommand: ', 'Flag --myflag expects a value']]
       });
+    });
+  });
+
+  describe('flags', () => {
+    it('should support all possible flag types', async () => {
+      // tslint:disable-next-line:no-any
+      let inputs: Dictionary<any> = {};
+
+      class FlagsTestCommand extends BaseTestCommand {
+        public static flagsConfig: FlagsConfig = {
+          // oclif
+          boolean: flags.boolean({ description: 'boolean' }),
+          enum: flags.enum({ description: 'enum', options: ['e', 'f'] }),
+          help: flags.help({ char: 'h' }),
+          integer: flags.integer({ description: 'integer' }),
+          option: flags.option({ description: 'custom', parse: (val: string) => val.toUpperCase() }),
+          string: flags.string({ description: 'string' }),
+          version: flags.version(),
+
+          // sfdx
+          array: flags.array({ description: 'woot' }),
+          intarray: flags.array({ description: 'woot', map: v => parseInt(v, 10) }),
+          date: flags.date({ description: 'date' }),
+          datetime: flags.datetime({ description: 'datetime' }),
+          directory: flags.directory({ description: 'directory' }),
+          email: flags.email({ description: 'some email' }),
+          filepath: flags.filepath({ description: 'filepath' }),
+          id: flags.id({ description: 'id' }),
+          milliseconds: flags.milliseconds({ description: 'milliseconds' }),
+          minutes: flags.minutes({ description: 'minutes' }),
+          number: flags.number({ description: 'number' }),
+          seconds: flags.seconds({ description: 'seconds' }),
+          url: flags.url({ description: 'url' }),
+
+          // builtins
+          apiversion: flags.builtin(),
+          concise: flags.builtin(),
+          quiet: flags.builtin(),
+          verbose: flags.builtin()
+        };
+
+        public static supportsUsername = true;
+        public static supportsDevhubUsername = true;
+
+        public async run() {
+          await super.run();
+          inputs = this.flags;
+          return this.statics.output;
+        }
+      }
+
+      await FlagsTestCommand.run([
+        // oclif
+        '--boolean',
+        '--enum=e',
+        // --help exits, so skip it in this test
+        '--integer=10',
+        '--option=o',
+        '--string=s',
+        // --version exits, so skip it in this test
+
+        // sfdx
+        '--array=1,2,3',
+        '--intarray=1,2,3',
+        '--date=01-02-2000 GMT',
+        '--datetime=01/02/2000 01:02:34 GMT',
+        '--email=bill@thecat.org',
+        '--filepath=/home/someone/.config',
+        '--id=00Dxxxxxxxxxxxx',
+        '--milliseconds=5000',
+        '--minutes=2',
+        '--number=0xdeadbeef',
+        '--seconds=5',
+        '--url=http://example.com/foo/bar',
+
+        // builtins
+        '--apiversion=42.0',
+        '--concise',
+        '--quiet',
+        '--verbose',
+        '--targetdevhubusername=foo',
+        '--targetusername=bar'
+      ]);
+
+      expect(inputs.boolean).to.be.true;
+      expect(inputs.enum).to.equal('e');
+      expect(inputs.integer).to.equal(10);
+      expect(inputs.option).to.equal('O');
+      expect(inputs.string).to.equal('s');
+
+      expect(inputs.array).to.deep.equal(['1', '2', '3']);
+      expect(inputs.intarray).to.deep.equal([1, 2, 3]);
+      expect(inputs.date.toISOString()).to.equal('2000-01-02T00:00:00.000Z');
+      expect(inputs.datetime.toISOString()).to.equal('2000-01-02T01:02:34.000Z');
+      expect(inputs.email).to.equal('bill@thecat.org');
+      expect(inputs.filepath).to.equal('/home/someone/.config');
+      expect(inputs.id).to.equal('00Dxxxxxxxxxxxx');
+      expect(inputs.milliseconds).to.deep.equal(Duration.milliseconds(5000));
+      expect(inputs.minutes).to.deep.equal(Duration.minutes(2));
+      expect(inputs.number).to.equal(3735928559); // 0xdeadbeef
+      expect(inputs.seconds).to.deep.equal(Duration.seconds(5));
+      expect(inputs.url).to.deep.equal(new URL('http://example.com/foo/bar'));
+
+      expect(inputs.apiversion).to.equal('42.0');
+      expect(inputs.concise).to.be.true;
+      expect(inputs.verbose).to.be.true;
+      expect(inputs.targetdevhubusername).to.equal('foo');
+      expect(inputs.targetusername).to.equal('bar');
     });
   });
 });
