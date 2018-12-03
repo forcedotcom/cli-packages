@@ -309,7 +309,7 @@ export abstract class SfdxCommand extends Command {
     // if it's overridden.
     const apiVersion = this.configAggregator.getInfo('apiVersion');
     if (apiVersion && apiVersion.value && !flags.apiversion) {
-      this.ux.warn(messages.getMessage('apiVersionOverrideWarning', [apiVersion.value]));
+      this.ux.warn(messages.getMessage('apiVersionOverrideWarning', [JSON.stringify(apiVersion.value)]));
     }
 
     // Assign this.org if the command supports or requires a username.

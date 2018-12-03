@@ -879,10 +879,10 @@
   dependencies:
     fancy-test "^1.4.1"
 
-"@salesforce/core@0.24.8":
-  version "0.24.8"
-  resolved "https://registry.npmjs.org/@salesforce/core/-/core-0.24.8.tgz#71680e7e4e9aeccba3660383eebb79861c19b8de"
-  integrity sha512-ptJQXrdO2v5XoBX86BColg5CQLZEV73y0tBJJtwDHVc9DqCxsn9Eq3HC8SnIcJCFfUHkVHIOe1hnSPhXW0ENLg==
+"@salesforce/core@0.27.2":
+  version "0.27.2"
+  resolved "https://registry.npmjs.org/@salesforce/core/-/core-0.27.2.tgz#bc3b2a0003b4e5ee2070d747d5b2251df5f84d9c"
+  integrity sha512-uLMkUuijSp1StO7thV3v5rKKFbeFonu/PLA3uREy7bKp2PcFaOTwr9PGS4Q/o0i3KmQ3Iio3pVu0JTEwrNB1Hg==
   dependencies:
     "@salesforce/kit" "0.13.3"
     "@salesforce/ts-types" "0.19.3"
