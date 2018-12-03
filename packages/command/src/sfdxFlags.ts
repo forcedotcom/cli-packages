@@ -396,6 +396,25 @@ const optionalBuiltinFlags = {
   }
 };
 
+/**
+ * The configuration of flags for an {@link SfdxCommand} class, except for the following:
+ *
+ * * `json` and `loglevel` are configured automatically for all {@link SfdxCommand} classes.
+ * * `targetusername` is enabled using either `SfdxCommand.supportsUsername` or `SfdxCommand.requiresUsername`.
+ * * `targetdevhubusername` is enabled using either `SfdxCommand.supportsDevhubUsername` or `SfdxCommand.requiresDevhubUsername`.
+ *
+ * Additionally, `apiversion` is enabled automatically if any of the static `*Username` booleans are set, but may be
+ * configured here explicitly as well if those settings are not required.
+ *
+ * ```
+ * public static flagsConfig: FlagsConfig = {
+ *   name: flags.string({ char: 'n', required: true, description: 'name of the resource to create' }),
+ *   source: flags.directory({ char: 'd', required: true, description: 'path of the source directory to sync' }),
+ *   wait: flags.minutes({ description: 'number of minutes to wait for creation' }),
+ *   notify: flags.url({ description: 'url to notify upon completion' })
+ * };
+ * ```
+ */
 export type FlagsConfig = {
   [key: string]: Optional<flags.Boolean<unknown> | flags.Option<unknown> | flags.Builtin>;
 
