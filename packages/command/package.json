@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/command",
-  "version": "0.2.5",
+  "version": "0.3.1",
   "description": "Salesforce CLI base command class",
   "main": "lib/exported",
   "repository": "https://github.com/forcedotcom/cli-packages",
@@ -13,6 +13,7 @@
     "docs": "yarn sfdx-docs",
     "format": "yarn sfdx-format",
     "lint": "yarn sfdx-lint",
+    "prepack": "yarn sfdx-build",
     "prepare": "npm run build",
     "test": "yarn sfdx-test"
   },
@@ -34,17 +35,16 @@
     "@oclif/parser": "^3.6.0",
     "@oclif/plugin-help": "^2.1.0",
     "@oclif/test": "^1.2.0",
-    "@salesforce/core": "0.23.1",
-    "@salesforce/kit": "0.12.1",
-    "@salesforce/ts-types": "0.17.4",
+    "@salesforce/core": "0.24.8",
+    "@salesforce/kit": "0.13.3",
+    "@salesforce/ts-types": "0.19.3",
     "chalk": "^2.4.0",
     "cli-ux": "^4.8.0"
   },
   "devDependencies": {
     "@oclif/config": "^1.7.0",
-    "@salesforce/dev-config": "1.1.5",
     "@salesforce/dev-scripts": "^0.3.3",
-    "@salesforce/ts-sinon": "0.2.0",
+    "@salesforce/ts-sinon": "0.2.7",
     "shelljs": "0.8.1"
   },
   "types": "lib/exported.d.ts",

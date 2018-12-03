@@ -1,15 +1,14 @@
+/*
+ * Copyright (c) 2018, salesforce.com, inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import * as oclifTest from '@oclif/test';
 import { command, Config, expect, FancyTypes } from '@oclif/test';
 import { AuthFields, SfdxProject } from '@salesforce/core';
 import { TestContext, testSetup } from '@salesforce/core/lib/testSetup';
-import {
-  AnyJson,
-  definiteValuesOf,
-  Dictionary,
-  ensure,
-  ensureString,
-  JsonMap
-} from '@salesforce/ts-types';
+import { AnyJson, definiteValuesOf, Dictionary, ensure, ensureString, JsonMap } from '@salesforce/ts-types';
 
 // Need to prevent typescript error
 import * as IConfig from '@oclif/config/lib/config';
@@ -19,10 +18,7 @@ loadConfig.root = ensure(module.parent).filename;
 
 const $$ = testSetup();
 
-const withOrg = (
-  org: Partial<AuthFields> = {},
-  setAsDefault: boolean = true
-) => {
+const withOrg = (org: Partial<AuthFields> = {}, setAsDefault = true) => {
   return {
     // tslint:disable-next-line:no-any TODO: properly type the dictionary
     run(ctx: Dictionary<any>) {
@@ -79,16 +75,11 @@ const withOrg = (
   };
 };
 
-function find(
-  orgs: Dictionary<JsonMap>,
-  predicate: (val: JsonMap) => boolean
-): JsonMap {
+function find(orgs: Dictionary<JsonMap>, predicate: (val: JsonMap) => boolean): JsonMap {
   return ensure(definiteValuesOf(orgs).filter(predicate)[0]);
 }
 
-const withConnectionRequest = (
-  fakeFunction: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>
-) => {
+const withConnectionRequest = (fakeFunction: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>) => {
   return {
     run(ctx: Dictionary) {
       $$.fakeConnectionRequest = fakeFunction;
@@ -99,11 +90,9 @@ const withConnectionRequest = (
 const withProject = (sfdxProjectJson?: JsonMap) => {
   return {
     run(ctx: Dictionary) {
-      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').callsFake(
-        (path: string) => {
-          return $$.localPathRetriever(path || $$.id);
-        }
-      );
+      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').callsFake((path: string) => {
+        return $$.localPathRetriever(path || $$.id);
+      });
       const DEFAULT_PROJECT_JSON = {
         sfdcLoginUrl: 'https://login.salesforce.com'
       };
@@ -121,14 +110,4 @@ const test = oclifTest.test
 
 export default test;
 
-export {
-  expect,
-  FancyTypes,
-  Config,
-  command,
-  loadConfig,
-  IConfig,
-  test,
-  $$,
-  TestContext
-};
+export { expect, FancyTypes, Config, command, loadConfig, IConfig, test, $$, TestContext };

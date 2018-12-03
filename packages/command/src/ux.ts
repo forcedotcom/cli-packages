@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 /**
@@ -25,10 +25,7 @@ import { Logger, LoggerLevel } from '@salesforce/core';
 import { isArray, Optional } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import { cli, IPromptOptions } from 'cli-ux';
-import {
-  TableColumn,
-  TableOptions as OclifTableOptions
-} from 'cli-ux/lib/styled/table';
+import { TableColumn, TableOptions as OclifTableOptions } from 'cli-ux/lib/styled/table';
 
 /**
  * Utilities for interacting with terminal I/O.
@@ -49,10 +46,7 @@ export class UX {
   public static formatDeprecationWarning(def: DeprecationDefinition): string {
     let msg =
       def.messageOverride ||
-      `The ${def.type} "${
-        def.name
-      }" has been deprecated and will be removed in v${(def.version || 0) +
-        1}.0 or later.`;
+      `The ${def.type} "${def.name}" has been deprecated and will be removed in v${(def.version || 0) + 1}.0 or later.`;
     if (def.to) {
       msg += ` Use "${def.to}" instead.`;
     }
@@ -76,11 +70,7 @@ export class UX {
   /**
    * Do not directly construct instances of this class -- use {@link UX.create} instead.
    */
-  constructor(
-    private logger: Logger,
-    private isOutputEnabled: boolean = true,
-    ux?: typeof cli
-  ) {
+  constructor(private logger: Logger, private isOutputEnabled = true, ux?: typeof cli) {
     this.cli = ux || cli;
   }
 
@@ -123,10 +113,7 @@ export class UX {
    * @param {IPromptOptions} options A prompt option configuration.
    * @returns {Promise<string>} The user input to the prompt.
    */
-  public async prompt(
-    name: string,
-    options: IPromptOptions = {}
-  ): Promise<string> {
+  public async prompt(name: string, options: IPromptOptions = {}): Promise<string> {
     return this.cli.prompt(name, options);
   }
 
@@ -144,7 +131,9 @@ export class UX {
    * @param {string} message The message displayed to the user.
    */
   public startSpinner(message: string): void {
-    this.cli.action.start(message);
+    if (this.isOutputEnabled) {
+      this.cli.action.start(message);
+    }
   }
 
   /**
@@ -153,8 +142,10 @@ export class UX {
    * @param {string} icon The string displayed to the user.
    * @returns {T} The result returned by the passed in function.
    */
-  public pauseSpinner<T>(fn: () => T, icon?: string): T {
-    return this.cli.action.pause(fn, icon);
+  public pauseSpinner<T>(fn: () => T, icon?: string): Optional<T> {
+    if (this.isOutputEnabled) {
+      return this.cli.action.pause(fn, icon);
+    }
   }
 
   /**
@@ -162,7 +153,9 @@ export class UX {
    * @param {string} status The message displayed to the user.
    */
   public setSpinnerStatus(status?: string): void {
-    this.cli.action.status = status;
+    if (this.isOutputEnabled) {
+      this.cli.action.status = status;
+    }
   }
 
   /**
@@ -170,7 +163,9 @@ export class UX {
    * @returns {Optional<string>}
    */
   public getSpinnerStatus(): Optional<string> {
-    return this.cli.action.status;
+    if (this.isOutputEnabled) {
+      return this.cli.action.status;
+    }
   }
 
   /**
@@ -178,7 +173,9 @@ export class UX {
    * @param {string} message The message displayed to the user.
    */
   public stopSpinner(message?: string): void {
-    this.cli.action.stop(message);
+    if (this.isOutputEnabled) {
+      this.cli.action.stop(message);
+    }
   }
 
   /**

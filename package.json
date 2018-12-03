@@ -17,7 +17,7 @@
     "test": "lerna run test"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "^0.3.3",
+    "@salesforce/dev-scripts": "0.3.7",
     "husky": "^1",
     "lerna": "^3.4.3"
   },

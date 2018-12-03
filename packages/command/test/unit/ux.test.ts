@@ -1,18 +1,17 @@
 /*
- * Copyright (c) 2016, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { expect } from 'chai';
 
 import { Logger } from '@salesforce/core';
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { Dictionary, Optional } from '@salesforce/ts-types';
+import { expect } from 'chai';
 import chalk from 'chalk';
 import cli from 'cli-ux';
-import { UX } from '../../lib/ux';
+import { UX } from '../../src/ux';
 
 chalk.enabled = false;
 
@@ -84,13 +83,9 @@ describe('UX', () => {
     ux.errorJson(logMsg);
 
     expect(loggerError.called).to.equal(true);
-    expect(loggerError.firstCall.args[0]).to.equal(
-      JSON.stringify(logMsg, null, 4)
-    );
+    expect(loggerError.firstCall.args[0]).to.equal(JSON.stringify(logMsg, null, 4));
     expect(consoleError.called).to.equal(true);
-    expect(consoleError.firstCall.args[0]).to.equal(
-      JSON.stringify(logMsg, null, 4)
-    );
+    expect(consoleError.firstCall.args[0]).to.equal(JSON.stringify(logMsg, null, 4));
   });
 
   it('error() should only log to the logger (logLevel = error) when output IS NOT enabled', () => {
@@ -191,8 +186,7 @@ describe('UX', () => {
     };
     const expectedMsg = `The ${depConfig.type} "${
       depConfig.name
-    }" has been deprecated and will be removed in v${depConfig.version +
-      1}.0 or later.`;
+    }" has been deprecated and will be removed in v${depConfig.version + 1}.0 or later.`;
     expect(UX.formatDeprecationWarning(depConfig)).to.equal(expectedMsg);
   });
 
@@ -215,8 +209,7 @@ describe('UX', () => {
     };
     let expectedMsg = `The ${depConfig.type} "${
       depConfig.name
-    }" has been deprecated and will be removed in v${depConfig.version +
-      1}.0 or later.`;
+    }" has been deprecated and will be removed in v${depConfig.version + 1}.0 or later.`;
     expectedMsg += ` Use "${depConfig.to}" instead. ${depConfig.message}`;
     expect(UX.formatDeprecationWarning(depConfig)).to.equal(expectedMsg);
   });
@@ -244,10 +237,7 @@ describe('UX', () => {
   it('table() should log to the logger and output in table format when output IS enabled with simple column config', () => {
     const retVal: any = {}; // tslint:disable-line:no-any
     const info = $$.SANDBOX.stub($$.TEST_LOGGER, 'info');
-    const tableGetter = () => (
-      x: typeof tableData,
-      y: typeof expectedOptions
-    ) => {
+    const tableGetter = () => (x: typeof tableData, y: typeof expectedOptions) => {
       retVal.x = x;
       retVal.y = y;
     };
@@ -260,11 +250,7 @@ describe('UX', () => {
     ];
     const options = ['foo', 'bar', 'baz'];
     const expectedOptions = {
-      columns: [
-        { key: 'foo', label: 'FOO' },
-        { key: 'bar', label: 'BAR' },
-        { key: 'baz', label: 'BAZ' }
-      ]
+      columns: [{ key: 'foo', label: 'FOO' }, { key: 'bar', label: 'BAR' }, { key: 'baz', label: 'BAZ' }]
     };
 
     const ux1 = ux.table(tableData, options);
@@ -296,8 +282,9 @@ describe('UX', () => {
         {
           key: 'bar',
           label: '*** BAR ***',
+          // tslint:disable-next-line no-any (matches oclif)
           format: (val: any) => (val != null ? val.toString() : '')
-        }, // tslint:disable-line:no-any
+        },
         { key: 'baz', label: 'ZaB' }
       ]
     };
@@ -338,37 +325,54 @@ describe('UX', () => {
     expect(response).to.equal(answer);
   });
 
-  it('startSpinner() should call action.start()', () => {
-    const ux = new UX($$.TEST_LOGGER, true, cli);
-    const start = $$.SANDBOX.stub(cli.action, 'start');
-    ux.startSpinner('test message');
-    expect(start.called).to.equal(true);
-  });
+  describe('spinner tests', () => {
+    it('startSpinner() should call action.start()', () => {
+      const ux = new UX($$.TEST_LOGGER, true, cli);
+      const start = $$.SANDBOX.stub(cli.action, 'start');
+      ux.startSpinner('test message');
+      expect(start.called).to.equal(true);
+    });
 
-  it('pauseSpinner() should call action.pause()', () => {
-    const ux = new UX($$.TEST_LOGGER, true, cli);
-    const pause = $$.SANDBOX.stub(cli.action, 'pause');
-    ux.pauseSpinner(() => {});
-    expect(pause.called).to.equal(true);
-  });
+    it("startSpinner() shouldn't call action.start()", () => {
+      const ux = new UX($$.TEST_LOGGER, false, cli);
+      const start = $$.SANDBOX.stub(cli.action, 'start');
+      ux.startSpinner('test message');
+      expect(start.called).to.equal(false);
+    });
 
-  it('getSpinnerStatus() and setSpinnerStatus() get and set the status on action', () => {
-    const ux = new UX($$.TEST_LOGGER, true, cli);
-    ux.cli.action.task = {
-      action: 'spinner',
-      status: 'old status',
-      active: true
-    };
-    expect(ux.getSpinnerStatus()).to.equal('old status');
-    ux.setSpinnerStatus('new status');
-    expect(ux.cli.action.status).to.equal('new status');
-  });
+    it('pauseSpinner() should call action.pause()', () => {
+      const ux = new UX($$.TEST_LOGGER, true, cli);
+      const pause = $$.SANDBOX.stub(cli.action, 'pause');
+      ux.pauseSpinner(() => {});
+      expect(pause.called).to.equal(true);
+    });
 
-  it('stopSpinner() should call action.stop()', () => {
-    const ux = new UX($$.TEST_LOGGER, true, cli);
-    const stop = $$.SANDBOX.stub(cli.action, 'stop');
-    ux.stopSpinner('test message');
-    expect(stop.called).to.equal(true);
+    it("pauseSpinner() shouldn't call action.pause()", () => {
+      const ux = new UX($$.TEST_LOGGER, false, cli);
+      const pause = $$.SANDBOX.stub(cli.action, 'pause');
+      ux.pauseSpinner(() => {});
+      expect(pause.called).to.equal(false);
+    });
+
+    it('getSpinnerStatus() and setSpinnerStatus() get and set the status on action', () => {
+      const ux = new UX($$.TEST_LOGGER, false, cli);
+      ux.cli.action.task = { action: 'spinner', status: 'old status', active: true };
+      expect(ux.getSpinnerStatus()).to.equal(undefined);
+    });
+
+    it('stopSpinner() should call action.stop()', () => {
+      const ux = new UX($$.TEST_LOGGER, true, cli);
+      const stop = $$.SANDBOX.stub(cli.action, 'stop');
+      ux.stopSpinner('test message');
+      expect(stop.called).to.equal(true);
+    });
+
+    it("stopSpinner() shouldn't call action.stop()", () => {
+      const ux = new UX($$.TEST_LOGGER, false, cli);
+      const stop = $$.SANDBOX.stub(cli.action, 'stop');
+      ux.stopSpinner('test message');
+      expect(stop.called).to.equal(false);
+    });
   });
 
   describe('warn()', () => {
