@@ -605,7 +605,7 @@ describe('SfdxCommand', () => {
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput({
-      warn: [`apiVersion configuration overridden at ${apiVersion}`]
+      warn: [`apiVersion configuration overridden at \"${apiVersion}\"`]
     });
   });
 
