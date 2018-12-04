@@ -8,7 +8,16 @@ import * as oclifTest from '@oclif/test';
 import { command, Config, expect, FancyTypes } from '@oclif/test';
 import { AuthFields, SfdxProject } from '@salesforce/core';
 import { TestContext, testSetup } from '@salesforce/core/lib/testSetup';
-import { AnyJson, definiteValuesOf, Dictionary, ensure, ensureString, JsonMap } from '@salesforce/ts-types';
+import {
+  AnyJson,
+  asJsonMap,
+  definiteValuesOf,
+  Dictionary,
+  ensure,
+  ensureString,
+  JsonMap,
+  Optional
+} from '@salesforce/ts-types';
 
 // Need to prevent typescript error
 import * as IConfig from '@oclif/config/lib/config';
@@ -46,16 +55,22 @@ const withOrg = (org: Partial<AuthFields> = {}, setAsDefault = true) => {
 
       const readOrg = async function(this: { path: string }) {
         const path = this.path;
-        const foundOrg = find(ctx.orgs, val => {
-          return path.indexOf(ensureString(val.username)) >= 0;
-        });
+        const foundOrg = asJsonMap(
+          find(ctx.orgs, val => {
+            return path.indexOf(ensureString(val.username)) >= 0;
+          }),
+          {}
+        );
         return foundOrg;
       };
       const writeOrg = async function(this: { path: string }) {
         const path = this.path;
-        const foundOrg = find(ctx.orgs, val => {
-          return path.indexOf(ensureString(val.username)) >= 0;
-        });
+        const foundOrg = asJsonMap(
+          find(ctx.orgs, val => {
+            return path.indexOf(ensureString(val.username)) >= 0;
+          }),
+          {}
+        );
         return (ensure($$.configStubs.AuthInfoConfig).contents = foundOrg);
       };
 
@@ -75,8 +90,8 @@ const withOrg = (org: Partial<AuthFields> = {}, setAsDefault = true) => {
   };
 };
 
-function find(orgs: Dictionary<JsonMap>, predicate: (val: JsonMap) => boolean): JsonMap {
-  return ensure(definiteValuesOf(orgs).filter(predicate)[0]);
+function find(orgs: Dictionary<JsonMap>, predicate: (val: JsonMap) => boolean): Optional<JsonMap> {
+  return definiteValuesOf(orgs).filter(predicate)[0];
 }
 
 const withConnectionRequest = (fakeFunction: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>) => {
