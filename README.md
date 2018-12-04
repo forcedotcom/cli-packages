@@ -8,7 +8,7 @@ This repository contains (or will contain) the core Salesforce CLI, the base com
 
 Currently, we have the following packages:
 
-## [@salesforce/command](https://www.npmjs.com/package/@salesforce/command) - The Salesforce CLI base command
+## [@salesforce/command](https://www.npmjs.com/package/@salesforce/command) - Salesforce CLI base command, `SfdxCommand`
 
 - [![NPM](https://img.shields.io/npm/v/@salesforce/command.svg)](https://www.npmjs.com/package/@salesforce/command)
 - Learn more in its [README](https://github.com/forcedotcom/cli-packages/blob/develop/packages/command/README.md).
@@ -26,5 +26,5 @@ If you are interested in building these packages locally, please take a look at 
 # Related Docs and Repositories
 
 - [@salesforce/command](https://github.com/forcedotcom/cli-packages/tree/master/packages/command) - Contains the base Salesforce CLI command, `SfdxCommand`.
-- [@oclif/command](https://github.com/oclif/command) - Base oclif `Command`, which `SfdxCommand` extends.
+- [@oclif/command](https://github.com/oclif/command) - Contains the base oclif `Command`, which `SfdxCommand` extends.
 - [@salesforce/plugin-generator](https://github.com/forcedotcom/sfdx-plugin-generate) - The generator plug-in for building plug-ins for Salesforce CLI.
