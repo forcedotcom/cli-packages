@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.1](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@0.4.0...@salesforce/command@1.0.1) (2018-12-04)
+
+### Bug Fixes
+
+- update package.json ([e517e6c](https://github.com/forcedotcom/cli-packages/commit/e517e6c))
+
 # 0.4.0 (2018-12-03)
 
 ### Bug Fixes
