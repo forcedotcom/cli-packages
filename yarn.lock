@@ -879,12 +879,13 @@
   dependencies:
     fancy-test "^1.4.1"
 
-"@salesforce/core@0.27.2":
-  version "0.27.2"
-  resolved "https://registry.npmjs.org/@salesforce/core/-/core-0.27.2.tgz#bc3b2a0003b4e5ee2070d747d5b2251df5f84d9c"
-  integrity sha512-uLMkUuijSp1StO7thV3v5rKKFbeFonu/PLA3uREy7bKp2PcFaOTwr9PGS4Q/o0i3KmQ3Iio3pVu0JTEwrNB1Hg==
+"@salesforce/core@^1.0.0":
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/@salesforce/core/-/core-1.0.1.tgz#e3ff08751d69107b2519792f5034a5d77391db25"
+  integrity sha512-mM2KC5E9rxfHXTPgJVJbmoLYefL+hBfiQ/Ved0d8e11jp8LbQrbQWWulq7IPziZGrySkMJOJAp6KtqmfLNZPKg==
   dependencies:
     "@salesforce/kit" "0.13.3"
+    "@salesforce/ts-sinon" "0.2.7"
     "@salesforce/ts-types" "0.19.3"
     "@types/jsforce" "1.8.12"
     bunyan-sfdx-no-dtrace "1.8.2"
