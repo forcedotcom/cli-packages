@@ -6,10 +6,10 @@
  */
 
 import * as core from '@salesforce/core';
-import { SfdxCommand, SfdxResult } from './sfdxCommand';
+import { Result, SfdxCommand, SfdxResult } from './sfdxCommand';
 import { flags, FlagsConfig } from './sfdxFlags';
 import { TableOptions, UX } from './ux';
 
 core.Messages.importMessagesDirectory(__dirname);
 
-export { SfdxCommand, SfdxResult, FlagsConfig, core, flags, TableOptions, UX };
+export { Result, SfdxCommand, SfdxResult, FlagsConfig, core, flags, TableOptions, UX };
