@@ -15,3 +15,5 @@
 **/*unitcoverage
 **/.nyc_output
 **/coverage
+
+**/docs
