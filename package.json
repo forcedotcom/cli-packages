@@ -4,6 +4,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build",
+    "ci-docs": "yarn sfdx-ci-docs",
     "ci-test": "nyc yarn test",
     "clean": "lerna run clean",
     "clean-all": "lerna run clean-all",
@@ -12,12 +13,13 @@
     "format": "lerna run format",
     "install": "yarn sfdx-lerna-install",
     "lint": "lerna run lint",
+    "lint-fix": "lerna run lint -- --fix",
     "postclean-all": "yarn sfdx-clean all",
     "prepack": "lerna run prepack",
     "test": "lerna run test"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "0.3.7",
+    "@salesforce/dev-scripts": "0.3.9",
     "husky": "^1",
     "lerna": "^3.4.3"
   },
