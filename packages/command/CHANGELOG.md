@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.1](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.1.0...@salesforce/command@1.1.1) (2018-12-13)
+
+
+### Bug Fixes
+
+* allow partial for builtin options ([6462367](https://github.com/forcedotcom/cli-packages/commit/6462367))
+
+
+
+
+
 # [1.1.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.0.2...@salesforce/command@1.1.0) (2018-12-13)
 
 
