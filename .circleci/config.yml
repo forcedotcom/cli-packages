@@ -4,7 +4,7 @@ _refs:
   cwd: &cwd ~/jobs
   ssh-config: &ssh-config
     fingerprints:
-      - '62:cb:86:a5:2b:57:ef:a8:a1:c2:cf:38:50:d0:61:58'
+      - 'ce:1f:16:a0:99:24:bc:66:b9:1b:61:e9:01:b8:1d:c3'
   cache-config: &cache-config
     key: dependency-cache-{{ checksum "package.json" }}
   restore-cache: &restore-cache
