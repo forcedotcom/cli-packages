@@ -205,11 +205,8 @@ function buildUrl(options: flags.Url): flags.Discriminated<flags.Url> {
   });
 }
 
-function buildBuiltin(options: flags.Builtin = { type: 'builtin' }): flags.Builtin {
-  if (options.type !== 'builtin') {
-    throw new SfdxError(`Invalid builtin flag type '${options.type}'`, 'InvalidBuiltinFlagTypeError');
-  }
-  return options;
+function buildBuiltin(options: Partial<flags.Builtin> = {}): flags.Builtin {
+  return { ...options, type: 'builtin' };
 }
 
 export const flags = {

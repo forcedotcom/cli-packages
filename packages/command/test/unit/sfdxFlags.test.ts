@@ -184,5 +184,15 @@ describe('SfdxFlags', () => {
       const rv = flags.builtin();
       expect(rv).to.deep.equal({ type: 'builtin' });
     });
+
+    it('should allow empty builtin flag options', () => {
+      const rv = flags.builtin({});
+      expect(rv).to.deep.equal({ type: 'builtin' });
+    });
+
+    it('should allow desc and long desc builtin flag options', () => {
+      const rv = flags.builtin({ description: 'desc', longDescription: 'long desc' });
+      expect(rv).to.deep.equal({ description: 'desc', longDescription: 'long desc', type: 'builtin' });
+    });
   });
 });
