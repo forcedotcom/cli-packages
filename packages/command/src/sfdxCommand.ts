@@ -18,7 +18,7 @@ Messages.importMessagesDirectory(__dirname);
 export interface SfdxResult {
   data?: AnyJson;
   tableColumnData?: TableOptions;
-  display?: (this: SfdxResult) => void;
+  display?: (this: Result) => void;
 }
 
 /**

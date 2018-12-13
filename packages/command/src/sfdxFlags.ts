@@ -38,20 +38,21 @@ export namespace flags {
   export type Any<T> = Partial<OclifFlags.IFlag<T>> & Describable;
   export type BaseBoolean<T> = Partial<IBooleanFlag<T>>;
   export type Boolean<T> = BaseBoolean<T> & Describable;
-  export type Builtin = { type: 'builtin' };
+  export type Builtin = { type: 'builtin'; description?: string; longDescription?: string };
   export type DateTime = Option<Date>;
   export type Describable = { description: string; longDescription?: string };
   export type Discriminant = { kind: Kind };
   export type Discriminated<T> = T & Discriminant;
-  export type Milliseconds = Option<Duration>;
-  export type Minutes = Option<Duration>;
+  export type Milliseconds = Option<Duration> & NumericBounds;
+  export type Minutes = Option<Duration> & NumericBounds;
   export type Enum<T> = EnumFlagOptions<T> & Describable;
   export type Kind = keyof typeof flags;
   export type Input<T extends Parser.flags.Output> = OclifFlags.Input<T>;
-  export type Number = Option<number>;
+  export type Number = Option<number> & NumericBounds;
+  export type NumericBounds = { min?: number; max?: number };
   export type Option<T> = Partial<IOptionFlag<Optional<T>>> & Describable;
   export type Output = OclifFlags.Output;
-  export type Seconds = Option<Duration>;
+  export type Seconds = Option<Duration> & NumericBounds;
   export type String = Option<string>;
   export type Url = Option<URL>;
 }
@@ -81,7 +82,12 @@ function buildHelp(options: flags.BaseBoolean<boolean>): flags.Discriminated<fla
 }
 
 function buildInteger(options: flags.Number): flags.Discriminated<flags.Number> {
-  return merge('integer', OclifFlags.integer(options), options);
+  const kind = 'integer';
+  return option(kind, options, (val: string) => {
+    const parsed = toNumber(val);
+    validateValue(Number.isInteger(parsed), val, kind);
+    return validateBounds(kind, parsed, options);
+  });
 }
 
 function buildOption<T>(
@@ -111,17 +117,19 @@ function buildArray<T>(options: flags.Array<T>): flags.Discriminated<flags.Array
 }
 
 function buildDate(options: flags.DateTime): flags.Discriminated<flags.DateTime> {
-  return option('date', options, (val: string) => {
+  const kind = 'date';
+  return option(kind, options, (val: string) => {
     const parsed = Date.parse(val);
-    validateValue(!isNaN(parsed), val, 'date', ` ${messages.getMessage('FormattingMessageDate')}`);
+    validateValue(!isNaN(parsed), val, kind, ` ${messages.getMessage('FormattingMessageDate')}`);
     return new Date(parsed);
   });
 }
 
 function buildDatetime(options: flags.DateTime): flags.Discriminated<flags.DateTime> {
-  return option('datetime', options, (val: string) => {
+  const kind = 'datetime';
+  return option(kind, options, (val: string) => {
     const parsed = Date.parse(val);
-    validateValue(!isNaN(parsed), val, 'datetime', ` ${messages.getMessage('FormattingMessageDate')}`);
+    validateValue(!isNaN(parsed), val, kind, ` ${messages.getMessage('FormattingMessageDate')}`);
     return new Date(parsed);
   });
 }
@@ -151,34 +159,38 @@ function buildId(options: flags.String): flags.Discriminated<flags.String> {
 }
 
 function buildMilliseconds(options: flags.Milliseconds): flags.Discriminated<flags.Milliseconds> {
-  return option('milliseconds', options, (val: string) => {
+  const kind = 'milliseconds';
+  return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
-    validateValue(Number.isInteger(parsed), val, 'milliseconds');
-    return Duration.milliseconds(parsed);
+    validateValue(Number.isInteger(parsed), val, kind);
+    return Duration.milliseconds(validateBounds(kind, parsed, options));
   });
 }
 
 function buildMinutes(options: flags.Minutes): flags.Discriminated<flags.Minutes> {
-  return option('minutes', options, (val: string) => {
+  const kind = 'minutes';
+  return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
-    validateValue(Number.isInteger(parsed), val, 'minutes');
-    return Duration.minutes(parsed);
+    validateValue(Number.isInteger(parsed), val, kind);
+    return Duration.minutes(validateBounds(kind, parsed, options));
   });
 }
 
 function buildNumber(options: flags.Number): flags.Discriminated<flags.Number> {
-  return option('number', options, (val: string) => {
+  const kind = 'number';
+  return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
-    validateValue(isFinite(parsed), val, 'number');
-    return parsed;
+    validateValue(isFinite(parsed), val, kind);
+    return validateBounds(kind, parsed, options);
   });
 }
 
 function buildSeconds(options: flags.Seconds): flags.Discriminated<flags.Seconds> {
-  return option('seconds', options, (val: string) => {
+  const kind = 'seconds';
+  return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
-    validateValue(Number.isInteger(parsed), val, 'seconds');
-    return Duration.seconds(parseInt(val, 10));
+    validateValue(Number.isInteger(parsed), val, kind);
+    return Duration.seconds(validateBounds(kind, parsed, options));
   });
 }
 
@@ -345,10 +357,10 @@ const requiredBuiltinFlags = {
 };
 
 const optionalBuiltinFlags = {
-  apiversion(): flags.Discriminated<flags.String> {
+  apiversion(opts?: flags.Builtin): flags.Discriminated<flags.String> {
     const flag = flags.string({
-      description: messages.getMessage('apiversionFlagDescription'),
-      longDescription: messages.getMessage('apiversionFlagLongDescription'),
+      description: resolve(opts, 'description', messages.getMessage('apiversionFlagDescription')),
+      longDescription: resolve(opts, 'longDescription', messages.getMessage('apiversionFlagLongDescription')),
       parse: (val: string) => {
         if (sfdc.validateApiVersion(val)) return val;
         throw SfdxError.create('@salesforce/command', 'flags', 'InvalidApiVersionError', [val]);
@@ -357,43 +369,47 @@ const optionalBuiltinFlags = {
     return flag;
   },
 
-  concise(): flags.Discriminated<flags.Boolean<boolean>> {
+  concise(opts?: flags.Builtin): flags.Discriminated<flags.Boolean<boolean>> {
     return flags.boolean({
-      description: messages.getMessage('conciseFlagDescription'),
-      longDescription: messages.getMessage('conciseFlagLongDescription')
+      description: resolve(opts, 'description', messages.getMessage('conciseFlagDescription')),
+      longDescription: resolve(opts, 'longDescription', messages.getMessage('conciseFlagLongDescription'))
     });
   },
 
-  quiet(): flags.Discriminated<flags.Boolean<boolean>> {
+  quiet(opts?: flags.Builtin): flags.Discriminated<flags.Boolean<boolean>> {
     return flags.boolean({
-      description: messages.getMessage('quietFlagDescription'),
-      longDescription: messages.getMessage('quietFlagLongDescription')
+      description: resolve(opts, 'description', messages.getMessage('quietFlagDescription')),
+      longDescription: resolve(opts, 'longDescription', messages.getMessage('quietFlagLongDescription'))
     });
   },
 
-  targetdevhubusername(): flags.Discriminated<flags.String> {
+  targetdevhubusername(opts?: flags.Builtin): flags.Discriminated<flags.String> {
     return flags.string({
       char: 'v',
-      description: messages.getMessage('targetdevhubusernameFlagDescription'),
-      longDescription: messages.getMessage('targetdevhubusernameFlagLongDescription')
+      description: resolve(opts, 'description', messages.getMessage('targetdevhubusernameFlagDescription')),
+      longDescription: resolve(opts, 'longDescription', messages.getMessage('targetdevhubusernameFlagLongDescription'))
     });
   },
 
-  targetusername(): flags.Discriminated<flags.String> {
+  targetusername(opts?: flags.Builtin): flags.Discriminated<flags.String> {
     return flags.string({
       char: 'u',
-      description: messages.getMessage('targetusernameFlagDescription'),
-      longDescription: messages.getMessage('targetusernameFlagLongDescription')
+      description: resolve(opts, 'description', messages.getMessage('targetusernameFlagDescription')),
+      longDescription: resolve(opts, 'longDescription', messages.getMessage('targetusernameFlagLongDescription'))
     });
   },
 
-  verbose(): flags.Discriminated<flags.Boolean<boolean>> {
+  verbose(opts?: flags.Builtin): flags.Discriminated<flags.Boolean<boolean>> {
     return flags.boolean({
-      description: messages.getMessage('verboseFlagDescription'),
-      longDescription: messages.getMessage('verboseFlagLongDescription')
+      description: resolve(opts, 'description', messages.getMessage('verboseFlagDescription')),
+      longDescription: resolve(opts, 'longDescription', messages.getMessage('verboseFlagLongDescription'))
     });
   }
 };
+
+function resolve(opts: Optional<flags.Builtin>, key: keyof flags.Builtin, def: string): string {
+  return hasString(opts, key) ? opts[key] : def;
+}
 
 /**
  * The configuration of flags for an {@link SfdxCommand} class, except for the following:
@@ -418,26 +434,26 @@ export type FlagsConfig = {
   [key: string]: Optional<flags.Boolean<unknown> | flags.Option<unknown> | flags.Builtin>;
 
   /**
-   * Adds the apiversion built-in flag to allow for overriding the API
+   * Adds the `apiversion` built-in flag to allow for overriding the API
    * version when executing the command.
    */
   apiversion?: flags.Builtin;
 
   /**
-   * Adds the concise built-in flag to allow a command to support concise output,
+   * Adds the `concise` built-in flag to allow a command to support concise output,
    * which is useful when the output can be overly verbose, such as test results.
    * Note that this must be implemented by the command.
    */
   concise?: flags.Builtin;
 
   /**
-   * Adds the quiet built-in flag to allow a command to completely suppress output.
+   * Adds the `quiet` built-in flag to allow a command to completely suppress output.
    * Note that this must be implemented by the command.
    */
   quiet?: flags.Builtin;
 
   /**
-   * Adds the verbose built-in flag to allow a command to support verbose output,
+   * Adds the `verbose` built-in flag to allow a command to support verbose output,
    * which is useful to display additional command results.
    * Note that this must be implemented by the command.
    */
@@ -448,9 +464,25 @@ export type FlagsConfig = {
   targetusername?: never;
 };
 
-function validateValue(isValid: boolean, value: string, kind: string, correct?: string) {
+function validateValue(isValid: boolean, value: string, kind: string, correct?: string): string {
   if (isValid) return value;
   throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [value, kind, correct || '']);
+}
+
+function validateBounds(kind: flags.Kind, value: number, bounds: flags.NumericBounds): number {
+  if (bounds.min != null && value < bounds.min) {
+    throw new SfdxError(
+      `Expected ${kind} greater than or equal to ${bounds.min} but received ${value}`,
+      'InvalidFlagNumericBoundsError'
+    );
+  }
+  if (bounds.max != null && value > bounds.max) {
+    throw new SfdxError(
+      `Expected ${kind} less than or equal to ${bounds.max} but received ${value}`,
+      'InvalidFlagNumericBoundsError'
+    );
+  }
+  return value;
 }
 
 /**
@@ -512,7 +544,7 @@ export function buildSfdxFlags(
       if (!isKeyOf(optionalBuiltinFlags, key)) {
         throw SfdxError.create('@salesforce/command', 'flags', 'UnknownBuiltinFlagType', [key]);
       }
-      output[key] = optionalBuiltinFlags[key]();
+      output[key] = optionalBuiltinFlags[key](flag);
     } else {
       output[key] = validateCustomFlag(key, flag);
     }

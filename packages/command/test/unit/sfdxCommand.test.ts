@@ -27,7 +27,7 @@ import chalk from 'chalk';
 import { join } from 'path';
 import { SinonStub } from 'sinon';
 import { URL } from 'url';
-import { SfdxCommand, SfdxResult } from '../../src/sfdxCommand';
+import { Result, SfdxCommand, SfdxResult } from '../../src/sfdxCommand';
 import { flags, FlagsConfig } from '../../src/sfdxFlags';
 import { UX } from '../../src/ux';
 
@@ -360,7 +360,7 @@ describe('SfdxCommand', () => {
   });
 
   it('should honor the -h flag to generate help output when the subclass does not define its own flag for -h', async () => {
-    const lines: any[] = []; // tslint:disable-line no-any
+    const lines: string[] = [];
     // Run the command
     class TestCommand extends BaseTestCommand {
       // tslint:disable-next-line no-any (matches oclif)
@@ -389,7 +389,7 @@ describe('SfdxCommand', () => {
   });
 
   it('should honor the -h flag to generate help output, even when the subclass defines its own help flag', async () => {
-    const lines: any[] = []; // tslint:disable-line no-any
+    const lines: string[] = [];
     // Run the command
     class TestCommand extends BaseTestCommand {
       public static flagsConfig = {
@@ -421,7 +421,7 @@ describe('SfdxCommand', () => {
   });
 
   it('should not honor the -h flag to generate help output when used for another purpose by the subclass', async () => {
-    const lines: any[] = []; // tslint:disable-line no-any
+    const lines: string[] = [];
     // Run the command
     class TestCommand extends BaseTestCommand {
       public static flagsConfig = {
@@ -561,11 +561,44 @@ describe('SfdxCommand', () => {
     verifyUXOutput({ table: [TestCommand.output] });
   });
 
+  it('should check the shape of SfdxResult', async () => {
+    // Run the command
+    const tableColumnData = {
+      columns: [{ key: 'foo', label: 'Foo' }, { key: 'bar', label: 'Bar' }, { key: 'baz', label: 'Baz' }]
+    };
+    // Implement a new command here to ensure the compiler checks the shape of `result`
+    class MyTestCommand extends BaseTestCommand {
+      public static result: SfdxResult = {
+        tableColumnData,
+        display() {
+          this.ux.log(`CUSTOM: ${this.data}`);
+        }
+      };
+    }
+    MyTestCommand.output = [
+      { Foo: 1000, Bar: 'moscow mule', Baz: false },
+      { Foo: 2000, Bar: 'The Melvin', Baz: true },
+      { Foo: 3000, Bar: 'NE IPA', Baz: true },
+      { Foo: 4000, Bar: 'Guinness', Baz: 0 }
+    ];
+    const output = await MyTestCommand.run([]);
+
+    expect(output).to.equal(MyTestCommand.output);
+    expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
+    verifyCmdFlags({ flag1: { type: 'option' } });
+    verifyInstanceProps();
+    const expectedResult = {
+      data: MyTestCommand.output,
+      tableColumnData
+    };
+    expect(testCommandMeta.cmdInstance['result']).to.deep.include(expectedResult);
+    verifyUXOutput({ log: [`CUSTOM: ${MyTestCommand.output}`] });
+  });
+
   it('should override result display with result.display prop', async () => {
     // Run the command
     class TestCommand extends BaseTestCommand {}
-    // tslint:disable-next-line:no-any
-    TestCommand['result']['display'] = function(this: { data: any; ux: UX }) {
+    TestCommand['result']['display'] = function(this: Result) {
       this.ux.log(`CUSTOM: ${this.data}`);
     };
     TestCommand.output = 'new string output';
@@ -965,8 +998,7 @@ describe('SfdxCommand', () => {
       return validateFlag('url', 'htttp://salesforce.com', false);
     });
 
-    // tslint:disable-next-line:no-any
-    function validateFlagAttributes(output: any, errName: string, flagName: string) {
+    function validateFlagAttributes(output: unknown, errName: string, flagName: string) {
       const sfdxError = SfdxError.create('@salesforce/command', 'flags', errName, [flagName]);
       expect(output).to.equal(undefined);
       expect(process.exitCode).to.equal(1);
