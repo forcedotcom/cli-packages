@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.1.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.0.2...@salesforce/command@1.1.0) (2018-12-13)
+
+
+### Features
+
+* add optional min/max numeric flag validations ([484cf1e](https://github.com/forcedotcom/cli-packages/commit/484cf1e))
+* set correct this type type on SfdxResult.display ([fe9357f](https://github.com/forcedotcom/cli-packages/commit/fe9357f))
+
+
+
+
+
 ## [1.0.2](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.0.1...@salesforce/command@1.0.2) (2018-12-04)
 
 ### Bug Fixes
