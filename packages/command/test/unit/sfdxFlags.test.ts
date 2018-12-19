@@ -49,6 +49,18 @@ describe('SfdxFlags', () => {
       expect(rv.apiversion).to.have.property('description', messages.getMessage('apiversionFlagDescription'));
     });
 
+    it('should carry forward additional properties on builtins when forced (for legacy toolbelt compatibility)', () => {
+      const rv = buildSfdxFlags(
+        {
+          // @ts-ignore force setting the char to simulate a legacy toolbelt use case
+          apiversion: flags.builtin({ char: 'a' })
+        },
+        {}
+      );
+      expect(rv.apiversion).to.have.property('description', messages.getMessage('apiversionFlagDescription'));
+      expect(rv.apiversion).to.have.property('char', 'a');
+    });
+
     it('should add builtin flags', () => {
       const rv = buildSfdxFlags(
         {
@@ -179,7 +191,7 @@ describe('SfdxFlags', () => {
     });
   });
 
-  describe('flags', () => {
+  describe('usage', () => {
     it('should echo back any builtin flag options', () => {
       const rv = flags.builtin();
       expect(rv).to.deep.equal({ type: 'builtin' });
@@ -193,6 +205,11 @@ describe('SfdxFlags', () => {
     it('should allow desc and long desc builtin flag options', () => {
       const rv = flags.builtin({ description: 'desc', longDescription: 'long desc' });
       expect(rv).to.deep.equal({ description: 'desc', longDescription: 'long desc', type: 'builtin' });
+    });
+
+    it('should support adding deprecation information', () => {
+      const rv = flags.string({ description: 'any flag', deprecated: { message: 'do not use', version: '41.0' } });
+      expect(rv.deprecated).to.deep.equal({ message: 'do not use', version: '41.0' });
     });
   });
 });
