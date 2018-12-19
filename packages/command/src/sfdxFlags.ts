@@ -35,16 +35,17 @@ function option<T>(
 
 export namespace flags {
   export type Array<T> = Option<T[]> & { delimiter?: string; map?: (val: string) => T };
-  export type Any<T> = Partial<OclifFlags.IFlag<T>> & Describable;
+  export type Any<T> = Partial<OclifFlags.IFlag<T>> & SfdxProperties;
   export type BaseBoolean<T> = Partial<IBooleanFlag<T>>;
-  export type Boolean<T> = BaseBoolean<T> & Describable;
+  export type Boolean<T> = BaseBoolean<T> & SfdxProperties;
   export type Bounds<T> = { min?: T; max?: T };
-  export type Builtin = { type: 'builtin'; description?: string; longDescription?: string };
+  export type Builtin = { type: 'builtin' } & Partial<Describable>;
   export type DateTime = Option<Date>;
+  export type Deprecatable = { deprecated?: { message: string; version: string } };
   export type Describable = { description: string; longDescription?: string };
   export type Discriminant = { kind: Kind };
   export type Discriminated<T> = T & Discriminant;
-  export type Enum<T> = EnumFlagOptions<T> & Describable;
+  export type Enum<T> = EnumFlagOptions<T> & SfdxProperties;
   export type Kind = keyof typeof flags;
   export type Input<T extends Parser.flags.Output> = OclifFlags.Input<T>;
   // allow numeric bounds for back compat
@@ -53,10 +54,11 @@ export namespace flags {
   export type Minutes = Option<Duration> & Bounds<Duration | number>;
   export type Number = Option<number> & NumericBounds;
   export type NumericBounds = Bounds<number>;
-  export type Option<T> = Partial<IOptionFlag<Optional<T>>> & Describable;
+  export type Option<T> = Partial<IOptionFlag<Optional<T>>> & SfdxProperties;
   export type Output = OclifFlags.Output;
   // allow numeric bounds for back compat
   export type Seconds = Option<Duration> & Bounds<Duration | number>;
+  export type SfdxProperties = Describable & Deprecatable;
   export type String = Option<string>;
   export type Url = Option<URL>;
 }
@@ -359,52 +361,73 @@ const requiredBuiltinFlags = {
 
 const optionalBuiltinFlags = {
   apiversion(opts?: flags.Builtin): flags.Discriminated<flags.String> {
-    const flag = flags.string({
-      description: resolve(opts, 'description', messages.getMessage('apiversionFlagDescription')),
-      longDescription: resolve(opts, 'longDescription', messages.getMessage('apiversionFlagLongDescription')),
-      parse: (val: string) => {
-        if (sfdc.validateApiVersion(val)) return val;
-        throw SfdxError.create('@salesforce/command', 'flags', 'InvalidApiVersionError', [val]);
-      }
-    });
-    return flag;
+    return Object.assign(
+      opts || {},
+      flags.string({
+        description: resolve(opts, 'description', messages.getMessage('apiversionFlagDescription')),
+        longDescription: resolve(opts, 'longDescription', messages.getMessage('apiversionFlagLongDescription')),
+        parse: (val: string) => {
+          if (sfdc.validateApiVersion(val)) return val;
+          throw SfdxError.create('@salesforce/command', 'flags', 'InvalidApiVersionError', [val]);
+        }
+      })
+    );
   },
 
   concise(opts?: flags.Builtin): flags.Discriminated<flags.Boolean<boolean>> {
-    return flags.boolean({
-      description: resolve(opts, 'description', messages.getMessage('conciseFlagDescription')),
-      longDescription: resolve(opts, 'longDescription', messages.getMessage('conciseFlagLongDescription'))
-    });
+    return Object.assign(
+      opts || {},
+      flags.boolean({
+        description: resolve(opts, 'description', messages.getMessage('conciseFlagDescription')),
+        longDescription: resolve(opts, 'longDescription', messages.getMessage('conciseFlagLongDescription'))
+      })
+    );
   },
 
   quiet(opts?: flags.Builtin): flags.Discriminated<flags.Boolean<boolean>> {
-    return flags.boolean({
-      description: resolve(opts, 'description', messages.getMessage('quietFlagDescription')),
-      longDescription: resolve(opts, 'longDescription', messages.getMessage('quietFlagLongDescription'))
-    });
+    return Object.assign(
+      opts || {},
+      flags.boolean({
+        description: resolve(opts, 'description', messages.getMessage('quietFlagDescription')),
+        longDescription: resolve(opts, 'longDescription', messages.getMessage('quietFlagLongDescription'))
+      })
+    );
   },
 
   targetdevhubusername(opts?: flags.Builtin): flags.Discriminated<flags.String> {
-    return flags.string({
-      char: 'v',
-      description: resolve(opts, 'description', messages.getMessage('targetdevhubusernameFlagDescription')),
-      longDescription: resolve(opts, 'longDescription', messages.getMessage('targetdevhubusernameFlagLongDescription'))
-    });
+    return Object.assign(
+      opts || {},
+      flags.string({
+        char: 'v',
+        description: resolve(opts, 'description', messages.getMessage('targetdevhubusernameFlagDescription')),
+        longDescription: resolve(
+          opts,
+          'longDescription',
+          messages.getMessage('targetdevhubusernameFlagLongDescription')
+        )
+      })
+    );
   },
 
   targetusername(opts?: flags.Builtin): flags.Discriminated<flags.String> {
-    return flags.string({
-      char: 'u',
-      description: resolve(opts, 'description', messages.getMessage('targetusernameFlagDescription')),
-      longDescription: resolve(opts, 'longDescription', messages.getMessage('targetusernameFlagLongDescription'))
-    });
+    return Object.assign(
+      opts || {},
+      flags.string({
+        char: 'u',
+        description: resolve(opts, 'description', messages.getMessage('targetusernameFlagDescription')),
+        longDescription: resolve(opts, 'longDescription', messages.getMessage('targetusernameFlagLongDescription'))
+      })
+    );
   },
 
   verbose(opts?: flags.Builtin): flags.Discriminated<flags.Boolean<boolean>> {
-    return flags.boolean({
-      description: resolve(opts, 'description', messages.getMessage('verboseFlagDescription')),
-      longDescription: resolve(opts, 'longDescription', messages.getMessage('verboseFlagLongDescription'))
-    });
+    return Object.assign(
+      opts || {},
+      flags.boolean({
+        description: resolve(opts, 'description', messages.getMessage('verboseFlagDescription')),
+        longDescription: resolve(opts, 'longDescription', messages.getMessage('verboseFlagLongDescription'))
+      })
+    );
   }
 };
 
