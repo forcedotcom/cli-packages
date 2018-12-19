@@ -167,7 +167,7 @@ function buildMilliseconds(options: flags.Milliseconds): flags.Discriminated<fla
   return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
     validateValue(Number.isInteger(parsed), val, kind);
-    return Duration.milliseconds(validateBounds(kind, parsed, options, durationExtractor(kind)));
+    return Duration.milliseconds(validateBounds(kind, parsed, options, v => (isNumber(v) ? v : v[kind])));
   });
 }
 
@@ -176,7 +176,7 @@ function buildMinutes(options: flags.Minutes): flags.Discriminated<flags.Minutes
   return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
     validateValue(Number.isInteger(parsed), val, kind);
-    return Duration.minutes(validateBounds(kind, parsed, options, durationExtractor(kind)));
+    return Duration.minutes(validateBounds(kind, parsed, options, v => (isNumber(v) ? v : v[kind])));
   });
 }
 
@@ -194,7 +194,7 @@ function buildSeconds(options: flags.Seconds): flags.Discriminated<flags.Seconds
   return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
     validateValue(Number.isInteger(parsed), val, kind);
-    return Duration.seconds(validateBounds(kind, parsed, options, durationExtractor(kind)));
+    return Duration.seconds(validateBounds(kind, parsed, options, v => (isNumber(v) ? v : v[kind])));
   });
 }
 
@@ -211,10 +211,6 @@ function buildUrl(options: flags.Url): flags.Discriminated<flags.Url> {
 
 function buildBuiltin(options: Partial<flags.Builtin> = {}): flags.Builtin {
   return { ...options, type: 'builtin' };
-}
-
-function durationExtractor(prop: keyof Duration): (t: Duration | number) => number {
-  return v => (isNumber(v) ? v : v[prop]);
 }
 
 export const flags = {
