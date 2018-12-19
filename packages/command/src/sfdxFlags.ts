@@ -10,7 +10,7 @@ import * as Parser from '@oclif/parser';
 import { EnumFlagOptions, IBooleanFlag, IFlag, IOptionFlag } from '@oclif/parser/lib/flags';
 import { Logger, Messages, sfdc, SfdxError } from '@salesforce/core';
 import { Duration, toNumber } from '@salesforce/kit';
-import { definiteEntriesOf, ensure, hasString, isKeyOf, isString, Optional } from '@salesforce/ts-types';
+import { definiteEntriesOf, ensure, hasString, isKeyOf, isNumber, isString, Optional } from '@salesforce/ts-types';
 import { URL } from 'url';
 
 Messages.importMessagesDirectory(__dirname);
@@ -38,21 +38,25 @@ export namespace flags {
   export type Any<T> = Partial<OclifFlags.IFlag<T>> & Describable;
   export type BaseBoolean<T> = Partial<IBooleanFlag<T>>;
   export type Boolean<T> = BaseBoolean<T> & Describable;
+  export type Bounds<T> = { min?: T; max?: T };
   export type Builtin = { type: 'builtin'; description?: string; longDescription?: string };
   export type DateTime = Option<Date>;
   export type Describable = { description: string; longDescription?: string };
   export type Discriminant = { kind: Kind };
   export type Discriminated<T> = T & Discriminant;
-  export type Milliseconds = Option<Duration> & NumericBounds;
-  export type Minutes = Option<Duration> & NumericBounds;
   export type Enum<T> = EnumFlagOptions<T> & Describable;
   export type Kind = keyof typeof flags;
   export type Input<T extends Parser.flags.Output> = OclifFlags.Input<T>;
+  // allow numeric bounds for back compat
+  export type Milliseconds = Option<Duration> & Bounds<Duration | number>;
+  // allow numeric bounds for back compat
+  export type Minutes = Option<Duration> & Bounds<Duration | number>;
   export type Number = Option<number> & NumericBounds;
-  export type NumericBounds = { min?: number; max?: number };
+  export type NumericBounds = Bounds<number>;
   export type Option<T> = Partial<IOptionFlag<Optional<T>>> & Describable;
   export type Output = OclifFlags.Output;
-  export type Seconds = Option<Duration> & NumericBounds;
+  // allow numeric bounds for back compat
+  export type Seconds = Option<Duration> & Bounds<Duration | number>;
   export type String = Option<string>;
   export type Url = Option<URL>;
 }
@@ -86,7 +90,7 @@ function buildInteger(options: flags.Number): flags.Discriminated<flags.Number> 
   return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
     validateValue(Number.isInteger(parsed), val, kind);
-    return validateBounds(kind, parsed, options);
+    return validateBounds(kind, parsed, options, (t: number) => t);
   });
 }
 
@@ -163,7 +167,7 @@ function buildMilliseconds(options: flags.Milliseconds): flags.Discriminated<fla
   return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
     validateValue(Number.isInteger(parsed), val, kind);
-    return Duration.milliseconds(validateBounds(kind, parsed, options));
+    return Duration.milliseconds(validateBounds(kind, parsed, options, durationExtractor(kind)));
   });
 }
 
@@ -172,7 +176,7 @@ function buildMinutes(options: flags.Minutes): flags.Discriminated<flags.Minutes
   return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
     validateValue(Number.isInteger(parsed), val, kind);
-    return Duration.minutes(validateBounds(kind, parsed, options));
+    return Duration.minutes(validateBounds(kind, parsed, options, durationExtractor(kind)));
   });
 }
 
@@ -181,7 +185,7 @@ function buildNumber(options: flags.Number): flags.Discriminated<flags.Number> {
   return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
     validateValue(isFinite(parsed), val, kind);
-    return validateBounds(kind, parsed, options);
+    return validateBounds(kind, parsed, options, (t: number) => t);
   });
 }
 
@@ -190,7 +194,7 @@ function buildSeconds(options: flags.Seconds): flags.Discriminated<flags.Seconds
   return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
     validateValue(Number.isInteger(parsed), val, kind);
-    return Duration.seconds(validateBounds(kind, parsed, options));
+    return Duration.seconds(validateBounds(kind, parsed, options, durationExtractor(kind)));
   });
 }
 
@@ -207,6 +211,10 @@ function buildUrl(options: flags.Url): flags.Discriminated<flags.Url> {
 
 function buildBuiltin(options: Partial<flags.Builtin> = {}): flags.Builtin {
   return { ...options, type: 'builtin' };
+}
+
+function durationExtractor(prop: keyof Duration): (t: Duration | number) => number {
+  return v => (isNumber(v) ? v : v[prop]);
 }
 
 export const flags = {
@@ -466,16 +474,21 @@ function validateValue(isValid: boolean, value: string, kind: string, correct?: 
   throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [value, kind, correct || '']);
 }
 
-function validateBounds(kind: flags.Kind, value: number, bounds: flags.NumericBounds): number {
-  if (bounds.min != null && value < bounds.min) {
+function validateBounds<T>(
+  kind: flags.Kind,
+  value: number,
+  bounds: flags.Bounds<T>,
+  extract: (t: T) => number
+): number {
+  if (bounds.min != null && value < extract(bounds.min)) {
     throw new SfdxError(
-      `Expected ${kind} greater than or equal to ${bounds.min} but received ${value}`,
+      `Expected ${kind} greater than or equal to ${extract(bounds.min)} but received ${value}`,
       'InvalidFlagNumericBoundsError'
     );
   }
-  if (bounds.max != null && value > bounds.max) {
+  if (bounds.max != null && value > extract(bounds.max)) {
     throw new SfdxError(
-      `Expected ${kind} less than or equal to ${bounds.max} but received ${value}`,
+      `Expected ${kind} less than or equal to ${extract(bounds.max)} but received ${value}`,
       'InvalidFlagNumericBoundsError'
     );
   }
