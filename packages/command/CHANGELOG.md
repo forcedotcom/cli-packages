@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.2.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.1.1...@salesforce/command@1.2.0) (2018-12-21)
+
+
+### Bug Fixes
+
+* update kit, ts-types, ts-sinon versions ([9505744](https://github.com/forcedotcom/cli-packages/commit/9505744))
+
+
+### Features
+
+* allow duration bounds to accept duration ([30557e2](https://github.com/forcedotcom/cli-packages/commit/30557e2))
+* support deprecation and legacy flag props ([9c20954](https://github.com/forcedotcom/cli-packages/commit/9c20954))
+
+
+
+
+
 ## [1.1.1](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.1.0...@salesforce/command@1.1.1) (2018-12-13)
 
 
