@@ -23,6 +23,7 @@
   "MissingOrInvalidFlagDescription": "The flag %s is missing the description attribute, or the description is not a string.",
   "InvalidFlagChar": "The flag %s's char attribute must be one alphabetical character long.",
   "InvalidFlagName": "The flag %s's name must be a lowercase string that may contain numbers and hyphens.",
+  "FormattingMessageArrayOption": "Must only contain values in [%s].",
   "FormattingMessageDate": "Must be parsable by the Javascript Date object.",
   "FormattingMessageId": "Must be a 15- or 18-char string in the format \"00Dxxxxxxxxxxxx\", where \"00D\" is a valid sObject prefix.",
   "FormattingMessageUrl": "Must be a valid url in the format \"http://salesforce.com\". See https://nodejs.org/api/url.html#url_url_strings_and_url_objects"

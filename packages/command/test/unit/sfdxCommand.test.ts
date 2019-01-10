@@ -1114,8 +1114,14 @@ describe('SfdxCommand', () => {
           version: flags.version(),
 
           // sfdx
-          array: flags.array({ description: 'woot' }),
-          intarray: flags.array({ description: 'woot', map: v => parseInt(v, 10) }),
+          array: flags.array({ description: 'array' }),
+          optsarray: flags.array({ description: 'optsarray', options: ['1', '3', '5'] }),
+          intarray: flags.array({ description: 'intarray', map: (v: string) => parseInt(v, 10) }),
+          optsintarray: flags.array({
+            description: 'optsintarray',
+            map: (v: string) => parseInt(v, 10),
+            options: [1, 3, 5]
+          }),
           date: flags.date({ description: 'date' }),
           datetime: flags.datetime({ description: 'datetime' }),
           directory: flags.directory({ description: 'directory' }),
@@ -1157,7 +1163,9 @@ describe('SfdxCommand', () => {
 
         // sfdx
         '--array=1,2,3',
+        '--optsarray=1,3,5',
         '--intarray=1,2,3',
+        '--optsintarray=1,3,5',
         '--date=01-02-2000 GMT',
         '--datetime=01/02/2000 01:02:34 GMT',
         '--email=bill@thecat.org',
@@ -1185,7 +1193,9 @@ describe('SfdxCommand', () => {
       expect(inputs.string).to.equal('s');
 
       expect(inputs.array).to.deep.equal(['1', '2', '3']);
+      expect(inputs.optsarray).to.deep.equal(['1', '3', '5']);
       expect(inputs.intarray).to.deep.equal([1, 2, 3]);
+      expect(inputs.optsintarray).to.deep.equal([1, 3, 5]);
       expect(inputs.date.toISOString()).to.equal('2000-01-02T00:00:00.000Z');
       expect(inputs.datetime.toISOString()).to.equal('2000-01-02T01:02:34.000Z');
       expect(inputs.email).to.equal('bill@thecat.org');
