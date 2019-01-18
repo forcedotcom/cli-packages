@@ -13,7 +13,11 @@ import { Duration, toNumber } from '@salesforce/kit';
 import {
   definiteEntriesOf,
   ensure,
+  has,
+  hasFunction,
   hasString,
+  isFunction,
+  isInstance,
   isKeyOf,
   isNumber,
   isString,
@@ -26,6 +30,13 @@ Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/command', 'flags');
 
 function merge<T>(kind: flags.Kind, flag: IFlag<T>, describable: flags.Describable): flags.Discriminated<flags.Any<T>> {
+  if (has(flag, 'validate') && hasFunction(flag, 'parse')) {
+    const parse: <O>(val: string, ctx: unknown) => O = flag.parse;
+    flag.parse = <O>(val: string, ctx: unknown): O => {
+      validateValue(toValidatorFn(flag.validate)(val), val, kind);
+      return parse(val, ctx);
+    };
+  }
   return {
     kind,
     ...flag,
@@ -37,7 +48,7 @@ function merge<T>(kind: flags.Kind, flag: IFlag<T>, describable: flags.Describab
 function option<T>(
   kind: flags.Kind,
   options: flags.Option<T>,
-  parse: (val: string) => T
+  parse: (val: string, ctx: unknown) => T
 ): flags.Discriminated<flags.Option<T>> {
   return merge(kind, OclifFlags.build(Object.assign(options, { parse }))(), options);
 }
@@ -64,13 +75,14 @@ export namespace flags {
   export type Minutes = Option<Duration> & Bounds<Duration | number>;
   export type Number = Option<number> & NumericBounds;
   export type NumericBounds = Bounds<number>;
-  export type Option<T> = Partial<IOptionFlag<Optional<T>>> & SfdxProperties;
+  export type Option<T> = Partial<IOptionFlag<Optional<T>>> & SfdxProperties & Validatable;
   export type Output = OclifFlags.Output;
   // allow numeric bounds for back compat
   export type Seconds = Option<Duration> & Bounds<Duration | number>;
   export type SfdxProperties = Describable & Deprecatable;
   export type String = Option<string>;
   export type Url = Option<URL>;
+  export type Validatable = { validate?: string | RegExp | ((val: string) => boolean) };
 }
 
 // oclif
@@ -107,7 +119,7 @@ function buildInteger(options: flags.Number): flags.Discriminated<flags.Number> 
 }
 
 function buildOption<T>(
-  options: { parse: (val: string, context: unknown) => T } & flags.Option<T>
+  options: { parse: (val: string, ctx: unknown) => T } & flags.Option<T>
 ): flags.Discriminated<flags.Option<T>> {
   return merge('option', OclifFlags.option(options), options);
 }
@@ -125,43 +137,38 @@ function buildVersion(options?: flags.BaseBoolean<boolean>): flags.Discriminated
 
 // sfdx
 
-function buildArray(options: flags.Array): flags.Discriminated<flags.Array>;
+function buildArray(options: flags.Array<string>): flags.Discriminated<flags.Array<string>>;
 function buildArray<T>(options: flags.MappedArray<T>): flags.Discriminated<flags.Array<T>>;
 function buildArray<T>(options: flags.Array | flags.MappedArray<T>): flags.Discriminated<flags.Array<T>> {
   const kind = 'array';
-  // the following branches look very similar but are typed fundamentally differently from one another, making
-  // then challenging to refine into a single implementation without applying some hard to read type abstractions
-  if ('map' in options) {
-    const { options: values, ...rest } = options;
-    const allowed = new Set(values);
-    return option(
-      kind,
-      rest,
-      (val: string): T[] => {
-        const vals = val.split(options.delimiter || ',').map(options.map);
-        validateValue(
-          allowed.size === 0 || vals.every(t => allowed.has(t)),
-          val,
-          kind,
-          ` ${messages.getMessage('FormattingMessageArrayOption', [Array.from(allowed).toString()])}`
-        );
-        return vals;
-      }
-    );
-  } else {
-    const { options: values, ...rest } = options;
-    const allowed = new Set(values);
-    return option(kind, rest, val => {
+  return 'map' in options ? buildMappedArray(kind, options) : buildStringArray(kind, options);
+}
+
+function buildStringArray(kind: flags.Kind, options: flags.Array<string>): flags.Discriminated<flags.Array<string>> {
+  const { options: values, validate, ...rest } = options;
+  const allowed = new Set(values);
+  return option(kind, rest, val => {
+    const vals = val.split(options.delimiter || ',');
+    validateArrayValues(kind, val, vals, options.validate);
+    validateArrayOptions(kind, val, vals, allowed);
+    return vals;
+  });
+}
+
+function buildMappedArray<T>(kind: flags.Kind, options: flags.MappedArray<T>): flags.Discriminated<flags.Array<T>> {
+  const { options: values, validate, ...rest } = options;
+  const allowed = new Set(values);
+  return option(
+    kind,
+    rest,
+    (val: string): T[] => {
       const vals = val.split(options.delimiter || ',');
-      validateValue(
-        allowed.size === 0 || vals.every(t => allowed.has(t)),
-        val,
-        kind,
-        ` ${messages.getMessage('FormattingMessageArrayOption', [Array.from(allowed).toString()])}`
-      );
-      return vals;
-    });
-  }
+      validateArrayValues(kind, val, vals, options.validate);
+      const mappedVals = vals.map(options.map);
+      validateArrayOptions(kind, val, mappedVals, allowed);
+      return mappedVals;
+    }
+  );
 }
 
 function buildDate(options: flags.DateTime): flags.Discriminated<flags.DateTime> {
@@ -554,6 +561,38 @@ function validateBounds<T>(
     );
   }
   return value;
+}
+
+function toValidatorFn(validator?: unknown): (val: string) => boolean {
+  return (val: string) => {
+    if (isString(validator)) return new RegExp(validator).test(val);
+    if (isInstance(validator, RegExp)) return validator.test(val);
+    if (isFunction(validator)) return !!validator(val);
+    return true;
+  };
+}
+
+function validateArrayValues(
+  kind: flags.Kind,
+  raw: string,
+  vals: string[],
+  validator?: string | RegExp | ((val: string) => boolean)
+) {
+  validateValue(
+    vals.every(toValidatorFn(validator)),
+    raw,
+    kind,
+    ` ${messages.getMessage('FormattingMessageArrayValue')}`
+  );
+}
+
+function validateArrayOptions<T>(kind: flags.Kind, raw: string, vals: T[], allowed: Set<T>) {
+  validateValue(
+    allowed.size === 0 || vals.every(t => allowed.has(t)),
+    raw,
+    kind,
+    ` ${messages.getMessage('FormattingMessageArrayOption', [Array.from(allowed).toString()])}`
+  );
 }
 
 /**
