@@ -10,6 +10,7 @@ import { OutputArgs, OutputFlags } from '@oclif/parser';
 import { ConfigAggregator, Global, Logger, Messages, Mode, Org, SfdxError, SfdxProject } from '@salesforce/core';
 import { AnyJson, Dictionary, get, isBoolean, JsonMap, Optional } from '@salesforce/ts-types';
 import chalk from 'chalk';
+import { DocOpts } from './docOpts';
 import { buildSfdxFlags, flags as Flags, FlagsConfig } from './sfdxFlags';
 import { TableOptions, UX } from './ux';
 
@@ -80,6 +81,11 @@ export abstract class SfdxCommand extends Command {
       targetdevhubusername: !!(this.supportsDevhubUsername || this.requiresDevhubUsername),
       targetusername: !!(this.supportsUsername || this.requiresUsername)
     });
+  }
+
+  static get usage(): string {
+    // use docopts
+    return DocOpts.generate(this);
   }
 
   // Set to true to add the "targetusername" flag to this command.
