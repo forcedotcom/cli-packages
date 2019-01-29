@@ -1,12 +1,9 @@
-import Command from '@oclif/command';
-import { Input } from '@oclif/parser';
-import { IFlagBase } from '@oclif/parser/lib/flags';
-import { AnyArray, ensure, ensureArray, getArray, has } from '@salesforce/ts-types';
-import { get } from '@salesforce/ts-types';
+import { AnyArray, ensure, ensureArray, getArray, getString, has } from '@salesforce/ts-types';
+import { definiteEntriesOf } from '@salesforce/ts-types';
+import { SfdxCommand } from './sfdxCommand';
 import { flags } from './sfdxFlags';
 
-// tslint:disable-next-line no-any
-type flagType = any & typeof flags & IFlagBase<any, any> & { name: string; type: string } & Input<any>;
+type FlagsType = Array<flags.Any<unknown> & { name: string }>;
 
 /**
  * DocOpts generator.  See http://docopt.org/.
@@ -66,19 +63,20 @@ type flagType = any & typeof flags & IFlagBase<any, any> & { name: string; type:
  *
  * @param cmdDef
  */
-export class DocOpts<T extends typeof Command> {
-  public static generate<T extends typeof Command>(cmdDef: T): string {
+export class DocOpts<T extends typeof SfdxCommand> {
+  public static generate<T extends typeof SfdxCommand>(cmdDef: T): string {
     return new DocOpts(cmdDef).toString();
   }
 
   private cmd: T;
-  private flagList: flagType[];
+  private flagList: FlagsType;
 
   public constructor(cmd: T) {
     this.cmd = cmd;
-    this.flagList = Object.keys(this.cmd.flags || {}).map(key =>
-      Object.assign({ name: key }, get(this.cmd, `flags.${key}`))
-    );
+    this.flagList = definiteEntriesOf(this.cmd.flags).map(([k, v]) => {
+      const { description, ...rest } = v;
+      return { description: ensure(description), ...rest, name: k };
+    });
   }
 
   public toString(): string {
@@ -113,7 +111,7 @@ export class DocOpts<T extends typeof Command> {
       const conditionalStrs: string[] = [];
       this.generateUsageElement(conditionalStrs, [conditionalFlag]);
 
-      const optionFlags: flagType[] = [];
+      const optionFlags: FlagsType = [];
       const nameList: AnyArray = ensureArray(getArray(conditionalFlag, 'conditionalAttrName'));
 
       for (const optionFlagName of nameList) {
@@ -142,13 +140,14 @@ export class DocOpts<T extends typeof Command> {
     return this.flagList;
   }
 
-  private generateUsageElement(elementStrs: string[] = [], flagGroups: flagType[], beforeChar = '', afterChar = '') {
+  private generateUsageElement(elementStrs: string[] = [], flagGroups: FlagsType, beforeChar = '', afterChar = '') {
     for (const flag of flagGroups) {
       // don't show usage for hidden flags
       if (!flag.hidden) {
+        const kind = ensure(getString(flag, 'kind'));
         // not all flags have short names
         const flagName = flag.char ? `-${flag.char}` : `--${flag.name}`;
-        const type = flag.type !== 'boolean' ? ` <${flag.type || 'string'}>${flag.array ? '...' : ''}` : '';
+        const type = flag.type !== 'boolean' ? ` <${flag.type || 'string'}>${kind === 'array' ? '...' : ''}` : '';
         elementStrs.push(`${beforeChar}${flagName}${type}${afterChar}`);
       }
     }
