@@ -88,6 +88,14 @@ export abstract class SfdxCommand extends Command {
     return DocOpts.generate(this);
   }
 
+  // TypeScript does not yet have assertion-free polymorphic access to a class's static side from the instance side
+  protected get statics(): typeof SfdxCommand {
+    return this.constructor as typeof SfdxCommand;
+  }
+
+  // Property to inherit, override, and configure flags
+  public static flagsConfig: FlagsConfig;
+
   // Set to true to add the "targetusername" flag to this command.
   protected static supportsUsername = false;
 
@@ -110,9 +118,6 @@ export abstract class SfdxCommand extends Command {
 
   // Convenience property for simple command output table formating.
   protected static tableColumnData: string[];
-
-  // Property to inherit, override, and configure flags
-  protected static flagsConfig: FlagsConfig;
 
   // Use for full control over command output formating and display, or to override
   // certain pieces of default display behavior.
@@ -171,11 +176,6 @@ export abstract class SfdxCommand extends Command {
   }
 
   public abstract async run(): Promise<any>; // tslint:disable-line no-any (matches oclif)
-
-  // TypeScript does not yet have assertion-free polymorphic access to a class's static side from the instance side
-  protected get statics(): typeof SfdxCommand {
-    return this.constructor as typeof SfdxCommand;
-  }
 
   // Assign this.project if the command requires to be run from within a project.
   protected async assignProject(): Promise<void> {

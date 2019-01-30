@@ -20,6 +20,7 @@ import {
   Omit,
   Optional
 } from '@salesforce/ts-types';
+import { Dictionary } from '@salesforce/ts-types';
 import { URL } from 'url';
 
 Messages.importMessagesDirectory(__dirname);
@@ -598,8 +599,9 @@ function validateCustomFlag<T>(key: string, flag: flags.Any<T>): flags.Any<T> {
 export function buildSfdxFlags(
   flagsConfig: FlagsConfig,
   options: { targetdevhubusername?: boolean; targetusername?: boolean }
+  // tslint:disable-next-line:no-any matches oclif
 ): flags.Output {
-  const output: flags.Output = {};
+  const output: Dictionary<flags.Any<unknown>> = {};
 
   // Required flag options for all SFDX commands
   output.json = requiredBuiltinFlags.json();
