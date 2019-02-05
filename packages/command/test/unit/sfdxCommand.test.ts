@@ -1290,4 +1290,19 @@ describe('format', () => {
     const config = stubInterface<IConfig>($$.SANDBOX);
     expect(new TestCommand([], config).format(sfdxError)).to.deep.equal(expectedFormat);
   });
+
+  // it('should return usage information with the context', () => {
+  //   const message = "it's a trap!";
+  //   const name = 'BadError';
+
+  //   const sfdxError = new SfdxError(message, name);
+  //   sfdxError.stack = 'stack for BadError';
+
+  //   const stackMsg = `\n*** Internal Diagnostic ***\n\n${sfdxError.stack}\n******\n`;
+  //   const expectedFormat = ['ERROR: ', message, stackMsg];
+
+  //   const config = stubInterface<IConfig>($$.SANDBOX);
+  //   TestCommand.run([], config);
+  //   expect(new TestCommand([], config).format(sfdxError)).to.deep.equal(expectedFormat);
+  // });
 });

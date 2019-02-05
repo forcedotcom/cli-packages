@@ -380,7 +380,7 @@ export const flags = {
   builtin: buildBuiltin
 };
 
-const requiredBuiltinFlags = {
+export const requiredBuiltinFlags = {
   json(): flags.Discriminated<flags.Boolean<boolean>> {
     return flags.boolean({
       description: messages.getMessage('jsonFlagDescription'),
@@ -402,7 +402,7 @@ const requiredBuiltinFlags = {
   }
 };
 
-const optionalBuiltinFlags = {
+export const optionalBuiltinFlags = {
   apiversion(opts?: flags.Builtin): flags.Discriminated<flags.String> {
     return Object.assign(
       opts || {},

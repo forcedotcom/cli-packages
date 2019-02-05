@@ -84,7 +84,6 @@ export abstract class SfdxCommand extends Command {
   }
 
   static get usage(): string {
-    // use docopts
     return DocOpts.generate(this);
   }
 
@@ -95,6 +94,9 @@ export abstract class SfdxCommand extends Command {
 
   // Property to inherit, override, and configure flags
   public static flagsConfig: FlagsConfig;
+
+  // Use to enable or configure varargs style (key=value) parameters.
+  public static varargs: VarargsConfig = false;
 
   // Set to true to add the "targetusername" flag to this command.
   protected static supportsUsername = false;
@@ -122,9 +124,6 @@ export abstract class SfdxCommand extends Command {
   // Use for full control over command output formating and display, or to override
   // certain pieces of default display behavior.
   protected static result: SfdxResult = {};
-
-  // Use to enable or configure varargs style (key=value) parameters.
-  protected static varargs: VarargsConfig = false;
 
   protected logger!: Logger; // assigned in init
   protected ux!: UX; // assigned in init
@@ -250,6 +249,10 @@ export abstract class SfdxCommand extends Command {
   }
 
   protected async init() {
+    // If we made it to the init method, the exit code should not be set yet. It will be
+    // successful unless the base init or command throws an error.
+    process.exitCode = 0;
+
     // Ensure this.isJson, this.logger, and this.ux are set before super init, flag parsing, or help generation
     // (all of which can throw and prevent these from being available for command error handling).
     this.isJson = this.argv.includes('--json');
@@ -418,7 +421,9 @@ export abstract class SfdxCommand extends Command {
    */
   protected formatError(error: SfdxError): string[] {
     const colorizedArgs: string[] = [];
-    const runningWith = error.commandName ? ` running ${error.commandName}` : '';
+    // We should remove error.commandName since we should always use the actual command id.
+    const commandName = this.id || error.commandName;
+    const runningWith = commandName ? ` running ${commandName}` : '';
     colorizedArgs.push(chalk.bold(`ERROR${runningWith}: `));
     colorizedArgs.push(chalk.red(error.message));
 
