@@ -16,7 +16,8 @@ describe('doc opts', () => {
       public static varargs = true;
     }
     const usage = DocOpts.generate(ItCommand);
-    expect(usage).to.contain(' [name=value...]');
+    // Only show once with right spacing
+    expect(usage).to.contain('<%= command.id %> [name=value...] [--json]');
   });
   it('shows optional varargs object', () => {
     class ItCommand extends TestCommand {
@@ -25,7 +26,7 @@ describe('doc opts', () => {
       };
     }
     const usage = DocOpts.generate(ItCommand);
-    expect(usage).to.contain(' [name=value...]');
+    expect(usage).to.contain('<%= command.id %> [name=value...] [--json]');
   });
   it('shows required varargs', () => {
     class ItCommand extends TestCommand {
@@ -34,7 +35,7 @@ describe('doc opts', () => {
       };
     }
     const usage = DocOpts.generate(ItCommand);
-    expect(usage).to.contain(' name=value...');
+    expect(usage).to.contain('<%= command.id %> name=value... [--json]');
   });
   it('shows required string field', () => {
     class ItCommand extends TestCommand {

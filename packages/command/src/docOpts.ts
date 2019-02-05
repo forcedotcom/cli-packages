@@ -98,7 +98,7 @@ export class DocOpts<T extends typeof SfdxCommand> {
       if (!isRequired) {
         varargsElement = `[${varargsElement}]`;
       }
-      varargsElement += ` ${varargsElement}`;
+      varargsElement = `${varargsElement} `;
     }
 
     return `<%= command.id %> ${varargsElement}${groups.join(' ')}`;
