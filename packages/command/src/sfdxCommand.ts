@@ -92,9 +92,6 @@ export abstract class SfdxCommand extends Command {
     return this.constructor as typeof SfdxCommand;
   }
 
-  // Property to inherit, override, and configure flags
-  public static flagsConfig: FlagsConfig;
-
   // Use to enable or configure varargs style (key=value) parameters.
   public static varargs: VarargsConfig = false;
 
@@ -120,6 +117,9 @@ export abstract class SfdxCommand extends Command {
 
   // Convenience property for simple command output table formating.
   protected static tableColumnData: string[];
+
+  // Property to inherit, override, and configure flags
+  protected static flagsConfig: FlagsConfig;
 
   // Use for full control over command output formating and display, or to override
   // certain pieces of default display behavior.
