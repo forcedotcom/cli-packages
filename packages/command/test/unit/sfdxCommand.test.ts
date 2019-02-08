@@ -10,6 +10,7 @@ import {
   ConfigAggregator,
   ConfigInfo,
   Global,
+  Logger,
   LoggerLevel,
   Messages,
   Mode,
@@ -75,7 +76,9 @@ const DEFAULT_CMD_PROPS = {
 
 // Props that should always be added to the test command instance
 const DEFAULT_INSTANCE_PROPS = {
-  flags: {},
+  flags: {
+    loglevel: LoggerLevel[Logger.DEFAULT_LEVEL].toLowerCase()
+  },
   args: {},
   isJson: false,
   logger: $$.TEST_LOGGER,
@@ -349,7 +352,7 @@ describe('SfdxCommand', () => {
       flag1: { type: 'option' }
     });
     verifyInstanceProps({
-      flags: { flag1: 'flag1_val' },
+      flags: Object.assign({ flag1: 'flag1_val' }, DEFAULT_INSTANCE_PROPS.flags),
       args: { file: 'arg1_val' }
     });
     const expectedResult = {
@@ -441,7 +444,7 @@ describe('SfdxCommand', () => {
     expect(output).to.equal(TestCommand.output);
     expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
     verifyInstanceProps({
-      flags: { foo: true }
+      flags: Object.assign({ foo: true }, DEFAULT_INSTANCE_PROPS.flags)
     });
     const expectedResult = {
       data: TestCommand.output,
@@ -460,7 +463,7 @@ describe('SfdxCommand', () => {
     expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
     verifyCmdFlags({ flag1: { type: 'option' } });
     verifyInstanceProps({
-      flags: { json: true },
+      flags: Object.assign({ json: true }, DEFAULT_INSTANCE_PROPS.flags),
       isJson: true
     });
     const expectedResult = {
@@ -669,7 +672,7 @@ describe('SfdxCommand', () => {
     verifyInstanceProps({
       configAggregator,
       org: fakeOrg,
-      flags: { apiversion: apiversionFlagVal }
+      flags: Object.assign({ apiversion: apiversionFlagVal }, DEFAULT_INSTANCE_PROPS.flags)
     });
     const expectedResult = {
       data: TestCommand.output,

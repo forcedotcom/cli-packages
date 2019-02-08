@@ -8,7 +8,7 @@
 import { flags as OclifFlags } from '@oclif/command';
 import * as Parser from '@oclif/parser';
 import { EnumFlagOptions, IBooleanFlag, IFlag, IOptionFlag } from '@oclif/parser/lib/flags';
-import { Logger, Messages, sfdc, SfdxError } from '@salesforce/core';
+import { Logger, LoggerLevel, Messages, sfdc, SfdxError } from '@salesforce/core';
 import { Duration, toNumber } from '@salesforce/kit';
 import {
   definiteEntriesOf,
@@ -391,6 +391,7 @@ export const requiredBuiltinFlags = {
   loglevel(): flags.Discriminated<flags.Enum<string>> {
     return flags.enum({
       options: Logger.LEVEL_NAMES,
+      default: LoggerLevel[Logger.DEFAULT_LEVEL].toLowerCase(),
       required: false,
       description: messages.getMessage('loglevelFlagDescription'),
       longDescription: messages.getMessage('loglevelFlagLongDescription'),
