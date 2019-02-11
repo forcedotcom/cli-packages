@@ -8,7 +8,7 @@
 import { flags as OclifFlags } from '@oclif/command';
 import * as Parser from '@oclif/parser';
 import { EnumFlagOptions, IBooleanFlag, IFlag, IOptionFlag } from '@oclif/parser/lib/flags';
-import { Logger, Messages, sfdc, SfdxError } from '@salesforce/core';
+import { Logger, LoggerLevel, Messages, sfdc, SfdxError } from '@salesforce/core';
 import { Duration, toNumber } from '@salesforce/kit';
 import {
   definiteEntriesOf,
@@ -20,6 +20,7 @@ import {
   Omit,
   Optional
 } from '@salesforce/ts-types';
+import { Dictionary } from '@salesforce/ts-types';
 import { URL } from 'url';
 
 Messages.importMessagesDirectory(__dirname);
@@ -379,7 +380,7 @@ export const flags = {
   builtin: buildBuiltin
 };
 
-const requiredBuiltinFlags = {
+export const requiredBuiltinFlags = {
   json(): flags.Discriminated<flags.Boolean<boolean>> {
     return flags.boolean({
       description: messages.getMessage('jsonFlagDescription'),
@@ -390,6 +391,7 @@ const requiredBuiltinFlags = {
   loglevel(): flags.Discriminated<flags.Enum<string>> {
     return flags.enum({
       options: Logger.LEVEL_NAMES,
+      default: LoggerLevel[Logger.DEFAULT_LEVEL].toLowerCase(),
       required: false,
       description: messages.getMessage('loglevelFlagDescription'),
       longDescription: messages.getMessage('loglevelFlagLongDescription'),
@@ -401,7 +403,7 @@ const requiredBuiltinFlags = {
   }
 };
 
-const optionalBuiltinFlags = {
+export const optionalBuiltinFlags = {
   apiversion(opts?: flags.Builtin): flags.Discriminated<flags.String> {
     return Object.assign(
       opts || {},
@@ -598,8 +600,9 @@ function validateCustomFlag<T>(key: string, flag: flags.Any<T>): flags.Any<T> {
 export function buildSfdxFlags(
   flagsConfig: FlagsConfig,
   options: { targetdevhubusername?: boolean; targetusername?: boolean }
+  // tslint:disable-next-line:no-any matches oclif
 ): flags.Output {
-  const output: flags.Output = {};
+  const output: Dictionary<flags.Any<unknown>> = {};
 
   // Required flag options for all SFDX commands
   output.json = requiredBuiltinFlags.json();
