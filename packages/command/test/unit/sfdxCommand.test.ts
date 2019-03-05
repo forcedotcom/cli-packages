@@ -10,6 +10,7 @@ import {
   ConfigAggregator,
   ConfigInfo,
   Global,
+  Logger,
   LoggerLevel,
   Messages,
   Mode,
@@ -75,7 +76,9 @@ const DEFAULT_CMD_PROPS = {
 
 // Props that should always be added to the test command instance
 const DEFAULT_INSTANCE_PROPS = {
-  flags: {},
+  flags: {
+    loglevel: LoggerLevel[Logger.DEFAULT_LEVEL].toLowerCase()
+  },
   args: {},
   isJson: false,
   logger: $$.TEST_LOGGER,
@@ -165,7 +168,8 @@ describe('SfdxCommand', () => {
       }
     };
     if (x.display) {
-      x.display.call({ data: { foo: 'bar' } });
+      const resultStub = stubInterface<Result>($$.SANDBOX, { data: { foo: 'bar' } });
+      x.display.call(resultStub);
       expect(result).to.have.property('foo', 'bar');
     }
   });
@@ -348,7 +352,7 @@ describe('SfdxCommand', () => {
       flag1: { type: 'option' }
     });
     verifyInstanceProps({
-      flags: { flag1: 'flag1_val' },
+      flags: Object.assign({ flag1: 'flag1_val' }, DEFAULT_INSTANCE_PROPS.flags),
       args: { file: 'arg1_val' }
     });
     const expectedResult = {
@@ -440,7 +444,7 @@ describe('SfdxCommand', () => {
     expect(output).to.equal(TestCommand.output);
     expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
     verifyInstanceProps({
-      flags: { foo: true }
+      flags: Object.assign({ foo: true }, DEFAULT_INSTANCE_PROPS.flags)
     });
     const expectedResult = {
       data: TestCommand.output,
@@ -459,7 +463,7 @@ describe('SfdxCommand', () => {
     expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
     verifyCmdFlags({ flag1: { type: 'option' } });
     verifyInstanceProps({
-      flags: { json: true },
+      flags: Object.assign({ json: true }, DEFAULT_INSTANCE_PROPS.flags),
       isJson: true
     });
     const expectedResult = {
@@ -668,7 +672,7 @@ describe('SfdxCommand', () => {
     verifyInstanceProps({
       configAggregator,
       org: fakeOrg,
-      flags: { apiversion: apiversionFlagVal }
+      flags: Object.assign({ apiversion: apiversionFlagVal }, DEFAULT_INSTANCE_PROPS.flags)
     });
     const expectedResult = {
       data: TestCommand.output,
@@ -1114,8 +1118,14 @@ describe('SfdxCommand', () => {
           version: flags.version(),
 
           // sfdx
-          array: flags.array({ description: 'woot' }),
-          intarray: flags.array({ description: 'woot', map: v => parseInt(v, 10) }),
+          array: flags.array({ description: 'array' }),
+          optsarray: flags.array({ description: 'optsarray', options: ['1', '3', '5'] }),
+          intarray: flags.array({ description: 'intarray', map: (v: string) => parseInt(v, 10) }),
+          optsintarray: flags.array({
+            description: 'optsintarray',
+            map: (v: string) => parseInt(v, 10),
+            options: [1, 3, 5]
+          }),
           date: flags.date({ description: 'date' }),
           datetime: flags.datetime({ description: 'datetime' }),
           directory: flags.directory({ description: 'directory' }),
@@ -1157,7 +1167,9 @@ describe('SfdxCommand', () => {
 
         // sfdx
         '--array=1,2,3',
+        '--optsarray=1,3,5',
         '--intarray=1,2,3',
+        '--optsintarray=1,3,5',
         '--date=01-02-2000 GMT',
         '--datetime=01/02/2000 01:02:34 GMT',
         '--email=bill@thecat.org',
@@ -1185,7 +1197,9 @@ describe('SfdxCommand', () => {
       expect(inputs.string).to.equal('s');
 
       expect(inputs.array).to.deep.equal(['1', '2', '3']);
+      expect(inputs.optsarray).to.deep.equal(['1', '3', '5']);
       expect(inputs.intarray).to.deep.equal([1, 2, 3]);
+      expect(inputs.optsintarray).to.deep.equal([1, 3, 5]);
       expect(inputs.date.toISOString()).to.equal('2000-01-02T00:00:00.000Z');
       expect(inputs.datetime.toISOString()).to.equal('2000-01-02T01:02:34.000Z');
       expect(inputs.email).to.equal('bill@thecat.org');
@@ -1279,5 +1293,9 @@ describe('format', () => {
 
     const config = stubInterface<IConfig>($$.SANDBOX);
     expect(new TestCommand([], config).format(sfdxError)).to.deep.equal(expectedFormat);
+  });
+
+  it('should return generate usage by default', () => {
+    expect(TestCommand.usage).to.contain('[-f <string>]');
   });
 });

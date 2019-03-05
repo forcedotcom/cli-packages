@@ -225,6 +225,36 @@ describe('SfdxFlags', () => {
       );
       expect(() => seconds2.parse('5')).to.throw(SfdxError, 'Expected seconds less than or equal to 4 but received 5');
     });
+
+    it('should not throw for options array with valid values', () => {
+      const array = flags.array({ description: 'test', options: ['1', '3', '5'] });
+      if (!hasFunction(array, 'parse')) throw new Error('missing parse method for array');
+      expect(array.parse('1,3,5')).to.deep.equal(['1', '3', '5']);
+    });
+
+    it('should throw for options array with invalid values', () => {
+      const array = flags.array({ description: 'test', options: ['1', '3', '5'] });
+      if (!hasFunction(array, 'parse')) throw new Error('missing parse method for array');
+      expect(() => array.parse('1,2,3')).to.throw(
+        SfdxError,
+        'The flag value "1,2,3" is not in the correct format for "array." Must only contain values in [1,3,5]'
+      );
+    });
+
+    it('should not throw for options mapped array with valid values', () => {
+      const array = flags.array({ description: 'test', map: (v: string) => parseInt(v, 10), options: [1, 3, 5] });
+      if (!hasFunction(array, 'parse')) throw new Error('missing parse method for array');
+      expect(array.parse('1,3,5')).to.deep.equal([1, 3, 5]);
+    });
+
+    it('should throw for options mapped array with invalid values', () => {
+      const array = flags.array({ description: 'test', map: (v: string) => parseInt(v, 10), options: [1, 3, 5] });
+      if (!hasFunction(array, 'parse')) throw new Error('missing parse method for array');
+      expect(() => array.parse('1,2,3')).to.throw(
+        SfdxError,
+        'The flag value "1,2,3" is not in the correct format for "array." Must only contain values in [1,3,5].'
+      );
+    });
   });
 
   describe('usage', () => {

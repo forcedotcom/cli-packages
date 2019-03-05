@@ -8,9 +8,19 @@
 import { flags as OclifFlags } from '@oclif/command';
 import * as Parser from '@oclif/parser';
 import { EnumFlagOptions, IBooleanFlag, IFlag, IOptionFlag } from '@oclif/parser/lib/flags';
-import { Logger, Messages, sfdc, SfdxError } from '@salesforce/core';
+import { Logger, LoggerLevel, Messages, sfdc, SfdxError } from '@salesforce/core';
 import { Duration, toNumber } from '@salesforce/kit';
-import { definiteEntriesOf, ensure, hasString, isKeyOf, isNumber, isString, Optional } from '@salesforce/ts-types';
+import {
+  definiteEntriesOf,
+  ensure,
+  hasString,
+  isKeyOf,
+  isNumber,
+  isString,
+  Omit,
+  Optional
+} from '@salesforce/ts-types';
+import { Dictionary } from '@salesforce/ts-types';
 import { URL } from 'url';
 
 Messages.importMessagesDirectory(__dirname);
@@ -34,8 +44,8 @@ function option<T>(
 }
 
 export namespace flags {
-  export type Array<T> = Option<T[]> & { delimiter?: string; map?: (val: string) => T };
   export type Any<T> = Partial<OclifFlags.IFlag<T>> & SfdxProperties;
+  export type Array<T = string> = Option<T[]> & { delimiter?: string };
   export type BaseBoolean<T> = Partial<IBooleanFlag<T>>;
   export type Boolean<T> = BaseBoolean<T> & SfdxProperties;
   export type Bounds<T> = { min?: T; max?: T };
@@ -48,6 +58,7 @@ export namespace flags {
   export type Enum<T> = EnumFlagOptions<T> & SfdxProperties;
   export type Kind = keyof typeof flags;
   export type Input<T extends Parser.flags.Output> = OclifFlags.Input<T>;
+  export type MappedArray<T> = Omit<flags.Array<T>, 'options'> & { map: (val: string) => T; options?: T[] };
   // allow numeric bounds for back compat
   export type Milliseconds = Option<Duration> & Bounds<Duration | number>;
   // allow numeric bounds for back compat
@@ -115,11 +126,43 @@ function buildVersion(options?: flags.BaseBoolean<boolean>): flags.Discriminated
 
 // sfdx
 
-function buildArray<T>(options: flags.Array<T>): flags.Discriminated<flags.Array<T>> {
-  return option('array', options, val => {
-    const vals = val.split(options.delimiter || ',');
-    return options.map ? vals.map(options.map) : vals;
-  });
+function buildArray(options: flags.Array): flags.Discriminated<flags.Array>;
+function buildArray<T>(options: flags.MappedArray<T>): flags.Discriminated<flags.Array<T>>;
+function buildArray<T>(options: flags.Array | flags.MappedArray<T>): flags.Discriminated<flags.Array<T>> {
+  const kind = 'array';
+  // the following branches look very similar but are typed fundamentally differently from one another, making
+  // then challenging to refine into a single implementation without applying some hard to read type abstractions
+  if ('map' in options) {
+    const { options: values, ...rest } = options;
+    const allowed = new Set(values);
+    return option(
+      kind,
+      rest,
+      (val: string): T[] => {
+        const vals = val.split(options.delimiter || ',').map(options.map);
+        validateValue(
+          allowed.size === 0 || vals.every(t => allowed.has(t)),
+          val,
+          kind,
+          ` ${messages.getMessage('FormattingMessageArrayOption', [Array.from(allowed).toString()])}`
+        );
+        return vals;
+      }
+    );
+  } else {
+    const { options: values, ...rest } = options;
+    const allowed = new Set(values);
+    return option(kind, rest, val => {
+      const vals = val.split(options.delimiter || ',');
+      validateValue(
+        allowed.size === 0 || vals.every(t => allowed.has(t)),
+        val,
+        kind,
+        ` ${messages.getMessage('FormattingMessageArrayOption', [Array.from(allowed).toString()])}`
+      );
+      return vals;
+    });
+  }
 }
 
 function buildDate(options: flags.DateTime): flags.Discriminated<flags.DateTime> {
@@ -337,7 +380,7 @@ export const flags = {
   builtin: buildBuiltin
 };
 
-const requiredBuiltinFlags = {
+export const requiredBuiltinFlags = {
   json(): flags.Discriminated<flags.Boolean<boolean>> {
     return flags.boolean({
       description: messages.getMessage('jsonFlagDescription'),
@@ -348,6 +391,7 @@ const requiredBuiltinFlags = {
   loglevel(): flags.Discriminated<flags.Enum<string>> {
     return flags.enum({
       options: Logger.LEVEL_NAMES,
+      default: LoggerLevel[Logger.DEFAULT_LEVEL].toLowerCase(),
       required: false,
       description: messages.getMessage('loglevelFlagDescription'),
       longDescription: messages.getMessage('loglevelFlagLongDescription'),
@@ -359,7 +403,7 @@ const requiredBuiltinFlags = {
   }
 };
 
-const optionalBuiltinFlags = {
+export const optionalBuiltinFlags = {
   apiversion(opts?: flags.Builtin): flags.Discriminated<flags.String> {
     return Object.assign(
       opts || {},
@@ -556,8 +600,9 @@ function validateCustomFlag<T>(key: string, flag: flags.Any<T>): flags.Any<T> {
 export function buildSfdxFlags(
   flagsConfig: FlagsConfig,
   options: { targetdevhubusername?: boolean; targetusername?: boolean }
+  // tslint:disable-next-line:no-any matches oclif
 ): flags.Output {
-  const output: flags.Output = {};
+  const output: Dictionary<flags.Any<unknown>> = {};
 
   // Required flag options for all SFDX commands
   output.json = requiredBuiltinFlags.json();
