@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.3.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.2.0...@salesforce/command@1.3.0) (2019-03-05)
+
+
+### Bug Fixes
+
+* fix varargs docopt ([4e767e8](https://github.com/forcedotcom/cli-packages/commit/4e767e8))
+* logical enforcement of `options` in `array` flag configs ([0e2bbc3](https://github.com/forcedotcom/cli-packages/commit/0e2bbc3)), closes [#30](https://github.com/forcedotcom/cli-packages/issues/30)
+* loglevel flag should show a default ([91624a8](https://github.com/forcedotcom/cli-packages/commit/91624a8))
+
+
+### Features
+
+* wip for docopts ([11a4012](https://github.com/forcedotcom/cli-packages/commit/11a4012))
+
+
+
+
+
 # [1.2.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.1.1...@salesforce/command@1.2.0) (2018-12-21)
 
 
