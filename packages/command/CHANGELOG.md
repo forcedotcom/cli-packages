@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.3.1](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.3.0...@salesforce/command@1.3.1) (2019-03-11)
+
+
+### Bug Fixes
+
+* keep varargs protected ([d3f71a5](https://github.com/forcedotcom/cli-packages/commit/d3f71a5))
+
+
+
+
+
 # [1.3.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.2.0...@salesforce/command@1.3.0) (2019-03-05)
 
 
