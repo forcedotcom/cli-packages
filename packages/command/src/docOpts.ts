@@ -89,7 +89,7 @@ export class DocOpts<T extends typeof SfdxCommand> {
   public toString(): string {
     const groups = Object.values(this.groupFlagElements());
     // Protected field
-    const varargs = this.cmd.varargs;
+    const varargs = this.cmd.getVarArgsConfig();
     let varargsElement = '';
 
     if (varargs) {
