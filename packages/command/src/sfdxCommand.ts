@@ -87,13 +87,18 @@ export abstract class SfdxCommand extends Command {
     return DocOpts.generate(this);
   }
 
+  public static getVarArgsConfig(): Partial<VarargsConfig> | undefined {
+    if (isBoolean(this.varargs)) {
+      return this.varargs ? {} : undefined;
+    }
+    // Don't let others muck with this commands config
+    return Object.assign({}, this.varargs);
+  }
+
   // TypeScript does not yet have assertion-free polymorphic access to a class's static side from the instance side
   protected get statics(): typeof SfdxCommand {
     return this.constructor as typeof SfdxCommand;
   }
-
-  // Use to enable or configure varargs style (key=value) parameters.
-  public static varargs: VarargsConfig = false;
 
   // Set to true to add the "targetusername" flag to this command.
   protected static supportsUsername = false;
@@ -124,6 +129,9 @@ export abstract class SfdxCommand extends Command {
   // Use for full control over command output formating and display, or to override
   // certain pieces of default display behavior.
   protected static result: SfdxResult = {};
+
+  // Use to enable or configure varargs style (key=value) parameters.
+  protected static varargs: VarargsConfig = false;
 
   protected logger!: Logger; // assigned in init
   protected ux!: UX; // assigned in init
