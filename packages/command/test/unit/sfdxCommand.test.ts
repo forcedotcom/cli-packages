@@ -715,6 +715,18 @@ describe('SfdxCommand', () => {
     });
   });
 
+  it('should emit a cmdError event when a command catches an error', async () => {
+    $$.SANDBOX.stub(Org, 'create').throws('NoUsername');
+    class TestCommand extends BaseTestCommand {}
+    TestCommand['requiresUsername'] = true;
+    const emitSpy = $$.SANDBOX.spy(process, 'emit');
+
+    await TestCommand.run([]);
+
+    const expectationMsg = 'Expected the command catch handler to emit a "cmdError" event';
+    expect(emitSpy.calledOnceWith('cmdError'), expectationMsg).to.equal(true);
+  });
+
   it('should NOT throw when supportsUsername and org create fails', async () => {
     $$.SANDBOX.stub(Org, 'create').throws('NoUsername');
     class TestCommand extends BaseTestCommand {}
