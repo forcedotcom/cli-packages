@@ -375,7 +375,7 @@ export abstract class SfdxCommand extends Command {
     // Emit an event for the analytics plugin.  The ts-ignore is necessary
     // because TS is strict about the events that can be emitted on process.
     // @ts-ignore
-    process.emit('cmdError', err, this.org || this.hubOrg);
+    process.emit('cmdError', err, Object.assign({}, this.flags, this.varargs), this.org || this.hubOrg);
   }
 
   protected async finally(err: Optional<Error>) {

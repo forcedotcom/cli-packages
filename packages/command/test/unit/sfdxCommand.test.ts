@@ -717,14 +717,25 @@ describe('SfdxCommand', () => {
 
   it('should emit a cmdError event when a command catches an error', async () => {
     $$.SANDBOX.stub(Org, 'create').throws('NoUsername');
-    class TestCommand extends BaseTestCommand {}
+    class TestCommand extends BaseTestCommand {
+      public static varargs = true;
+    }
     TestCommand['requiresUsername'] = true;
     const emitSpy = $$.SANDBOX.spy(process, 'emit');
 
-    await TestCommand.run([]);
+    await TestCommand.run(['--targetusername', 'foo@bar.org', '--json', 'foo=bar']);
 
     const expectationMsg = 'Expected the command catch handler to emit a "cmdError" event';
+    const expectedFlags = {
+      targetusername: 'foo@bar.org',
+      loglevel: 'warn',
+      json: true,
+      foo: 'bar'
+    };
     expect(emitSpy.calledOnceWith('cmdError'), expectationMsg).to.equal(true);
+    expect(emitSpy.firstCall.args[0]).to.equal('cmdError');
+    expect(emitSpy.firstCall.args[1]).to.be.instanceOf(Error);
+    expect(emitSpy.firstCall.args[2]).to.deep.equal(expectedFlags);
   });
 
   it('should NOT throw when supportsUsername and org create fails', async () => {
