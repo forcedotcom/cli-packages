@@ -21,7 +21,7 @@ import {
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { cloneJson, Duration, env, isEmpty } from '@salesforce/kit';
 import { stubInterface } from '@salesforce/ts-sinon';
-import { Dictionary, ensureJsonMap, JsonArray, JsonMap, keysOf, Optional, AnyJson } from '@salesforce/ts-types';
+import { AnyJson, Dictionary, ensureJsonMap, JsonArray, JsonMap, keysOf, Optional } from '@salesforce/ts-types';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import chalk from 'chalk';
