@@ -100,6 +100,19 @@ describe('doc opts', () => {
     const usage = DocOpts.generate(ItCommand);
     expect(usage).to.contain(' [-s <url>]');
   });
+  it('does not show hidden type', () => {
+    class ItCommand extends TestCommand {
+      public static flagsConfig: FlagsConfig = {
+        testflag: flags.url({
+          description: 'test',
+          char: 's',
+          hidden: true
+        })
+      };
+    }
+    const usage = DocOpts.generate(ItCommand);
+    expect(usage).to.not.contain(' [-s <url>]');
+  });
   it('shows standards fields last', () => {
     class ItCommand extends TestCommand {
       public static flagsConfig: FlagsConfig = {
