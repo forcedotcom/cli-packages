@@ -19,9 +19,9 @@ import {
   SfdxProject
 } from '@salesforce/core';
 import { testSetup } from '@salesforce/core/lib/testSetup';
-import { cloneJson, Duration, isEmpty } from '@salesforce/kit';
+import { cloneJson, Duration, env, isEmpty } from '@salesforce/kit';
 import { stubInterface } from '@salesforce/ts-sinon';
-import { Dictionary, ensureJsonMap, JsonArray, JsonMap, keysOf, Optional } from '@salesforce/ts-types';
+import { Dictionary, ensureJsonMap, JsonArray, JsonMap, keysOf, Optional, AnyJson } from '@salesforce/ts-types';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import chalk from 'chalk';
@@ -91,9 +91,9 @@ const DEFAULT_INSTANCE_PROPS = {
 // Initial state of UX output by the command.
 const UX_OUTPUT_BASE = {
   log: new Array<string[]>(),
-  logJson: new Array<string[]>(),
+  logJson: new Array<AnyJson>(),
   error: new Array<string[]>(),
-  errorJson: new Array<string[]>(),
+  errorJson: new Array<AnyJson>(),
   table: new Array<string[]>(),
   warn: new Array<string[]>()
 };
@@ -101,6 +101,7 @@ const UX_OUTPUT_BASE = {
 // Actual UX output by the command
 let UX_OUTPUT: typeof UX_OUTPUT_BASE;
 let configAggregatorCreate: SinonStub;
+let jsonToStdout: boolean;
 
 describe('SfdxCommand', () => {
   beforeEach(() => {
@@ -115,9 +116,9 @@ describe('SfdxCommand', () => {
 
     // Stub all UX methods to update the UX_OUTPUT object
     $$.SANDBOX.stub(UX.prototype, 'log').callsFake((args: string[]) => UX_OUTPUT.log.push(args));
-    $$.SANDBOX.stub(UX.prototype, 'logJson').callsFake((args: string[]) => UX_OUTPUT.logJson.push(args));
+    $$.SANDBOX.stub(UX.prototype, 'logJson').callsFake((args: AnyJson) => UX_OUTPUT.logJson.push(args));
     $$.SANDBOX.stub(UX.prototype, 'error').callsFake((...args: string[]) => UX_OUTPUT.error.push(args));
-    $$.SANDBOX.stub(UX.prototype, 'errorJson').callsFake((args: string[]) => UX_OUTPUT.errorJson.push(args));
+    $$.SANDBOX.stub(UX.prototype, 'errorJson').callsFake((args: AnyJson) => UX_OUTPUT.errorJson.push(args));
     $$.SANDBOX.stub(UX.prototype, 'table').callsFake((args: string[]) => UX_OUTPUT.table.push(args));
     $$.SANDBOX.stub(UX.prototype, 'warn').callsFake((args: string[]) => UX_OUTPUT.warn.push(args));
 
@@ -128,6 +129,14 @@ describe('SfdxCommand', () => {
     BaseTestCommand.flagsConfig = {
       flag1: flags.string({ char: 'f', description: 'my desc' })
     };
+
+    jsonToStdout = env.getBoolean('SFDX_JSON_TO_STDOUT');
+    // Test right now assume this not to be true
+    env.setBoolean('SFDX_JSON_TO_STDOUT', false);
+  });
+
+  afterEach(() => {
+    env.setBoolean('SFDX_JSON_TO_STDOUT', jsonToStdout);
   });
 
   // tslint:disable-next-line:no-any
@@ -1217,6 +1226,43 @@ describe('SfdxCommand', () => {
       expect(inputs.targetdevhubusername).to.equal('foo');
       expect(inputs.targetusername).to.equal('bar');
     });
+  });
+
+  it('should send errors with --json to stderr by default', async () => {
+    // Run the command
+    class SfderrCommand extends SfdxCommand {
+      public async run() {
+        throw new Error('Ahhh!');
+      }
+    }
+    const output = await SfderrCommand.run(['--json']);
+    expect(output).to.equal(undefined);
+    expect(process.exitCode).to.equal(1);
+
+    const errorJson = UX_OUTPUT['errorJson'];
+    expect(errorJson.length, 'errorJson did not get called with error json').to.equal(1);
+    const json = ensureJsonMap(errorJson[0]);
+    expect(json.message, 'errorJson did not get called with the right error').to.contains('Ahhh!');
+    expect(UX_OUTPUT['logJson'].length, 'errorJson got called when it should not have').to.equal(0);
+  });
+
+  it('should honor the SFDX_JSON_TO_STDOUT on command errors', async () => {
+    env.setBoolean('SFDX_JSON_TO_STDOUT', true);
+    // Run the command
+    class SfdoutCommand extends SfdxCommand {
+      public async run() {
+        throw new Error('Ahhh!');
+      }
+    }
+    const output = await SfdoutCommand.run(['--json']);
+    expect(output).to.equal(undefined);
+    expect(process.exitCode).to.equal(1);
+
+    const logJson = UX_OUTPUT['logJson'];
+    expect(logJson.length, 'logJson did not get called with error json').to.equal(1);
+    const json = ensureJsonMap(logJson[0]);
+    expect(json.message, 'logJson did not get called with the right error').to.contains('Ahhh!');
+    expect(UX_OUTPUT['errorJson'].length, 'errorJson got called when it should not have').to.equal(0);
   });
 });
 

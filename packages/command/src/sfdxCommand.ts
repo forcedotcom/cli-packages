@@ -8,6 +8,7 @@
 import Command from '@oclif/command';
 import { OutputArgs, OutputFlags } from '@oclif/parser';
 import { ConfigAggregator, Global, Logger, Messages, Mode, Org, SfdxError, SfdxProject } from '@salesforce/core';
+import { env } from '@salesforce/kit';
 import { AnyJson, Dictionary, get, isBoolean, JsonMap, Optional } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import { DocOpts } from './docOpts';
@@ -363,7 +364,13 @@ export abstract class SfdxCommand extends Command {
     };
 
     if (this.isJson) {
-      this.ux.errorJson(userDisplayError);
+      // This should default to true, which will require a major version bump.
+      const sendToStdout = env.getBoolean('SFDX_JSON_TO_STDOUT');
+      if (sendToStdout) {
+        this.ux.logJson(userDisplayError);
+      } else {
+        this.ux.errorJson(userDisplayError);
+      }
     } else {
       this.ux.error(...this.formatError(error));
 

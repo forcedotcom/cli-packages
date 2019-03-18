@@ -212,7 +212,7 @@ export class UX {
    * @param {...any[]} args The errors to log.
    * @returns {UX}
    */
-  public error(...args: Array<unknown>): UX {
+  public error(...args: unknown[]): UX {
     if (this.isOutputEnabled) {
       console.error(...args);
     }
