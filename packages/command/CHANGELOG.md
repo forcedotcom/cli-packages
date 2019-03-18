@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.3.3](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.3.2...@salesforce/command@1.3.3) (2019-03-18)
+
+
+### Bug Fixes
+
+* send the flags and varargs as part of the cmdError event ([e2d5c2b](https://github.com/forcedotcom/cli-packages/commit/e2d5c2b))
+* support SFDX_JSON_TO_STDOUT ([d4b0062](https://github.com/forcedotcom/cli-packages/commit/d4b0062))
+
+
+
+
+
 ## [1.3.2](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.3.1...@salesforce/command@1.3.2) (2019-03-14)
 
 
