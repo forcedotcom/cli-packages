@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.3.4](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.3.3...@salesforce/command@1.3.4) (2019-03-19)
+
+
+### Bug Fixes
+
+* remove hidden flags from docopts' ([c55fddc](https://github.com/forcedotcom/cli-packages/commit/c55fddc))
+* support exclusive on both flags ([014274d](https://github.com/forcedotcom/cli-packages/commit/014274d))
+* update core for security ([3d483a2](https://github.com/forcedotcom/cli-packages/commit/3d483a2))
+
+
+
+
+
 ## [1.3.3](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.3.2...@salesforce/command@1.3.3) (2019-03-18)
 
 
