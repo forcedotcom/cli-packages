@@ -1,5 +1,7 @@
+import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson } from '@salesforce/ts-types';
 import { expect } from 'chai';
+import { createSandbox, SinonSandbox } from 'sinon';
 import { DocOpts } from '../../src/docOpts';
 import { SfdxCommand } from '../../src/sfdxCommand';
 import { flags, FlagsConfig } from '../../src/sfdxFlags';
@@ -254,8 +256,7 @@ describe('doc opts', () => {
     expect(usage).to.contain(' (-f <string> | -s <url>)');
   });
 
-  // Not implemented yet, but not sure if this is the functionality we want.
-  it.skip('shows optional one-way depended fields', () => {
+  it('shows option one-way exclusive field on optional field', () => {
     class ItCommand extends TestCommand {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.url({
@@ -265,14 +266,33 @@ describe('doc opts', () => {
         testflag2: flags.string({
           description: 'test',
           char: 'f',
-          dependsOn: ['testflag']
+          required: true,
+          exclusive: ['testflag']
         })
       };
     }
     const usage = DocOpts.generate(ItCommand);
-    expect(usage).to.contain(' [-s <url> [& -f <string>]]');
+    expect(usage).to.contain(' (-f <string> | -s <url>)');
   });
-  it.skip('shows optional two-way depended fields', () => {
+  it('shows optional exclusive fields defined twice', () => {
+    class ItCommand extends TestCommand {
+      public static flagsConfig: FlagsConfig = {
+        testflag: flags.url({
+          description: 'test',
+          char: 's',
+          exclusive: ['testflag2']
+        }),
+        testflag2: flags.string({
+          description: 'test',
+          char: 'f',
+          exclusive: ['testflag']
+        })
+      };
+    }
+    const usage = DocOpts.generate(ItCommand);
+    expect(usage).to.contain(' [-s <url> | -f <string>]');
+  });
+  it('shows optional two-way depended fields', () => {
     class ItCommand extends TestCommand {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.url({
@@ -290,6 +310,7 @@ describe('doc opts', () => {
     const usage = DocOpts.generate(ItCommand);
     expect(usage).to.contain(' [-s <url> -f <string>]');
   });
+  // Not implemented yet, but not sure if this is the functionality we want.
   it.skip('shows required one-way depended fields', () => {
     class ItCommand extends TestCommand {
       public static flagsConfig: FlagsConfig = {
@@ -308,7 +329,7 @@ describe('doc opts', () => {
     const usage = DocOpts.generate(ItCommand);
     expect(usage).to.contain(' (-s <url> [-f <string>])');
   });
-  it.skip('shows required two-way depended fields', () => {
+  it('shows required two-way depended fields', () => {
     class ItCommand extends TestCommand {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.url({
@@ -327,5 +348,37 @@ describe('doc opts', () => {
     }
     const usage = DocOpts.generate(ItCommand);
     expect(usage).to.contain(' (-s <url> -f <string>)');
+  });
+  describe('on error', () => {
+    let sandbox: SinonSandbox;
+    beforeEach(() => {
+      sandbox = createSandbox();
+    });
+    afterEach(() => {
+      sandbox.restore();
+    });
+    it('returns empty string', () => {
+      stubMethod(sandbox, DocOpts.prototype, 'groupFlagElements').callsFake(() => {
+        throw new Error('ahh');
+      });
+      class ItCommand extends TestCommand {
+        public static flagsConfig: FlagsConfig = {
+          testflag: flags.url({
+            description: 'test',
+            char: 's',
+            required: true,
+            dependsOn: ['testflag2']
+          }),
+          testflag2: flags.string({
+            description: 'test',
+            char: 'f',
+            required: true,
+            dependsOn: ['testflag']
+          })
+        };
+      }
+      const usage = DocOpts.generate(ItCommand);
+      expect(usage).to.equal('');
+    });
   });
 });
