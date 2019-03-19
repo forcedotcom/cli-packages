@@ -78,30 +78,37 @@ export class DocOpts<T extends typeof SfdxCommand> {
     this.cmd = cmd;
     // Create a new map with references to the flags that we can manipulate.
     this.flags = {};
-    this.flagList = definiteEntriesOf(this.cmd.flags).map(([k, v]) => {
-      const { description, ...rest } = v;
-      const flag = { description: ensure(description), ...rest, name: k };
-      this.flags[k] = flag;
-      return flag;
-    });
+    this.flagList = definiteEntriesOf(this.cmd.flags)
+      .filter(([k, v]) => !v.hidden)
+      .map(([k, v]) => {
+        const { description, ...rest } = v;
+        const flag = { description: ensure(description), ...rest, name: k };
+        this.flags[k] = flag;
+        return flag;
+      });
   }
 
   public toString(): string {
-    const groups = Object.values(this.groupFlagElements());
-    // Protected field
-    const varargs = this.cmd.getVarArgsConfig();
-    let varargsElement = '';
+    try {
+      const groups = Object.values(this.groupFlagElements());
+      // Protected field
+      const varargs = this.cmd.getVarArgsConfig();
+      let varargsElement = '';
 
-    if (varargs) {
-      varargsElement = 'name=value...';
-      const isRequired = isPlainObject(varargs) && varargs.required;
-      if (!isRequired) {
-        varargsElement = `[${varargsElement}]`;
+      if (varargs) {
+        varargsElement = 'name=value...';
+        const isRequired = isPlainObject(varargs) && varargs.required;
+        if (!isRequired) {
+          varargsElement = `[${varargsElement}]`;
+        }
+        varargsElement = `${varargsElement} `;
       }
-      varargsElement = `${varargsElement} `;
-    }
 
-    return `<%= command.id %> ${varargsElement}${groups.join(' ')}`;
+      return `<%= command.id %> ${varargsElement}${groups.join(' ')}`;
+    } catch (e) {
+      // If there is an error, just return no usage so we don't fail command help.
+      return '';
+    }
   }
 
   /**
@@ -158,6 +165,9 @@ export class DocOpts<T extends typeof SfdxCommand> {
     flagNames: string[],
     unionString: string
   ) {
+    if (!this.flags[flagName]) {
+      return;
+    }
     let isRequired = ensure(this.flags[flagName]).required;
     if (!isBoolean(isRequired) || !isRequired) {
       isRequired = flagNames.reduce(
