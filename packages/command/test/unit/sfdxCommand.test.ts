@@ -483,6 +483,26 @@ describe('SfdxCommand', () => {
     verifyUXOutput({ logJson: [{ status: 0, result: TestCommand.output }] });
   });
 
+  it('should allow adding information to the returned object for --json', async () => {
+    // Run the command
+    class TestCommand extends BaseTestCommand {
+      protected getJsonResultObject(result: AnyJson, status: number) {
+        return Object.assign(super.getJsonResultObject(result, status), {
+          myData: 'test'
+        });
+      }
+    }
+    const output = await TestCommand.run(['--json']);
+
+    expect(output).to.equal(TestCommand.output);
+    const expectedResult = {
+      data: TestCommand.output,
+      tableColumnData: undefined
+    };
+    expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
+    verifyUXOutput({ logJson: [{ status: 0, result: TestCommand.output, myData: 'test' }] });
+  });
+
   it('should set the logLevel on the SfdxCommand logger with the --loglevel flag', async () => {
     // Run the command
     class TestCommand extends BaseTestCommand {}
