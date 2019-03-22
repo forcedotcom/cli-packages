@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.4.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.3.4...@salesforce/command@1.4.0) (2019-03-22)
+
+
+### Features
+
+* allow massaging of result object printing by command ([84c2bc8](https://github.com/forcedotcom/cli-packages/commit/84c2bc8))
+
+
+
+
+
 ## [1.3.4](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.3.3...@salesforce/command@1.3.4) (2019-03-19)
 
 
