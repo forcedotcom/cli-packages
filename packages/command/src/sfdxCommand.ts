@@ -355,13 +355,11 @@ export abstract class SfdxCommand extends Command {
 
     process.exitCode = process.exitCode || error.exitCode || 1;
 
-    const userDisplayError = {
+    const userDisplayError = Object.assign(this.getJsonResultObject(error.data, error.exitCode), {
       ...error.toObject(),
       stack: error.stack,
-      status: error.exitCode,
-      result: error.data,
       warnings: UX.warnings
-    };
+    });
 
     if (this.isJson) {
       // This should default to true, which will require a major version bump.
@@ -389,14 +387,15 @@ export abstract class SfdxCommand extends Command {
     // Only handle success since we're handling errors in the catch
     if (!err) {
       if (this.isJson) {
-        this.ux.logJson({
-          status: process.exitCode || 0,
-          result: this.result.data
-        });
+        this.ux.logJson(this.getJsonResultObject());
       } else {
         this.result.display();
       }
     }
+  }
+
+  protected getJsonResultObject(result = this.result.data, status = process.exitCode || 0) {
+    return { status, result };
   }
 
   protected parseVarargs(args: string[] = []): JsonMap {
