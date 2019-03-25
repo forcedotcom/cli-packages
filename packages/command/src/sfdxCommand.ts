@@ -207,6 +207,9 @@ export abstract class SfdxCommand extends Command {
         aliasOrUsername: this.flags.targetusername,
         aggregator: this.configAggregator
       });
+      if (this.flags.apiversion) {
+        this.org.getConnection().setApiVersion(this.flags.apiversion);
+      }
     } catch (err) {
       if (this.statics.requiresUsername) {
         if (err.name === 'NoUsername') {
@@ -226,6 +229,9 @@ export abstract class SfdxCommand extends Command {
         aggregator: this.configAggregator,
         isDevHub: true
       });
+      if (this.flags.apiversion) {
+        this.hubOrg.getConnection().setApiVersion(this.flags.apiversion);
+      }
     } catch (err) {
       // Throw an error if the command requires a devhub and there is no targetdevhubusername
       // flag set and no defaultdevhubusername set.
