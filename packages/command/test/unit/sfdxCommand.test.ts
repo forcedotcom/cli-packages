@@ -300,6 +300,28 @@ describe('SfdxCommand', () => {
     verifyUXOutput();
   });
 
+  it('should set apiversion', async () => {
+    let apiVersion: string;
+    $$.SANDBOX.stub(Org, 'create').returns({
+      getConnection: () => ({
+        setApiVersion: (version: string) => {
+          apiVersion = version;
+        },
+        getApiVersion: (version: string) => apiVersion
+      })
+    });
+    // Run the command
+    class ApiVersionCommand extends SfdxCommand {
+      protected static requiresUsername = true;
+      public async run() {
+        expect(this.org && this.org.getConnection().getApiVersion()).to.equal('40.0');
+        return { finished: true };
+      }
+    }
+    const output = await ApiVersionCommand.run(['--apiversion=40.0']);
+    expect(output.finished).to.be.true;
+  });
+
   it('should add a project when requiresProject is true', async () => {
     const fakeProject = 'fake_project';
     $$.SANDBOX.stub(SfdxProject, 'resolve')

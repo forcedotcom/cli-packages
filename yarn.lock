@@ -1065,6 +1065,14 @@
     "@salesforce/ts-types" "^1.1.2"
     tslib "^1"
 
+"@salesforce/kit@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.npmjs.org/@salesforce/kit/-/kit-1.1.0.tgz#3afe32637e80f5332d7c92c403d75ba0467d8ee3"
+  integrity sha512-FZEy85jMSDCdi0GkBahizlRQpKCs3XLOxiu+Z1Yg6ViwU4z980/RG7zERMRc4H4OUs4n5U2N2Wx6U0wfA+2HJA==
+  dependencies:
+    "@salesforce/ts-types" "^1.1.3"
+    tslib "^1"
+
 "@salesforce/ts-sinon@^1.0.0":
   version "1.0.4"
   resolved "https://registry.npmjs.org/@salesforce/ts-sinon/-/ts-sinon-1.0.4.tgz#7b18d4f6a0cd54922d6231843eba98327e32aee0"
@@ -1078,6 +1086,13 @@
   version "1.1.2"
   resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-1.1.2.tgz#3b5a2f54ca2d9820c9785ee51f9fa84e86cb228a"
   integrity sha512-sZ6CiX6sZ1EOa+XzNWSiy5fXYtDd8qqRD3MZQdUypPa+VMWQ9Cr3THr37VndxV+SRNN4iuzsf5rUJQjKh0DgeQ==
+  dependencies:
+    tslib "^1"
+
+"@salesforce/ts-types@^1.1.3":
+  version "1.1.3"
+  resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-1.1.3.tgz#33f32723b33574cd29f9504df5db5c0b4e88169e"
+  integrity sha512-S3AV5a/OE0vMSgxE5eqwZ+cL1wvNk6ANSKa1m++6NILHsebvznVFnHSeK886nir2SI79yeYmUVDWvqPb6G8WMA==
   dependencies:
     tslib "^1"
 
