@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.1](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.4.0...@salesforce/command@1.4.1) (2019-03-25)
+
+
+### Bug Fixes
+
+* use apiversion flags ([98d2971](https://github.com/forcedotcom/cli-packages/commit/98d2971))
+
+
+
+
+
 # [1.4.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.3.4...@salesforce/command@1.4.0) (2019-03-22)
 
 
