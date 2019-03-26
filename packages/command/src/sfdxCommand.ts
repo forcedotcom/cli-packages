@@ -279,10 +279,7 @@ export abstract class SfdxCommand extends Command {
       (await Logger.root()).setLevel(Logger.getLevelByName(loglevel[1]));
     }
 
-    this.logger = await Logger.child(this.statics.name);
-
-    this.ux = new UX(this.logger, !this.isJson);
-    this.result.ux = this.ux;
+    await this.initLoggerAndUx();
 
     // If the -h flag is set in argv and not overridden by the subclass, emit help and exit.
     if (this.shouldEmitHelp()) {
@@ -354,6 +351,8 @@ export abstract class SfdxCommand extends Command {
     if (err.code === 'EEXIT') {
       throw err;
     }
+
+    await this.initLoggerAndUx();
 
     // Convert all other errors to SfdxErrors for consistency and set the command name on the error.
     const error: SfdxError = err instanceof SfdxError ? err : SfdxError.wrap(err);
@@ -465,5 +464,20 @@ export abstract class SfdxCommand extends Command {
     }
 
     return colorizedArgs;
+  }
+
+  /**
+   * Initialize logger and ux for the command
+   */
+  protected async initLoggerAndUx() {
+    if (!this.logger) {
+      this.logger = await Logger.child(this.statics.name);
+    }
+    if (!this.ux) {
+      this.ux = new UX(this.logger, !this.isJson);
+    }
+    if (this.result && !this.result.ux) {
+      this.result.ux = this.ux;
+    }
   }
 }
