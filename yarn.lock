@@ -9,12 +9,12 @@
   dependencies:
     "@babel/highlight" "^7.0.0"
 
-"@babel/generator@^7.0.0", "@babel/generator@^7.3.4":
-  version "7.3.4"
-  resolved "https://registry.npmjs.org/@babel/generator/-/generator-7.3.4.tgz#9aa48c1989257877a9d971296e5b73bfe72e446e"
-  integrity sha512-8EXhHRFqlVVWXPezBW5keTiQi/rJMQTg/Y9uVCEZ0CAF3PKtCCaVRnp64Ii1ujhkoDhhF1fVsImoN4yJ2uz4Wg==
+"@babel/generator@^7.0.0", "@babel/generator@^7.4.0":
+  version "7.4.0"
+  resolved "https://registry.npmjs.org/@babel/generator/-/generator-7.4.0.tgz#c230e79589ae7a729fd4631b9ded4dc220418196"
+  integrity sha512-/v5I+a1jhGSKLgZDcmAUZ4K/VePi43eRkUs3yePW1HB1iANOD5tqJXwGSG4BZhSksP8J9ejSlwGeTiiOFZOrXQ==
   dependencies:
-    "@babel/types" "^7.3.4"
+    "@babel/types" "^7.4.0"
     jsesc "^2.5.1"
     lodash "^4.17.11"
     source-map "^0.5.0"
@@ -36,12 +36,12 @@
   dependencies:
     "@babel/types" "^7.0.0"
 
-"@babel/helper-split-export-declaration@^7.0.0":
-  version "7.0.0"
-  resolved "https://registry.npmjs.org/@babel/helper-split-export-declaration/-/helper-split-export-declaration-7.0.0.tgz#3aae285c0311c2ab095d997b8c9a94cad547d813"
-  integrity sha512-MXkOJqva62dfC0w85mEf/LucPPS/1+04nmmRMPEBUB++hiiThQ2zPtX/mEWQ3mtzCEjIJvPY8nuwxXtQeQwUag==
+"@babel/helper-split-export-declaration@^7.4.0":
+  version "7.4.0"
+  resolved "https://registry.npmjs.org/@babel/helper-split-export-declaration/-/helper-split-export-declaration-7.4.0.tgz#571bfd52701f492920d63b7f735030e9a3e10b55"
+  integrity sha512-7Cuc6JZiYShaZnybDmfwhY4UYHzI6rlqhWjaIqbsJGsIqPimEYy5uh3akSRLMg65LSdSEnJ8a8/bWQN6u2oMGw==
   dependencies:
-    "@babel/types" "^7.0.0"
+    "@babel/types" "^7.4.0"
 
 "@babel/highlight@^7.0.0":
   version "7.0.0"
@@ -52,39 +52,39 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@babel/parser@^7.0.0", "@babel/parser@^7.2.2", "@babel/parser@^7.3.4":
-  version "7.3.4"
-  resolved "https://registry.npmjs.org/@babel/parser/-/parser-7.3.4.tgz#a43357e4bbf4b92a437fb9e465c192848287f27c"
-  integrity sha512-tXZCqWtlOOP4wgCp6RjRvLmfuhnqTLy9VHwRochJBCP2nDm27JnnuFEnXFASVyQNHk36jD1tAammsCEEqgscIQ==
+"@babel/parser@^7.0.0", "@babel/parser@^7.4.0":
+  version "7.4.2"
+  resolved "https://registry.npmjs.org/@babel/parser/-/parser-7.4.2.tgz#b4521a400cb5a871eab3890787b4bc1326d38d91"
+  integrity sha512-9fJTDipQFvlfSVdD/JBtkiY0br9BtfvW2R8wo6CX/Ej2eMuV0gWPk1M67Mt3eggQvBqYW1FCEk8BN7WvGm/g5g==
 
 "@babel/template@^7.0.0", "@babel/template@^7.1.0":
-  version "7.2.2"
-  resolved "https://registry.npmjs.org/@babel/template/-/template-7.2.2.tgz#005b3fdf0ed96e88041330379e0da9a708eb2907"
-  integrity sha512-zRL0IMM02AUDwghf5LMSSDEz7sBCO2YnNmpg3uWTZj/v1rcG2BmQUvaGU8GhU8BvfMh1k2KIAYZ7Ji9KXPUg7g==
+  version "7.4.0"
+  resolved "https://registry.npmjs.org/@babel/template/-/template-7.4.0.tgz#12474e9c077bae585c5d835a95c0b0b790c25c8b"
+  integrity sha512-SOWwxxClTTh5NdbbYZ0BmaBVzxzTh2tO/TeLTbF6MO6EzVhHTnff8CdBXx3mEtazFBoysmEM6GU/wF+SuSx4Fw==
   dependencies:
     "@babel/code-frame" "^7.0.0"
-    "@babel/parser" "^7.2.2"
-    "@babel/types" "^7.2.2"
+    "@babel/parser" "^7.4.0"
+    "@babel/types" "^7.4.0"
 
 "@babel/traverse@^7.0.0":
-  version "7.3.4"
-  resolved "https://registry.npmjs.org/@babel/traverse/-/traverse-7.3.4.tgz#1330aab72234f8dea091b08c4f8b9d05c7119e06"
-  integrity sha512-TvTHKp6471OYEcE/91uWmhR6PrrYywQntCHSaZ8CM8Vmp+pjAusal4nGB2WCCQd0rvI7nOMKn9GnbcvTUz3/ZQ==
+  version "7.4.0"
+  resolved "https://registry.npmjs.org/@babel/traverse/-/traverse-7.4.0.tgz#14006967dd1d2b3494cdd650c686db9daf0ddada"
+  integrity sha512-/DtIHKfyg2bBKnIN+BItaIlEg5pjAnzHOIQe5w+rHAw/rg9g0V7T4rqPX8BJPfW11kt3koyjAnTNwCzb28Y1PA==
   dependencies:
     "@babel/code-frame" "^7.0.0"
-    "@babel/generator" "^7.3.4"
+    "@babel/generator" "^7.4.0"
     "@babel/helper-function-name" "^7.1.0"
-    "@babel/helper-split-export-declaration" "^7.0.0"
-    "@babel/parser" "^7.3.4"
-    "@babel/types" "^7.3.4"
+    "@babel/helper-split-export-declaration" "^7.4.0"
+    "@babel/parser" "^7.4.0"
+    "@babel/types" "^7.4.0"
     debug "^4.1.0"
     globals "^11.1.0"
     lodash "^4.17.11"
 
-"@babel/types@^7.0.0", "@babel/types@^7.2.2", "@babel/types@^7.3.4":
-  version "7.3.4"
-  resolved "https://registry.npmjs.org/@babel/types/-/types-7.3.4.tgz#bf482eaeaffb367a28abbf9357a94963235d90ed"
-  integrity sha512-WEkp8MsLftM7O/ty580wAmZzN1nDmCACc5+jFzUt+GUFNNIi3LdRlueYz0YIlmJhlZx1QYDMZL5vdWCL0fNjFQ==
+"@babel/types@^7.0.0", "@babel/types@^7.4.0":
+  version "7.4.0"
+  resolved "https://registry.npmjs.org/@babel/types/-/types-7.4.0.tgz#670724f77d24cce6cc7d8cf64599d511d164894c"
+  integrity sha512-aPvkXyU2SPOnztlgo8n9cEiXW755mgyvueUPcpStqdzoSPm0fjO0vQBjLkt3JKJW7ufikfcnMTTPsN1xaTsBPA==
   dependencies:
     esutils "^2.0.2"
     lodash "^4.17.11"
@@ -874,9 +874,9 @@
     semver "^5.6.0"
 
 "@oclif/config@^1.7.0":
-  version "1.12.10"
-  resolved "https://registry.npmjs.org/@oclif/config/-/config-1.12.10.tgz#08ef278cfad981d618468c969c1a1c64f3a38c98"
-  integrity sha512-AQYFA72ktXgmrY4hjRtBQRfKLDKXPG4WGSLUgWn0KencNuqnmbiKS6zfKXf1umfZ26zoDOEfCdqZjm3aNZnIaw==
+  version "1.12.11"
+  resolved "https://registry.npmjs.org/@oclif/config/-/config-1.12.11.tgz#b7a7feb28bd4927957213de6a37cecc846367a84"
+  integrity sha512-j1NiPuVZr3C6jba5XeKlwc6DfPNoDUZERZvAvly2nvngAuVcl9/JhboCkyyS+Jrq8K+ymlZc4knZ8RVnMK8owg==
   dependencies:
     debug "^4.1.1"
     tslib "^1.9.3"
@@ -960,9 +960,9 @@
     universal-user-agent "^2.0.1"
 
 "@octokit/rest@^16.16.0":
-  version "16.19.0"
-  resolved "https://registry.npmjs.org/@octokit/rest/-/rest-16.19.0.tgz#238244eae904c15bc9aa863bb3819142d3369ccb"
-  integrity sha512-mUk/GU2LtV95OAM3FnvK7KFFNzUUzEGFldOhWliJnuhwBqxEag1gW85o//L6YphC9wLoTaZQOhCHmQcsCnt2ag==
+  version "16.21.0"
+  resolved "https://registry.npmjs.org/@octokit/rest/-/rest-16.21.0.tgz#858b99d0d454a9c9746c0e9ed01654fb8b7f5204"
+  integrity sha512-4tT+uUPqwOHfPdSSt8RtSZw6vgAbBMTGb+BualKkq3vjpeqmSfmN9h5VxhM4xqV1KAGCeLzBGdH6nwgf18eEPA==
   dependencies:
     "@octokit/request" "2.4.2"
     before-after-hook "^1.4.0"
@@ -977,9 +977,9 @@
     url-template "^2.0.8"
 
 "@salesforce/core@^1.2.3":
-  version "1.2.3"
-  resolved "https://registry.npmjs.org/@salesforce/core/-/core-1.2.3.tgz#a54397c24f807b2e876892a69d915b10693c5f22"
-  integrity sha512-TRl0jxrBBnmb3Qiihc2fQ4sAEFPBD+IoudjuM1Bp10DUBXwfJrJW0zTl7XL7Q8/8sqltVWB7xw5rrpPvoOhbOQ==
+  version "1.3.2"
+  resolved "https://registry.npmjs.org/@salesforce/core/-/core-1.3.2.tgz#ebc25c5364b5819b390b38adb7a765618d9210e3"
+  integrity sha512-XU+4E8bz5lic27kAW3FQkW4rEbLRVf9XnvkDkjSeo6gn5cG1Dfp9NHvez3AV6t0CFSjj5D1Q9LywtfSCqitWzw==
   dependencies:
     "@salesforce/kit" "^1.0.0"
     "@salesforce/ts-sinon" "^1.0.0"
@@ -1057,15 +1057,7 @@
     typedoc-plugin-external-module-name "1.1.3"
     xunit-file "^1"
 
-"@salesforce/kit@^1.0.0":
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/@salesforce/kit/-/kit-1.0.4.tgz#1fdf7d420499a40f925253b96ab6d55b5ddaaa8a"
-  integrity sha512-UMrtd5qkKPdLwyzbMfRJNSqOci0cygltu7GqlvWpweqjP3I110qD20RoU9aI2ARKclmyeez9D+NFqjwjYcVFZQ==
-  dependencies:
-    "@salesforce/ts-types" "^1.1.2"
-    tslib "^1"
-
-"@salesforce/kit@^1.1.0":
+"@salesforce/kit@^1.0.0", "@salesforce/kit@^1.1.0":
   version "1.1.0"
   resolved "https://registry.npmjs.org/@salesforce/kit/-/kit-1.1.0.tgz#3afe32637e80f5332d7c92c403d75ba0467d8ee3"
   integrity sha512-FZEy85jMSDCdi0GkBahizlRQpKCs3XLOxiu+Z1Yg6ViwU4z980/RG7zERMRc4H4OUs4n5U2N2Wx6U0wfA+2HJA==
@@ -1074,22 +1066,15 @@
     tslib "^1"
 
 "@salesforce/ts-sinon@^1.0.0":
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/@salesforce/ts-sinon/-/ts-sinon-1.0.4.tgz#7b18d4f6a0cd54922d6231843eba98327e32aee0"
-  integrity sha512-L4hbgtEKeueEQUgys/9dttgdZhWje88ZbPU8De/Ftg95ajazDpIDnBQrVpv3xHbXJKXsHEPiY6mdDWhiBTw2Ug==
+  version "1.0.5"
+  resolved "https://registry.npmjs.org/@salesforce/ts-sinon/-/ts-sinon-1.0.5.tgz#34fd80be4d91ad6bef75d786253001fb7b21d166"
+  integrity sha512-PW2GeQaHosYDYFxTwlKe6Sr1AzJYNaGynKI3saXKY/EJgh+aioux1XvUkyyATTRVCtqkKH0Q0TFw0XXivqBalw==
   dependencies:
-    "@salesforce/ts-types" "^1.1.2"
+    "@salesforce/ts-types" "^1.1.3"
     sinon "5.0.7"
     tslib "^1.9.3"
 
-"@salesforce/ts-types@^1.0.0", "@salesforce/ts-types@^1.1.2":
-  version "1.1.2"
-  resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-1.1.2.tgz#3b5a2f54ca2d9820c9785ee51f9fa84e86cb228a"
-  integrity sha512-sZ6CiX6sZ1EOa+XzNWSiy5fXYtDd8qqRD3MZQdUypPa+VMWQ9Cr3THr37VndxV+SRNN4iuzsf5rUJQjKh0DgeQ==
-  dependencies:
-    tslib "^1"
-
-"@salesforce/ts-types@^1.1.3":
+"@salesforce/ts-types@^1.0.0", "@salesforce/ts-types@^1.1.3":
   version "1.1.3"
   resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-1.1.3.tgz#33f32723b33574cd29f9504df5db5c0b4e88169e"
   integrity sha512-S3AV5a/OE0vMSgxE5eqwZ+cL1wvNk6ANSKa1m++6NILHsebvznVFnHSeK886nir2SI79yeYmUVDWvqPb6G8WMA==
@@ -1119,9 +1104,9 @@
     "@sinonjs/samsam" "^3.1.0"
 
 "@sinonjs/samsam@^3.1.0":
-  version "3.3.0"
-  resolved "https://registry.npmjs.org/@sinonjs/samsam/-/samsam-3.3.0.tgz#9557ea89cd39dbc94ffbd093c8085281cac87416"
-  integrity sha512-beHeJM/RRAaLLsMJhsCvHK31rIqZuobfPLa/80yGH5hnD8PV1hyh9xJBJNFfNmO7yWqm+zomijHsXpI6iTQJfQ==
+  version "3.3.1"
+  resolved "https://registry.npmjs.org/@sinonjs/samsam/-/samsam-3.3.1.tgz#e88c53fbd9d91ad9f0f2b0140c16c7c107fe0d07"
+  integrity sha512-wRSfmyd81swH0hA1bxJZJ57xr22kC07a1N4zuIL47yTS04bDk6AoCkczcqHEjcRPmJ+FruGJ9WBQiJwMtIElFw==
   dependencies:
     "@sinonjs/commons" "^1.0.2"
     array-from "^2.1.1"
@@ -1203,14 +1188,14 @@
     "@types/node" "*"
 
 "@types/node@*":
-  version "11.11.3"
-  resolved "https://registry.npmjs.org/@types/node/-/node-11.11.3.tgz#7c6b0f8eaf16ae530795de2ad1b85d34bf2f5c58"
-  integrity sha512-wp6IOGu1lxsfnrD+5mX6qwSwWuqsdkKKxTN4aQc4wByHAKZJf9/D4KXPQ1POUjEbnCP5LMggB0OEFNY9OTsMqg==
+  version "11.12.0"
+  resolved "https://registry.npmjs.org/@types/node/-/node-11.12.0.tgz#ec5594728811dc2797e42396cfcdf786f2052c12"
+  integrity sha512-Lg00egj78gM+4aE0Erw05cuDbvX9sLJbaaPwwRtdCdAMnIudqrQZ0oZX98Ek0yiSK/A2nubHgJfvII/rTT2Dwg==
 
 "@types/node@^10":
-  version "10.14.1"
-  resolved "https://registry.npmjs.org/@types/node/-/node-10.14.1.tgz#8701cd760acc20beba5ffe0b7a1b879f39cb8c41"
-  integrity sha512-Rymt08vh1GaW4vYB6QP61/5m/CFLGnFZP++bJpWbiNxceNa6RBipDmb413jvtSf/R1gg5a/jQVl2jY4XVRscEA==
+  version "10.14.4"
+  resolved "https://registry.npmjs.org/@types/node/-/node-10.14.4.tgz#1c586b991457cbb58fef51bc4e0cfcfa347714b5"
+  integrity sha512-DT25xX/YgyPKiHFOpNuANIQIVvYEwCWXgK2jYYwqgaMrYE6+tq+DtmMwlD3drl6DJbUwtlIDnn0d7tIn/EbXBg==
 
 "@types/shelljs@^0.8.0":
   version "0.8.3"
@@ -2167,14 +2152,13 @@ cosmiconfig@^4.0.0:
     require-from-string "^2.0.1"
 
 cosmiconfig@^5.0.7, cosmiconfig@^5.1.0:
-  version "5.1.0"
-  resolved "https://registry.npmjs.org/cosmiconfig/-/cosmiconfig-5.1.0.tgz#6c5c35e97f37f985061cdf653f114784231185cf"
-  integrity sha512-kCNPvthka8gvLtzAxQXvWo4FxqRB+ftRZyPZNuab5ngvM9Y7yw7hbEysglptLgpkGX9nAOKTBVkHUAe8xtYR6Q==
+  version "5.2.0"
+  resolved "https://registry.npmjs.org/cosmiconfig/-/cosmiconfig-5.2.0.tgz#45038e4d28a7fe787203aede9c25bca4a08b12c8"
+  integrity sha512-nxt+Nfc3JAqf4WIWd0jXLjTJZmsPLrA9DDc4nRw2KFJQJK7DNooqSXrNI7tzLG50CF8axczly5UV929tBmh/7g==
   dependencies:
     import-fresh "^2.0.0"
     is-directory "^0.3.1"
-    js-yaml "^3.9.0"
-    lodash.get "^4.4.2"
+    js-yaml "^3.13.0"
     parse-json "^4.0.0"
 
 cross-spawn@^4:
@@ -3672,10 +3656,10 @@ js-tokens@^4.0.0:
   resolved "https://registry.npmjs.org/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
 
-js-yaml@^3.7.0, js-yaml@^3.9.0:
-  version "3.12.2"
-  resolved "https://registry.npmjs.org/js-yaml/-/js-yaml-3.12.2.tgz#ef1d067c5a9d9cb65bd72f285b5d8105c77f14fc"
-  integrity sha512-QHn/Lh/7HhZ/Twc7vJYQTkjuCa0kaCcDcjK5Zlk2rvnUpy7DxMJ23+Jc2dcyvltwQVg1nygAVlB2oRDFHoRS5Q==
+js-yaml@^3.13.0, js-yaml@^3.7.0, js-yaml@^3.9.0:
+  version "3.13.0"
+  resolved "https://registry.npmjs.org/js-yaml/-/js-yaml-3.13.0.tgz#38ee7178ac0eea2c97ff6d96fff4b18c7d8cf98e"
+  integrity sha512-pZZoSxcCYco+DIKBTimr67J6Hy+EYGZDY/HCWC+iAEA9h1ByhMXAIVUXMcMFpOCxQ/xjXmPI2MkDL5HRm5eFrQ==
   dependencies:
     argparse "^1.0.7"
     esprima "^4.0.0"
@@ -4427,9 +4411,9 @@ mv@~2:
     rimraf "~2.4.0"
 
 nan@^2.0.8:
-  version "2.13.1"
-  resolved "https://registry.npmjs.org/nan/-/nan-2.13.1.tgz#a15bee3790bde247e8f38f1d446edcdaeb05f2dd"
-  integrity sha512-I6YB/YEuDeUZMmhscXKxGgZlFnhsn5y0hgOZBadkzfTRrZBtJDZeg6eQf7PYMIEclwmorTKK8GztsyOUSVBREA==
+  version "2.13.2"
+  resolved "https://registry.npmjs.org/nan/-/nan-2.13.2.tgz#f51dc7ae66ba7d5d55e1e6d4d8092e802c9aefe7"
+  integrity sha512-TghvYc72wlMGMVMluVo9WRJc0mB8KxxF/gZ4YYFy7V2ZQX9l7rgbPg7vjS9mt6U5HXODVFVI2bOduCzwOMv/lw==
 
 nanomatch@^1.2.9:
   version "1.2.13"
@@ -6303,9 +6287,9 @@ uglify-js@2.7.5:
     yargs "~3.10.0"
 
 uglify-js@^3.1.4:
-  version "3.4.10"
-  resolved "https://registry.npmjs.org/uglify-js/-/uglify-js-3.4.10.tgz#9ad9563d8eb3acdfb8d38597d2af1d815f6a755f"
-  integrity sha512-Y2VsbPVs0FIshJztycsO2SfPk7/KAF/T72qzv9u5EpQ4kB2hQoHlhNQTsNyy6ul7lQtqJN/AoWeS23OzEiEFxw==
+  version "3.5.2"
+  resolved "https://registry.npmjs.org/uglify-js/-/uglify-js-3.5.2.tgz#dc0c7ac2da0a4b7d15e84266818ff30e82529474"
+  integrity sha512-imog1WIsi9Yb56yRt5TfYVxGmnWs3WSGU73ieSOlMVFwhJCA9W8fqFFMMj4kgDqiS/80LGdsYnWL7O9UcjEBlg==
   dependencies:
     commander "~2.19.0"
     source-map "~0.6.1"
