@@ -363,7 +363,7 @@ export abstract class SfdxCommand extends Command {
     const userDisplayError = Object.assign(this.getJsonResultObject(error.data, error.exitCode), {
       ...error.toObject(),
       stack: error.stack,
-      warnings: UX.warnings
+      warnings: Array.from(UX.warnings)
     });
 
     if (this.isJson) {

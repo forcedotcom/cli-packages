@@ -133,6 +133,8 @@ describe('SfdxCommand', () => {
     jsonToStdout = env.getBoolean('SFDX_JSON_TO_STDOUT');
     // Test right now assume this not to be true
     env.setBoolean('SFDX_JSON_TO_STDOUT', false);
+
+    UX.warnings.clear();
   });
 
   afterEach(() => {
@@ -880,7 +882,38 @@ describe('SfdxCommand', () => {
           result: sfdxError.data,
           stack: sfdxError.stack,
           status: 100,
-          warnings: UX.warnings
+          warnings: []
+        }
+      ]
+    });
+  });
+
+  it('should only output to ux.errorJson when isJson is true and an error occurs', async () => {
+    const sfdxError = new SfdxError('err_msg', 'TestError', ['take action 1'], 100);
+    sfdxError.data = 'here is more data';
+    sfdxError.stack = 'here is the stack';
+    $$.SANDBOX.stub(Org, 'create').throws(sfdxError);
+    class TestCommand extends BaseTestCommand {}
+    TestCommand['requiresUsername'] = true;
+
+    UX.warnings.add('DO NOT USE ME...');
+    const output = await TestCommand.run(['--json']);
+
+    expect(output).to.equal(undefined);
+    expect(process.exitCode).to.equal(100);
+    verifyUXOutput({
+      errorJson: [
+        {
+          actions: sfdxError.actions,
+          commandName: 'TestCommand',
+          data: 'here is more data',
+          exitCode: 100,
+          message: sfdxError.message,
+          name: sfdxError.name,
+          result: sfdxError.data,
+          stack: sfdxError.stack,
+          status: 100,
+          warnings: ['DO NOT USE ME...']
         }
       ]
     });
