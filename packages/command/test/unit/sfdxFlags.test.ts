@@ -10,7 +10,7 @@ import { expect } from 'chai';
 
 import { Messages, SfdxError } from '@salesforce/core';
 
-import { Duration } from '@salesforce/kit';
+import { Duration, NamedError } from '@salesforce/kit';
 import { hasFunction } from '@salesforce/ts-types';
 import { buildSfdxFlags, flags } from '../../src/sfdxFlags';
 
@@ -138,12 +138,37 @@ describe('SfdxFlags', () => {
         expect(e.name).to.equal('UnknownBuiltinFlagType');
       }
     });
+  });
+
+  describe('validate', () => {
+    it('should throw for a validated oclif base flag type with an invalid value', () => {
+      const flag = flags.string({ description: 'string', validate: /[0-9]+/ });
+      if (!hasFunction(flag, 'parse')) throw new MissingPropertyError('parse', 'integer');
+      expect(() => flag.parse('foo')).to.throw(
+        SfdxError,
+        'The flag value "foo" is not in the correct format for "string."'
+      );
+    });
+
+    // and another to test a custom flag type
+    it('should throw for a validated sfdx custom flag type with an invalid value', () => {
+      const flag = flags.date({
+        description: 'string',
+        // not a date but sufficient for testing since it shouldn't get far enough to parse
+        validate: '^date$'
+      });
+      if (!hasFunction(flag, 'parse')) throw new MissingPropertyError('parse', 'date');
+      expect(() => flag.parse('foo')).to.throw(
+        SfdxError,
+        'The flag value "foo" is not in the correct format for "date."'
+      );
+    });
 
     it('should throw for numeric flags with values out of bounds', () => {
       const integer = flags.integer({ description: 'integer', min: 2, max: 4 });
       const number = flags.number({ description: 'number', min: 2, max: 4 });
 
-      if (!hasFunction(integer, 'parse')) throw new Error('missing parse method for integer');
+      if (!hasFunction(integer, 'parse')) throw new MissingPropertyError('parse', 'integer');
       expect(integer.parse('3')).to.equal(3);
       expect(() => integer.parse('1')).to.throw(
         SfdxError,
@@ -151,7 +176,7 @@ describe('SfdxFlags', () => {
       );
       expect(() => integer.parse('5')).to.throw(SfdxError, 'Expected integer less than or equal to 4 but received 5');
 
-      if (!hasFunction(number, 'parse')) throw new Error('missing parse method for number');
+      if (!hasFunction(number, 'parse')) throw new MissingPropertyError('parse', 'number');
       expect(number.parse('2.5')).to.equal(2.5);
       expect(() => number.parse('1.5')).to.throw(
         SfdxError,
@@ -163,7 +188,7 @@ describe('SfdxFlags', () => {
       const minutes = flags.minutes({ description: 'minutes', min: 2, max: 4 });
       const seconds = flags.seconds({ description: 'seconds', min: 2, max: 4 });
 
-      if (!hasFunction(milliseconds, 'parse')) throw new Error('missing parse method for milliseconds');
+      if (!hasFunction(milliseconds, 'parse')) throw new MissingPropertyError('parse', 'milliseconds');
       expect(milliseconds.parse('2')).to.deep.equal(Duration.milliseconds(2));
       expect(() => milliseconds.parse('1')).to.throw(
         SfdxError,
@@ -174,7 +199,7 @@ describe('SfdxFlags', () => {
         'Expected milliseconds less than or equal to 4 but received 5'
       );
 
-      if (!hasFunction(minutes, 'parse')) throw new Error('missing parse method for minutes');
+      if (!hasFunction(minutes, 'parse')) throw new MissingPropertyError('parse', 'minutes');
       expect(minutes.parse('4')).to.deep.equal(Duration.minutes(4));
       expect(() => minutes.parse('1')).to.throw(
         SfdxError,
@@ -182,7 +207,7 @@ describe('SfdxFlags', () => {
       );
       expect(() => minutes.parse('5')).to.throw(SfdxError, 'Expected minutes less than or equal to 4 but received 5');
 
-      if (!hasFunction(seconds, 'parse')) throw new Error('missing parse method for seconds');
+      if (!hasFunction(seconds, 'parse')) throw new MissingPropertyError('parse', 'seconds');
       expect(seconds.parse('3')).to.deep.equal(Duration.seconds(3));
       expect(() => seconds.parse('1')).to.throw(
         SfdxError,
@@ -198,7 +223,7 @@ describe('SfdxFlags', () => {
       const minutes2 = flags.minutes({ description: 'minutes', min: Duration.minutes(2), max: Duration.minutes(4) });
       const seconds2 = flags.seconds({ description: 'seconds', min: Duration.seconds(2), max: Duration.seconds(4) });
 
-      if (!hasFunction(milliseconds2, 'parse')) throw new Error('missing parse method for milliseconds');
+      if (!hasFunction(milliseconds2, 'parse')) throw new MissingPropertyError('parse', 'milliseconds');
       expect(milliseconds2.parse('2')).to.deep.equal(Duration.milliseconds(2));
       expect(() => milliseconds2.parse('1')).to.throw(
         SfdxError,
@@ -209,7 +234,7 @@ describe('SfdxFlags', () => {
         'Expected milliseconds less than or equal to 4 but received 5'
       );
 
-      if (!hasFunction(minutes2, 'parse')) throw new Error('missing parse method for minutes');
+      if (!hasFunction(minutes2, 'parse')) throw new MissingPropertyError('parse', 'minutes');
       expect(minutes2.parse('4')).to.deep.equal(Duration.minutes(4));
       expect(() => minutes2.parse('1')).to.throw(
         SfdxError,
@@ -217,7 +242,7 @@ describe('SfdxFlags', () => {
       );
       expect(() => minutes2.parse('5')).to.throw(SfdxError, 'Expected minutes less than or equal to 4 but received 5');
 
-      if (!hasFunction(seconds2, 'parse')) throw new Error('missing parse method for seconds');
+      if (!hasFunction(seconds2, 'parse')) throw new MissingPropertyError('parse', 'seconds');
       expect(seconds2.parse('3')).to.deep.equal(Duration.seconds(3));
       expect(() => seconds2.parse('1')).to.throw(
         SfdxError,
@@ -226,56 +251,136 @@ describe('SfdxFlags', () => {
       expect(() => seconds2.parse('5')).to.throw(SfdxError, 'Expected seconds less than or equal to 4 but received 5');
     });
 
-    it('should not throw for options array with valid values', () => {
-      const array = flags.array({ description: 'test', options: ['1', '3', '5'] });
-      if (!hasFunction(array, 'parse')) throw new Error('missing parse method for array');
-      expect(array.parse('1,3,5')).to.deep.equal(['1', '3', '5']);
+    describe('arrays', () => {
+      it('should not throw for options array with valid values', () => {
+        const array = flags.array({ description: 'test', options: ['1', '3', '5'] });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1,3,5')).to.deep.equal(['1', '3', '5']);
+      });
+
+      it('should throw for options array with invalid values', () => {
+        const array = flags.array({ description: 'test', options: ['1', '3', '5'] });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(() => array.parse('1,2,3')).to.throw(
+          SfdxError,
+          'The flag value "1,2,3" is not in the correct format for "array." Must only contain values in [1,3,5].'
+        );
+      });
+
+      it('should not throw for validated array with valid values', () => {
+        const array = flags.array({ description: 'test', validate: /[0-9]+/ });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1,3,5')).to.deep.equal(['1', '3', '5']);
+      });
+
+      it('should throw for options array with invalid values', () => {
+        const array = flags.array({ description: 'test', validate: /[0-9]+/ });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(() => array.parse('1,2,c')).to.throw(
+          SfdxError,
+          'The flag value "1,2,c" is not in the correct format for "array." Must only contain valid values.'
+        );
+      });
+
+      it('should not throw for validated/options array with valid values', () => {
+        const array = flags.array({ description: 'test', validate: s => /[0-9]+/.test(s), options: ['1', '3', '5'] });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1,3,5')).to.deep.equal(['1', '3', '5']);
+      });
+
+      it('should throw for validated/options array with invalid values', () => {
+        const array = flags.array({ description: 'test', validate: s => /[0-9]+/.test(s), options: ['7', '8', '9'] });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        // expect validations to fail before options checking
+        expect(() => array.parse('1,2,c')).to.throw(
+          SfdxError,
+          'The flag value "1,2,c" is not in the correct format for "array." Must only contain valid values.'
+        );
+      });
+
+      it('should not throw for options mapped array with valid values', () => {
+        const array = flags.array({ description: 'test', map: (v: string) => parseInt(v, 10), options: [1, 3, 5] });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1,3,5')).to.deep.equal([1, 3, 5]);
+      });
+
+      it('should throw for options mapped array with invalid values', () => {
+        const array = flags.array({ description: 'test', map: (v: string) => parseInt(v, 10), options: [1, 3, 5] });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(() => array.parse('1,2,3')).to.throw(
+          SfdxError,
+          'The flag value "1,2,3" is not in the correct format for "array." Must only contain values in [1,3,5].'
+        );
+      });
+
+      it('should not throw for validated mapped array with valid values', () => {
+        const array = flags.array({ description: 'test', map: (v: string) => parseInt(v, 10), validate: /[0-9]+/ });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1,3,5')).to.deep.equal([1, 3, 5]);
+      });
+
+      it('should throw for validated mapped array with invalid values', () => {
+        const array = flags.array({ description: 'test', map: (v: string) => parseInt(v, 10), validate: /[0-9]+/ });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(() => array.parse('1,2,c')).to.throw(
+          SfdxError,
+          'The flag value "1,2,c" is not in the correct format for "array." Must only contain valid values.'
+        );
+      });
+
+      it('should not throw for validated/options mapped array with valid values', () => {
+        const array = flags.array({
+          description: 'test',
+          map: (v: string) => parseInt(v, 10),
+          validate: '[0-9]+',
+          options: [1, 3, 5]
+        });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1,3,5')).to.deep.equal([1, 3, 5]);
+      });
+
+      it('should throw for validated/options mapped array with invalid values', () => {
+        const array = flags.array({
+          description: 'test',
+          map: (v: string) => parseInt(v, 10),
+          validate: '[0-9]+',
+          options: [7, 8, 9]
+        });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        // expect validations to fail before options checking
+        expect(() => array.parse('1,2,c')).to.throw(
+          SfdxError,
+          'The flag value "1,2,c" is not in the correct format for "array." Must only contain valid values.'
+        );
+      });
     });
 
-    it('should throw for options array with invalid values', () => {
-      const array = flags.array({ description: 'test', options: ['1', '3', '5'] });
-      if (!hasFunction(array, 'parse')) throw new Error('missing parse method for array');
-      expect(() => array.parse('1,2,3')).to.throw(
-        SfdxError,
-        'The flag value "1,2,3" is not in the correct format for "array." Must only contain values in [1,3,5]'
-      );
-    });
+    describe('usage', () => {
+      it('should echo back any builtin flag options', () => {
+        const rv = flags.builtin();
+        expect(rv).to.deep.equal({ type: 'builtin' });
+      });
 
-    it('should not throw for options mapped array with valid values', () => {
-      const array = flags.array({ description: 'test', map: (v: string) => parseInt(v, 10), options: [1, 3, 5] });
-      if (!hasFunction(array, 'parse')) throw new Error('missing parse method for array');
-      expect(array.parse('1,3,5')).to.deep.equal([1, 3, 5]);
-    });
+      it('should allow empty builtin flag options', () => {
+        const rv = flags.builtin({});
+        expect(rv).to.deep.equal({ type: 'builtin' });
+      });
 
-    it('should throw for options mapped array with invalid values', () => {
-      const array = flags.array({ description: 'test', map: (v: string) => parseInt(v, 10), options: [1, 3, 5] });
-      if (!hasFunction(array, 'parse')) throw new Error('missing parse method for array');
-      expect(() => array.parse('1,2,3')).to.throw(
-        SfdxError,
-        'The flag value "1,2,3" is not in the correct format for "array." Must only contain values in [1,3,5].'
-      );
-    });
-  });
+      it('should allow desc and long desc builtin flag options', () => {
+        const rv = flags.builtin({ description: 'desc', longDescription: 'long desc' });
+        expect(rv).to.deep.equal({ description: 'desc', longDescription: 'long desc', type: 'builtin' });
+      });
 
-  describe('usage', () => {
-    it('should echo back any builtin flag options', () => {
-      const rv = flags.builtin();
-      expect(rv).to.deep.equal({ type: 'builtin' });
-    });
-
-    it('should allow empty builtin flag options', () => {
-      const rv = flags.builtin({});
-      expect(rv).to.deep.equal({ type: 'builtin' });
-    });
-
-    it('should allow desc and long desc builtin flag options', () => {
-      const rv = flags.builtin({ description: 'desc', longDescription: 'long desc' });
-      expect(rv).to.deep.equal({ description: 'desc', longDescription: 'long desc', type: 'builtin' });
-    });
-
-    it('should support adding deprecation information', () => {
-      const rv = flags.string({ description: 'any flag', deprecated: { message: 'do not use', version: '41.0' } });
-      expect(rv.deprecated).to.deep.equal({ message: 'do not use', version: '41.0' });
+      it('should support adding deprecation information', () => {
+        const rv = flags.string({ description: 'any flag', deprecated: { message: 'do not use', version: '41.0' } });
+        expect(rv.deprecated).to.deep.equal({ message: 'do not use', version: '41.0' });
+      });
     });
   });
 });
+
+class MissingPropertyError extends NamedError {
+  constructor(property: string, flag: string) {
+    super(`Missing property '${property}' for '${flag}'`);
+  }
+}
