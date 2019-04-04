@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.5.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.4.2...@salesforce/command@1.5.0) (2019-04-04)
+
+
+### Bug Fixes
+
+* fix breaking behaviour with warnings being an object ([4db7416](https://github.com/forcedotcom/cli-packages/commit/4db7416))
+
+
+### Features
+
+* declarative flag validations ([e3077b5](https://github.com/forcedotcom/cli-packages/commit/e3077b5))
+
+
+
+
+
 ## [1.4.2](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.4.1...@salesforce/command@1.4.2) (2019-03-26)
 
 

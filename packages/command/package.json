@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/command",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "Salesforce CLI base command class",
   "main": "lib/exported",
   "repository": "https://github.com/forcedotcom/cli-packages",
