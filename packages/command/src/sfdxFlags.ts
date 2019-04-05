@@ -397,12 +397,13 @@ export const requiredBuiltinFlags = {
 
   loglevel(): flags.Discriminated<flags.Enum<string>> {
     return flags.enum({
-      options: Logger.LEVEL_NAMES,
+      options: Logger.LEVEL_NAMES.concat(Logger.LEVEL_NAMES.map(l => l.toUpperCase())),
       default: LoggerLevel[Logger.DEFAULT_LEVEL].toLowerCase(),
       required: false,
       description: messages.getMessage('loglevelFlagDescription'),
       longDescription: messages.getMessage('loglevelFlagLongDescription'),
       parse: (val: string) => {
+        val = val.toLowerCase();
         if (Logger.LEVEL_NAMES.includes(val)) return val;
         throw SfdxError.create('@salesforce/command', 'flags', 'InvalidLoggerLevelError', [val]);
       }

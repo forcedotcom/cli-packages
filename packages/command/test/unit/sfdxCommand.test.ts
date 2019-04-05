@@ -548,6 +548,27 @@ describe('SfdxCommand', () => {
     expect(testCommandMeta.cmdInstance['logger'].getLevel()).to.equal(LoggerLevel.INFO);
   });
 
+  it('should set the logLevel on the SfdxCommand logger with the --loglevel flag with an uppercase value', async () => {
+    // Run the command
+    class TestCommand extends BaseTestCommand {}
+    const loglevel = 'INFO';
+    const output = await TestCommand.run(['--loglevel', loglevel]);
+
+    expect(output).to.equal(TestCommand.output);
+    expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
+    verifyCmdFlags({ flag1: { type: 'option' } });
+    verifyInstanceProps({
+      flags: { loglevel: loglevel.toLowerCase() }
+    });
+    const expectedResult = {
+      data: TestCommand.output,
+      tableColumnData: undefined
+    };
+    expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
+    verifyUXOutput();
+    expect(testCommandMeta.cmdInstance['logger'].getLevel()).to.equal(LoggerLevel.INFO);
+  });
+
   it('should use table formatting with tableColumnData prop', async () => {
     // Run the command
     class TestCommand extends BaseTestCommand {}
