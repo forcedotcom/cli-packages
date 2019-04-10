@@ -126,7 +126,9 @@ describe('doc opts', () => {
       public requiresusername = true;
     }
     const usage = DocOpts.generate(ItCommand);
-    expect(usage).to.contain(' [-s <url>] [--json] [--loglevel trace|debug|info|warn|error|fatal]');
+    expect(usage).to.contain(
+      ' [-s <url>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]'
+    );
   });
   it('shows sometime fields in the middle', () => {
     class ItCommand extends TestCommand {
@@ -140,7 +142,9 @@ describe('doc opts', () => {
       public requiresusername = true;
     }
     const usage = DocOpts.generate(ItCommand);
-    expect(usage).to.contain(' [-s <url>] [--quiet] [--json] [--loglevel trace|debug|info|warn|error|fatal]');
+    expect(usage).to.contain(
+      ' [-s <url>] [--quiet] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]'
+    );
   });
 
   // These could be obsolete based on if the skipped test ever work that way.
