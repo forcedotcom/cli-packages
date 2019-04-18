@@ -26,6 +26,7 @@ import {
 } from '@salesforce/ts-types';
 import { Dictionary } from '@salesforce/ts-types';
 import { URL } from 'url';
+import { Deprecation } from './ux';
 
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/command', 'flags');
@@ -60,9 +61,9 @@ export namespace flags {
   export type BaseBoolean<T> = Partial<IBooleanFlag<T>>;
   export type Boolean<T> = BaseBoolean<T> & SfdxProperties;
   export type Bounds<T> = { min?: T; max?: T };
-  export type Builtin = { type: 'builtin' } & Partial<Describable>;
+  export type Builtin = { type: 'builtin' } & Partial<SfdxProperties>;
   export type DateTime = Option<Date>;
-  export type Deprecatable = { deprecated?: { message: string; version: string } };
+  export type Deprecatable = { deprecated?: Deprecation };
   export type Describable = { description: string; longDescription?: string };
   export type Discriminant = { kind: Kind };
   export type Discriminated<T> = T & Discriminant;

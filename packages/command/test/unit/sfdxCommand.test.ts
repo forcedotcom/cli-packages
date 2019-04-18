@@ -28,6 +28,7 @@ import chalk from 'chalk';
 import { join } from 'path';
 import { SinonStub } from 'sinon';
 import { URL } from 'url';
+import * as util from 'util';
 import { Result, SfdxCommand, SfdxResult } from '../../src/sfdxCommand';
 import { flags, FlagsConfig } from '../../src/sfdxFlags';
 import { UX } from '../../src/ux';
@@ -120,7 +121,10 @@ describe('SfdxCommand', () => {
     $$.SANDBOX.stub(UX.prototype, 'error').callsFake((...args: string[]) => UX_OUTPUT.error.push(args));
     $$.SANDBOX.stub(UX.prototype, 'errorJson').callsFake((args: AnyJson) => UX_OUTPUT.errorJson.push(args));
     $$.SANDBOX.stub(UX.prototype, 'table').callsFake((args: string[]) => UX_OUTPUT.table.push(args));
-    $$.SANDBOX.stub(UX.prototype, 'warn').callsFake((args: string[]) => UX_OUTPUT.warn.push(args));
+    $$.SANDBOX.stub(UX.prototype, 'warn').callsFake(function(this: UX, args: string[]) {
+      UX_OUTPUT.warn.push(args);
+      UX.warnings.add(util.format(args));
+    });
 
     // Ensure BaseTestCommand['result'] is not defined before all tests
     BaseTestCommand.result = {};
@@ -138,6 +142,7 @@ describe('SfdxCommand', () => {
   });
 
   afterEach(() => {
+    UX.warnings = new Set();
     env.setBoolean('SFDX_JSON_TO_STDOUT', jsonToStdout);
   });
 
@@ -1349,12 +1354,12 @@ describe('SfdxCommand', () => {
 
   it('should send errors with --json to stderr by default', async () => {
     // Run the command
-    class SfderrCommand extends SfdxCommand {
+    class StderrCommand extends SfdxCommand {
       public async run() {
         throw new Error('Ahhh!');
       }
     }
-    const output = await SfderrCommand.run(['--json']);
+    const output = await StderrCommand.run(['--json']);
     expect(output).to.equal(undefined);
     expect(process.exitCode).to.equal(1);
 
@@ -1368,12 +1373,12 @@ describe('SfdxCommand', () => {
   it('should honor the SFDX_JSON_TO_STDOUT on command errors', async () => {
     env.setBoolean('SFDX_JSON_TO_STDOUT', true);
     // Run the command
-    class SfdoutCommand extends SfdxCommand {
+    class StdoutCommand extends SfdxCommand {
       public async run() {
         throw new Error('Ahhh!');
       }
     }
-    const output = await SfdoutCommand.run(['--json']);
+    const output = await StdoutCommand.run(['--json']);
     expect(output).to.equal(undefined);
     expect(process.exitCode).to.equal(1);
 
@@ -1382,6 +1387,53 @@ describe('SfdxCommand', () => {
     const json = ensureJsonMap(logJson[0]);
     expect(json.message, 'logJson did not get called with the right error').to.contains('Ahhh!');
     expect(UX_OUTPUT['errorJson'].length, 'errorJson got called when it should not have').to.equal(0);
+  });
+
+  describe('deprecations', () => {
+    class TestCommand extends BaseTestCommand {
+      public static readonly deprecated = {
+        message: "Don't use this junk no more, dig?",
+        version: 41
+      };
+      public static readonly flagsConfig: FlagsConfig = {
+        foo: flags.boolean({
+          description: 'crufty stuff',
+          deprecated: {
+            message: 'For the love of Mike, stop using this!',
+            version: '41.0',
+            to: 'bar'
+          }
+        })
+      };
+      public async run() {
+        return 'I ran!';
+      }
+    }
+
+    it('should emit command and flag deprecation warnings', async () => {
+      const output = await TestCommand.run(['--foo']);
+      expect(output).to.equal('I ran!');
+      expect(process.exitCode).to.equal(0);
+
+      const commandWarning = `The command "TestCommand" has been deprecated and will be removed in v42.0 or later. Don't use this junk no more, dig?`;
+      expect(UX_OUTPUT.warn[0]).to.include(commandWarning);
+
+      const flagWarning =
+        'The flag "foo" has been deprecated and will be removed in v42.0 or later. Use "bar" instead. For the love of Mike, stop using this!';
+      expect(UX_OUTPUT.warn[1]).to.include(flagWarning);
+    });
+
+    it('should collect command and flag deprecation warnings when outputting json', async () => {
+      await TestCommand.run(['--foo', '--json']);
+      expect(UX_OUTPUT.logJson[0]).to.deep.equal({
+        status: 0,
+        result: 'I ran!',
+        warnings: [
+          'The command "TestCommand" has been deprecated and will be removed in v42.0 or later. Don\'t use this junk no more, dig?',
+          'The flag "foo" has been deprecated and will be removed in v42.0 or later. Use "bar" instead. For the love of Mike, stop using this!'
+        ]
+      });
+    });
   });
 });
 
