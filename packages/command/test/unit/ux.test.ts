@@ -248,9 +248,15 @@ describe('UX', () => {
       { foo: 'incredible!', bar: 0, baz: false },
       { foo: 'truly amazing!', bar: 9, baz: true }
     ];
-    const options = ['foo', 'bar', 'baz'];
+    const wildKey = 'some wildAnd-Crazy_key';
+    const options = ['foo', 'bar', 'baz', wildKey];
     const expectedOptions = {
-      columns: [{ key: 'foo', label: 'FOO' }, { key: 'bar', label: 'BAR' }, { key: 'baz', label: 'BAZ' }]
+      columns: [
+        { key: 'foo', label: 'FOO' },
+        { key: 'bar', label: 'BAR' },
+        { key: 'baz', label: 'BAZ' },
+        { key: wildKey, label: 'SOME WILD AND CRAZY KEY' }
+      ]
     };
 
     const ux1 = ux.table(tableData, options);
