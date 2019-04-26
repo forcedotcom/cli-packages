@@ -258,7 +258,13 @@ export class UX {
       if (isArray(options)) {
         const tableColumns: Array<Partial<TableColumn>> = [];
         for (const col of options) {
-          tableColumns.push({ key: col, label: col.toUpperCase() });
+          tableColumns.push({
+            key: col,
+            label: col
+              .split(/(?=[A-Z])|[-_\s]/)
+              .map(w => w.toUpperCase())
+              .join(' ')
+          });
         }
         this.cli.table(rows, { columns: tableColumns });
       } else {
