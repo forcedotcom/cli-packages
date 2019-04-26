@@ -10,10 +10,12 @@ import { OutputArgs, OutputFlags } from '@oclif/parser';
 import { ConfigAggregator, Global, Logger, Messages, Mode, Org, SfdxError, SfdxProject } from '@salesforce/core';
 import { env } from '@salesforce/kit';
 import { AnyJson, Dictionary, get, isBoolean, JsonMap, Optional } from '@salesforce/ts-types';
+import { has } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import { DocOpts } from './docOpts';
 import { buildSfdxFlags, flags as Flags, FlagsConfig } from './sfdxFlags';
-import { TableOptions, UX } from './ux';
+import { DeprecationDefinition, TableOptions, UX } from './ux';
+import { Deprecation } from './ux';
 
 Messages.importMessagesDirectory(__dirname);
 
@@ -118,8 +120,8 @@ export abstract class SfdxCommand extends Command {
   // Set to true if this command MUST be run within a SFDX project.
   protected static requiresProject = false;
 
-  // Set to true if this command is deprecated.
-  // protected static deprecated = false;
+  // Set if this command is deprecated.
+  protected static deprecated?: Deprecation;
 
   // Convenience property for simple command output table formating.
   protected static tableColumnData: string[];
@@ -304,10 +306,41 @@ export abstract class SfdxCommand extends Command {
     this.flags = flags;
     this.args = args;
 
+    // If this command is deprecated, emit a warning
+    if (this.statics.deprecated) {
+      let def: DeprecationDefinition;
+      if (has(this.statics.deprecated, 'version')) {
+        def = {
+          name: this.statics.name,
+          type: 'command',
+          ...this.statics.deprecated
+        };
+      } else {
+        def = this.statics.deprecated;
+      }
+      this.ux.warn(UX.formatDeprecationWarning(def));
+    }
+
+    if (this.statics.flagsConfig) {
+      // If any deprecated flags were passed, emit warnings
+      for (const flag of Object.keys(this.flags)) {
+        const def = this.statics.flagsConfig[flag];
+        if (def && def.deprecated) {
+          this.ux.warn(
+            UX.formatDeprecationWarning({
+              name: flag,
+              type: 'flag',
+              ...def.deprecated
+            })
+          );
+        }
+      }
+    }
+
     // If this command supports varargs, parse them from argv.
     if (this.statics.varargs) {
       const argVals: string[] = Object.values(args);
-      const varargs = argv.filter((val, i) => !argVals.includes(val));
+      const varargs = argv.filter(val => !argVals.includes(val));
       this.varargs = this.parseVarargs(varargs);
     }
 
@@ -392,7 +425,13 @@ export abstract class SfdxCommand extends Command {
     // Only handle success since we're handling errors in the catch
     if (!err) {
       if (this.isJson) {
-        this.ux.logJson(this.getJsonResultObject());
+        let output = this.getJsonResultObject();
+        if (UX.warnings.size > 0) {
+          output = Object.assign(output, {
+            warnings: Array.from(UX.warnings)
+          });
+        }
+        this.ux.logJson(output);
       } else {
         this.result.display();
       }
