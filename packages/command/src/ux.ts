@@ -1,3 +1,4 @@
+import { ensure } from '@salesforce/ts-types';
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -22,7 +23,7 @@
  */
 
 import { Logger, LoggerLevel } from '@salesforce/core';
-import { isArray, Optional } from '@salesforce/ts-types';
+import { has, isArray, isString, Optional } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import { cli, IPromptOptions } from 'cli-ux';
 import { TableColumn, TableOptions as OclifTableOptions } from 'cli-ux/lib/styled/table';
@@ -44,9 +45,15 @@ export class UX {
    * @returns {string} The formatted deprecation message.
    */
   public static formatDeprecationWarning(def: DeprecationDefinition): string {
-    let msg =
-      def.messageOverride ||
-      `The ${def.type} "${def.name}" has been deprecated and will be removed in v${(def.version || 0) + 1}.0 or later.`;
+    let msg: string;
+    if (has(def, 'version')) {
+      const version = isString(def.version) ? parseInt(def.version, 10) : def.version || 0;
+      const type = ensure(def.type);
+      const name = ensure(def.name);
+      msg = `The ${type} "${name}" has been deprecated and will be removed in v${version + 1}.0 or later.`;
+    } else {
+      msg = def.messageOverride;
+    }
     if (def.to) {
       msg += ` Use "${def.to}" instead.`;
     }
@@ -251,7 +258,13 @@ export class UX {
       if (isArray(options)) {
         const tableColumns: Array<Partial<TableColumn>> = [];
         for (const col of options) {
-          tableColumns.push({ key: col, label: col.toUpperCase() });
+          tableColumns.push({
+            key: col,
+            label: col
+              .split(/(?=[A-Z])|[-_\s]/)
+              .map(w => w.toUpperCase())
+              .join(' ')
+          });
         }
         this.cli.table(rows, { columns: tableColumns });
       } else {
@@ -320,26 +333,36 @@ export class UX {
 export type TableOptions = Partial<OclifTableOptions> | string[];
 
 /**
- * A deprecation warning message configuration type.  A typical instance can pass `name`,
+ * A deprecation configuration type.  A typical instance can pass `name`,
  * `type`, and `version` for a standard message.  Alternatively, the `messageOverride` can
- * be used as a special case deprecated message.
+ * be used as a special case deprecated message.  Used when defining a deprecation on a
+ * command or flag.
  */
-export type DeprecationDefinition =
+export type Deprecation = {
+  to?: string;
+  message?: string;
+} & (
   | {
-      name: string;
-      // tslint:disable-next-line no-reserved-keywords
-      type: string;
-      version: number;
-      to?: string;
-      message?: string;
-      messageOverride?: never;
+      version: number | string;
     }
   | {
-      name?: never;
-      // tslint:disable-next-line no-reserved-keywords
-      type?: never;
-      version?: never;
-      to?: string;
-      message?: string;
       messageOverride: string;
-    };
+    });
+
+/**
+ * A deprecation warning message configuration type.  A typical instance can pass `name`,
+ * `type`, and `version` for a standard message.  Alternatively, the `messageOverride` can
+ * be used as a special case deprecated message.  Used when formating a deprecation message.
+ */
+export type DeprecationDefinition = {
+  to?: string;
+  message?: string;
+} & (
+  | {
+      version: number | string;
+      name: string;
+      type: string;
+    }
+  | {
+      messageOverride: string;
+    });

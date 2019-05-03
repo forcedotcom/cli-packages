@@ -199,7 +199,7 @@ describe('UX', () => {
     expect(UX.formatDeprecationWarning(depConfig)).to.equal(expectedMsg);
   });
 
-  it('formatDeprecationWarning should display a consistent msg with full config', () => {
+  it('formatDeprecationWarning should display a consistent msg with full config and numeric version', () => {
     const depConfig = {
       type: 'command',
       name: 'apex:test:qq',
@@ -210,6 +210,21 @@ describe('UX', () => {
     let expectedMsg = `The ${depConfig.type} "${
       depConfig.name
     }" has been deprecated and will be removed in v${depConfig.version + 1}.0 or later.`;
+    expectedMsg += ` Use "${depConfig.to}" instead. ${depConfig.message}`;
+    expect(UX.formatDeprecationWarning(depConfig)).to.equal(expectedMsg);
+  });
+
+  it('formatDeprecationWarning should display a consistent msg with full config and string version', () => {
+    const version = 42;
+    const depConfig = {
+      type: 'command',
+      name: 'apex:test:qq',
+      version: `${version}.0`,
+      to: 'apex.test.pewpew',
+      message: 'Need more pew pew, less qq!'
+    };
+    let expectedMsg = `The ${depConfig.type} "${depConfig.name}" has been deprecated and will be removed in v${version +
+      1}.0 or later.`;
     expectedMsg += ` Use "${depConfig.to}" instead. ${depConfig.message}`;
     expect(UX.formatDeprecationWarning(depConfig)).to.equal(expectedMsg);
   });
@@ -248,9 +263,15 @@ describe('UX', () => {
       { foo: 'incredible!', bar: 0, baz: false },
       { foo: 'truly amazing!', bar: 9, baz: true }
     ];
-    const options = ['foo', 'bar', 'baz'];
+    const wildKey = 'some wildAnd-Crazy_key';
+    const options = ['foo', 'bar', 'baz', wildKey];
     const expectedOptions = {
-      columns: [{ key: 'foo', label: 'FOO' }, { key: 'bar', label: 'BAR' }, { key: 'baz', label: 'BAZ' }]
+      columns: [
+        { key: 'foo', label: 'FOO' },
+        { key: 'bar', label: 'BAR' },
+        { key: 'baz', label: 'BAZ' },
+        { key: wildKey, label: 'SOME WILD AND CRAZY KEY' }
+      ]
     };
 
     const ux1 = ux.table(tableData, options);
