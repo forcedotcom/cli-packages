@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.5.1](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.5.0...@salesforce/command@1.5.1) (2019-05-03)
+
+
+### Bug Fixes
+
+* add deprecation warnings for commands and flags ([be56485](https://github.com/forcedotcom/cli-packages/commit/be56485))
+* allow uppercase loglevel values ([51e5942](https://github.com/forcedotcom/cli-packages/commit/51e5942))
+* put spaces between words in generated table col labels ([5481927](https://github.com/forcedotcom/cli-packages/commit/5481927))
+
+
+
+
+
 # [1.5.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.4.2...@salesforce/command@1.5.0) (2019-04-04)
 
 
