@@ -104,6 +104,23 @@ let UX_OUTPUT: typeof UX_OUTPUT_BASE;
 let configAggregatorCreate: SinonStub;
 let jsonToStdout: boolean;
 
+async function mockStdout(test: (outLines: string[]) => Promise<void>) {
+  const oldStdoutWriter = process.stdout.write;
+  const lines: string[] = [];
+  // @ts-ignore
+  process.stdout.write = message => {
+    if (message) {
+      lines.push(message);
+    }
+  };
+
+  try {
+    await test(lines);
+  } finally {
+    process.stdout.write = oldStdoutWriter;
+  }
+}
+
 describe('SfdxCommand', () => {
   beforeEach(() => {
     process.exitCode = 0;
@@ -402,94 +419,78 @@ describe('SfdxCommand', () => {
   });
 
   it('should honor the -h flag to generate help output when the subclass does not define its own flag for -h', async () => {
-    const lines: string[] = [];
-    // Run the command
-    class TestCommand extends BaseTestCommand {
-      // tslint:disable-next-line no-any (matches oclif)
-      public log(message?: any): void {
-        if (message) {
-          lines.push(message.toString());
-        }
+    class TestCommand extends BaseTestCommand {}
+
+    return mockStdout(async (lines: string[]) => {
+      let output: Optional<string>;
+      try {
+        output = await TestCommand.run(['-h']);
+        fail('Expected EEXIT error');
+      } catch (err) {
+        expect(err.code).to.equal('EEXIT');
+        expect(err.oclif.exit).to.equal(0);
       }
-    }
-    let output: Optional<string>;
-    try {
-      output = await TestCommand.run(['-h']);
-      fail('Expected EEXIT error');
-    } catch (err) {
-      expect(err.code).to.equal('EEXIT');
-      expect(err.oclif.exit).to.equal(0);
-    }
 
-    expect(output).to.equal(undefined);
-    expect(process.exitCode).to.equal(0);
+      expect(output).to.equal(undefined);
+      expect(process.exitCode).to.equal(0);
 
-    // Check that the first line of the logged output is `USAGE` once ANSI colors have been removed
-    expect(lines.length).to.be.gte(1);
-    const help = lines[0].slice(0, lines[0].indexOf('\n')).replace(/\u001b\[[0-9]+m/g, '');
-    expect(help).to.equal('USAGE');
+      // Check that the first line of the logged output is `USAGE` once ANSI colors have been removed
+      expect(lines.length).to.be.gte(1);
+      const help = lines[0].slice(0, lines[0].indexOf('\n')).replace(/\u001b\[[0-9]+m/g, '');
+      expect(help).to.equal('USAGE');
+    });
   });
 
-  it('should honor the -h flag to generate help output, even when the subclass defines its own help flag', async () => {
-    const lines: string[] = [];
-    // Run the command
+  it('should honor the -h flag to generate help output, even when the subclass defines its own help flag', () => {
     class TestCommand extends BaseTestCommand {
       public static flagsConfig = {
         help: flags.help({ char: 'h' })
       };
-      // tslint:disable-next-line no-any (matches oclif)
-      public log(message?: any): void {
-        if (message) {
-          lines.push(message.toString());
-        }
+    }
+
+    return mockStdout(async (lines: string[]) => {
+      // Run the command
+
+      let output: Optional<string>;
+      try {
+        output = await TestCommand.run(['-h']);
+        fail('Expected EEXIT error');
+      } catch (err) {
+        expect(err.code).to.equal('EEXIT');
+        expect(err.oclif.exit).to.equal(0);
       }
-    }
-    let output: Optional<string>;
-    try {
-      output = await TestCommand.run(['-h']);
-      fail('Expected EEXIT error');
-    } catch (err) {
-      expect(err.code).to.equal('EEXIT');
-      expect(err.oclif.exit).to.equal(0);
-    }
 
-    expect(output).to.equal(undefined);
-    expect(process.exitCode).to.equal(0);
-
-    // Check that the first line of the logged output is `USAGE` once ANSI colors have been removed
-    expect(lines.length).to.be.gte(1);
-    const help = lines[0].slice(0, lines[0].indexOf('\n')).replace(/\u001b\[[0-9]+m/g, '');
-    expect(help).to.equal('USAGE');
+      expect(output).to.equal(undefined);
+      expect(process.exitCode).to.equal(0);
+      // Check that the first line of the logged output is `USAGE` once ANSI colors have been removed
+      expect(lines.length).to.be.gte(1);
+      const help = lines[0].slice(0, lines[0].indexOf('\n')).replace(/\u001b\[[0-9]+m/g, '');
+      expect(help).to.equal('USAGE');
+    });
   });
 
-  it('should not honor the -h flag to generate help output when used for another purpose by the subclass', async () => {
-    const lines: string[] = [];
-    // Run the command
+  it('should not honor the -h flag to generate help output when used for another purpose by the subclass', () => {
     class TestCommand extends BaseTestCommand {
       public static flagsConfig = {
         foo: flags.boolean({ char: 'h', description: 'foo' })
       };
-      // tslint:disable-next-line no-any (matches oclif)
-      public log(message?: any): void {
-        if (message) {
-          lines.push(message.toString());
-        }
-      }
     }
 
-    const output = await TestCommand.run(['-h']);
+    return mockStdout(async () => {
+      const output = await TestCommand.run(['-h']);
 
-    expect(output).to.equal(TestCommand.output);
-    expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
-    verifyInstanceProps({
-      flags: Object.assign({ foo: true }, DEFAULT_INSTANCE_PROPS.flags)
+      expect(output).to.equal(TestCommand.output);
+      expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
+      verifyInstanceProps({
+        flags: Object.assign({ foo: true }, DEFAULT_INSTANCE_PROPS.flags)
+      });
+      const expectedResult = {
+        data: TestCommand.output,
+        tableColumnData: undefined
+      };
+      expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
+      verifyUXOutput();
     });
-    const expectedResult = {
-      data: TestCommand.output,
-      tableColumnData: undefined
-    };
-    expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
-    verifyUXOutput();
   });
 
   it('should set this.isJson and only output ux.logJson with the --json flag', async () => {
