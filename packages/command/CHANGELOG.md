@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.5.2](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.5.1...@salesforce/command@1.5.2) (2019-05-31)
+
+
+### Bug Fixes
+
+* remove dependency on log statement in oclif/command ([162b418](https://github.com/forcedotcom/cli-packages/commit/162b418))
+
+
+
+
+
 ## [1.5.1](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.5.0...@salesforce/command@1.5.1) (2019-05-03)
 
 
