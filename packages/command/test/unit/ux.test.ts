@@ -20,6 +20,7 @@ const $$ = testSetup();
 
 describe('UX', () => {
   const sfdxEnv = process.env.SFDX_ENV;
+  const argv = process.argv;
 
   beforeEach(() => {
     process.env.SFDX_ENV = 'test';
@@ -27,12 +28,28 @@ describe('UX', () => {
 
   afterEach(() => {
     process.env.SFDX_ENV = sfdxEnv;
+    process.argv = argv;
   });
 
   it('log() should only log to the logger when output IS NOT enabled', () => {
     const info = $$.SANDBOX.stub($$.TEST_LOGGER, 'info');
     const log = $$.SANDBOX.stub(cli, 'log');
     const ux = new UX($$.TEST_LOGGER, false, cli);
+    const logMsg = 'test log() 1 for log wrapper';
+
+    const ux1 = ux.log(logMsg);
+
+    expect(info.called).to.equal(true);
+    expect(info.firstCall.args[0]).to.equal(logMsg);
+    expect(log.called).to.equal(false);
+    expect(ux1).to.equal(ux);
+  });
+
+  it('log() should not log to stdout when json is set via the process args', () => {
+    const info = $$.SANDBOX.stub($$.TEST_LOGGER, 'info');
+    const log = $$.SANDBOX.stub(cli, 'log');
+    process.argv = ['--json'];
+    const ux = new UX($$.TEST_LOGGER, undefined, cli);
     const logMsg = 'test log() 1 for log wrapper';
 
     const ux1 = ux.log(logMsg);
