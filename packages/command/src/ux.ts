@@ -23,7 +23,7 @@ import { ensure } from '@salesforce/ts-types';
  */
 
 import { Logger, LoggerLevel } from '@salesforce/core';
-import { has, isArray, isString, Optional } from '@salesforce/ts-types';
+import { has, isArray, isString, isBoolean, Optional } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import { cli, IPromptOptions } from 'cli-ux';
 import { TableColumn, TableOptions as OclifTableOptions } from 'cli-ux/lib/styled/table';
@@ -72,13 +72,21 @@ export class UX {
     return new UX(await Logger.child('UX'));
   }
 
+  private isOutputEnabled?: boolean;
   public cli: typeof cli;
 
   /**
    * Do not directly construct instances of this class -- use {@link UX.create} instead.
    */
-  constructor(private logger: Logger, private isOutputEnabled = true, ux?: typeof cli) {
+  constructor(private logger: Logger, isOutputEnabled?: boolean, ux?: typeof cli) {
     this.cli = ux || cli;
+
+    if (isBoolean(isOutputEnabled)) {
+      this.isOutputEnabled = isOutputEnabled;
+    } else {
+      // Respect the --json flag for consumers who don't explicitly check
+      this.isOutputEnabled = !!process.argv.find(arg => arg === '--json');
+    }
   }
 
   /**
