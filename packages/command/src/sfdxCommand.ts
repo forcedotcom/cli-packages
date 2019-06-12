@@ -388,7 +388,7 @@ export abstract class SfdxCommand extends Command {
     await this.initLoggerAndUx();
 
     // Convert all other errors to SfdxErrors for consistency and set the command name on the error.
-    const error: SfdxError = err instanceof SfdxError ? err : SfdxError.wrap(err);
+    const error: SfdxError = err.setCommandName ? err : SfdxError.wrap(err);
     error.setCommandName(this.statics.name);
 
     process.exitCode = process.exitCode || error.exitCode || 1;
