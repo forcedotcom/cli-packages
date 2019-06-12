@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.5.3](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.5.2...@salesforce/command@1.5.3) (2019-06-12)
+
+
+### Bug Fixes
+
+* instanceof isn’t detecting come instances of SfdxError ([092b311](https://github.com/forcedotcom/cli-packages/commit/092b311))
+* respect --json when created outside of SfdxCommand flow ([f51563c](https://github.com/forcedotcom/cli-packages/commit/f51563c))
+
+
+
+
+
 ## [1.5.2](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.5.1...@salesforce/command@1.5.2) (2019-05-31)
 
 
