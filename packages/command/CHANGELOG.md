@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.5.3...@salesforce/command@2.0.0) (2019-06-18)
+
+
+### Bug Fixes
+
+* 🐛 Support new AuthInfo changes in core ([3dd191a](https://github.com/forcedotcom/cli-packages/commit/3dd191a))
+
+
+### BREAKING CHANGES
+
+* 🧨 Yes AuthInfo object is not backward compatible.
+
+
+
+
+
 ## [1.5.3](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.5.2...@salesforce/command@1.5.3) (2019-06-12)
 
 
