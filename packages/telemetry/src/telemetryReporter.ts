@@ -3,7 +3,6 @@
 import { Logger } from '@salesforce/core';
 import { AsyncCreatable } from '@salesforce/kit';
 import * as appInsights from 'applicationinsights';
-import * as _ from 'lodash';
 import * as os from 'os';
 import * as process from 'process';
 
@@ -56,6 +55,7 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
       this.appInsightsClient.flush();
     } else {
       this.logger.warn('Failed to send telemetry event because appInsightsClient does not exist');
+      throw Error('Failed to send telemetry event because appInsightsClient does not exist');
     }
   }
 
@@ -63,25 +63,19 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
    * Initiates the app insights client
    */
   private createAppInsightsClient(): void {
-    if (appInsights.defaultClient) {
-      this.logger.debug('appInsightsClient already exists');
-      this.appInsightsClient = new appInsights.TelemetryClient(this.options.key);
-      this.appInsightsClient.channel.setUseDiskRetryCaching(true);
-    } else {
-      this.logger.debug('creating appInsightsClient');
-      appInsights
-        .setup(this.options.key)
-        .setAutoCollectRequests(false)
-        .setAutoCollectPerformance(false)
-        .setAutoCollectExceptions(false)
-        .setAutoCollectDependencies(false)
-        .setAutoDependencyCorrelation(false)
-        .setAutoCollectConsole(false)
-        .setUseDiskRetryCaching(true)
-        .start();
-      this.appInsightsClient = appInsights.defaultClient;
-    }
+    this.logger.debug('creating appInsightsClient');
+    appInsights
+      .setup(this.options.key)
+      .setAutoCollectRequests(false)
+      .setAutoCollectPerformance(false)
+      .setAutoCollectExceptions(false)
+      .setAutoCollectDependencies(false)
+      .setAutoDependencyCorrelation(false)
+      .setAutoCollectConsole(false)
+      .setUseDiskRetryCaching(true)
+      .start();
 
+    this.appInsightsClient = appInsights.defaultClient;
     this.appInsightsClient.commonProperties = this.buildCommonProperties();
     this.appInsightsClient.context.tags = this.buildContextTags();
 
@@ -118,7 +112,8 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
 export function buildPropertiesAndMeasurements(attributes: Attributes) {
   const properties: Properties = {};
   const measurements: Measurements = {};
-  _.forEach(attributes, (value, key) => {
+  Object.keys(attributes).forEach(key => {
+    const value = attributes[key];
     if (typeof value === 'string') {
       properties[key] = value;
     } else if (typeof value === 'number') {
@@ -128,11 +123,11 @@ export function buildPropertiesAndMeasurements(attributes: Attributes) {
   return { properties, measurements };
 }
 
-function getPlatformVersion(): string {
+export function getPlatformVersion(): string {
   return (os.release() || '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3');
 }
 
-function getCpus(): string {
+export function getCpus(): string {
   const cpus = os.cpus();
   if (cpus && cpus.length > 0) {
     return `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})`;
