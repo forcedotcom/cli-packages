@@ -910,13 +910,13 @@
   resolved "https://registry.npmjs.org/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@oclif/command@^1.5.0", "@oclif/command@^1.5.8":
-  version "1.5.14"
-  resolved "https://registry.npmjs.org/@oclif/command/-/command-1.5.14.tgz#cdf6013134abfb5630783f27e78436096ce3ed88"
-  integrity sha512-R9gat0yUjamDVd4trvFgjlx2XYuMz1nM0uEBFP6nR1zOQAwJ3E1zqYbsVlCMWiUDGjU1hYmudmK7IjAxDUoqDw==
+"@oclif/command@^1.5.13", "@oclif/command@^1.5.17":
+  version "1.5.17"
+  resolved "https://registry.npmjs.org/@oclif/command/-/command-1.5.17.tgz#a3eabe1c159b4e8e47dbc11e7810a4c0b5b2eab2"
+  integrity sha512-it745U06qMKA5j3xEnMB/V9HkOTr2l42Q6MXNcGxj06Y7mhvahEQOYmj2NDWO6oRadyRRAtlEjZv82cenN0RlQ==
   dependencies:
     "@oclif/errors" "^1.2.2"
-    "@oclif/parser" "^3.7.3"
+    "@oclif/parser" "^3.8.3"
     debug "^4.1.1"
     semver "^5.6.0"
 
@@ -928,7 +928,7 @@
     debug "^4.1.1"
     tslib "^1.9.3"
 
-"@oclif/errors@^1.2.0", "@oclif/errors@^1.2.2":
+"@oclif/errors@^1.2.2":
   version "1.2.2"
   resolved "https://registry.npmjs.org/@oclif/errors/-/errors-1.2.2.tgz#9d8f269b15f13d70aa93316fed7bebc24688edc2"
   integrity sha512-Eq8BFuJUQcbAPVofDxwdE0bL14inIiwt5EaKRVY9ZDIG11jwdXZqiQEECJx0VfnLyUZdYfRd/znDI/MytdJoKg==
@@ -944,21 +944,21 @@
   resolved "https://registry.npmjs.org/@oclif/linewrap/-/linewrap-1.0.0.tgz#aedcb64b479d4db7be24196384897b5000901d91"
   integrity sha512-Ups2dShK52xXa8w6iBWLgcjPJWjais6KPJQq3gQ/88AY6BXoTX+MIGFPrWQO1KLMiQfoTpcLnUwloN4brrVUHw==
 
-"@oclif/parser@^3.6.0", "@oclif/parser@^3.7.3":
-  version "3.8.1"
-  resolved "https://registry.npmjs.org/@oclif/parser/-/parser-3.8.1.tgz#3c842ef4a8ce3d1f5bcfa5938d3fbebf1c6a0618"
-  integrity sha512-0OavFuLj6FBTdZDD6DXdNqH4qdLFLQD/PKK1OvNZhUd4/5v/lp6Ftzilwmirf549naNHq0u15uk1YCBvym5tNQ==
+"@oclif/parser@^3.8.3":
+  version "3.8.3"
+  resolved "https://registry.npmjs.org/@oclif/parser/-/parser-3.8.3.tgz#717fbbe5bfafef4270224b8bd41a2d3c80b9554e"
+  integrity sha512-zN+3oGuv9Lg8NjFvxZTDKFEmhAMfAvd/JWeQp3Ri8pDezoyJQi4OSHHLM8sdHjBh8sePewfWI7+fDUXdrVbrqg==
   dependencies:
     "@oclif/linewrap" "^1.0.0"
     chalk "^2.4.2"
     tslib "^1.9.3"
 
-"@oclif/plugin-help@^2.1.0":
-  version "2.1.6"
-  resolved "https://registry.npmjs.org/@oclif/plugin-help/-/plugin-help-2.1.6.tgz#ae14cbe2c5cd3eaf5f796d205ffbe66d3e369173"
-  integrity sha512-M4kTERpPWNSM1Mga7K/zo9DWHLCVf2FRaIeXPoytmTPd+0kSvG3TR0Vc1bwx9/cxXoYyYGgEejwNlrfayr8FZw==
+"@oclif/plugin-help@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.npmjs.org/@oclif/plugin-help/-/plugin-help-2.2.0.tgz#8dfc1c80deae47a205fbc70b018747ba93f31cc3"
+  integrity sha512-56iIgE7NQfwy/ZrWrvrEfJGb5rrMUt409yoQGw4feiU101UudA1btN1pbUbcKBr7vY9KFeqZZcftXEGxOp7zBg==
   dependencies:
-    "@oclif/command" "^1.5.8"
+    "@oclif/command" "^1.5.13"
     chalk "^2.4.1"
     indent-string "^3.2.0"
     lodash.template "^4.4.0"
@@ -972,7 +972,7 @@
   resolved "https://registry.npmjs.org/@oclif/screen/-/screen-1.0.4.tgz#b740f68609dfae8aa71c3a6cab15d816407ba493"
   integrity sha512-60CHpq+eqnTxLZQ4PGHYNwUX572hgpMHGPtTWMjdTMsAvlm69lZV/4ly6O3sAYkomo4NggGcomrDpBe34rxUqw==
 
-"@oclif/test@^1.2.0":
+"@oclif/test@^1.2.4":
   version "1.2.4"
   resolved "https://registry.npmjs.org/@oclif/test/-/test-1.2.4.tgz#81203074927c00b0804a171e67a45c5968813c01"
   integrity sha512-c0khMdYBGV7t9L7SNbh84t9PmTqfaTp4Jqf3JbWu80fd+SAM03m9o+dvrgx+qv4YbSTum4GpXBZtXHq4AXsD3Q==
@@ -1034,27 +1034,10 @@
     universal-user-agent "^2.0.0"
     url-template "^2.0.8"
 
-"@salesforce/core@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/@salesforce/core/-/core-2.0.0.tgz#59588d4e66d3c68ad7af4cbcdc74bc45d61093b8"
-  integrity sha512-jNC/w1DAlDo5lSaDCst9fYJiWo74V6Rmc4qrEoWbPXTvjOGe/FvrDrmfVTVI60dkysTNrSJsqNU24XBIkYBdsA==
-  dependencies:
-    "@salesforce/kit" "^1.0.0"
-    "@salesforce/ts-sinon" "^1.0.0"
-    "@salesforce/ts-types" "^1.0.0"
-    "@types/jsforce" "1.9.2"
-    bunyan-sfdx-no-dtrace "1.8.2"
-    debug "^3.1.0"
-    jsen "0.6.6"
-    jsforce "1.8.5"
-    jsonwebtoken "8.5.0"
-    mkdirp "0.5.1"
-    sfdx-faye "^1.0.9"
-
-"@salesforce/core@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.npmjs.org/@salesforce/core/-/core-2.0.1.tgz#b71e8b8d53dc3eafd19547dd334b91543203fbe6"
-  integrity sha512-KiDsOwg0xdkJ9+VBCc0kYUIEliY1RagP0GLrhcbKbF9Wbjh8SPA69KHUHK+vUkkHU8mK8MDLDwzRzvDUQRzDkg==
+"@salesforce/core@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.npmjs.org/@salesforce/core/-/core-2.1.0.tgz#dde05944d756f24c1bb3149fe69b9a05e8df11eb"
+  integrity sha512-KtQ07o+lpkfSu6t1kP3N68JL4e09VkoazIvDtiv0BOhvuJia1niR8YXjNCAZQoIlzPGCwzt4zeiaqs6pFJ5X5w==
   dependencies:
     "@salesforce/kit" "^1.0.0"
     "@salesforce/ts-sinon" "^1.0.0"
@@ -1132,7 +1115,7 @@
     typedoc-plugin-external-module-name "1.1.3"
     xunit-file "^1"
 
-"@salesforce/kit@^1.0.0", "@salesforce/kit@^1.1.0":
+"@salesforce/kit@^1.0.0", "@salesforce/kit@^1.1.1":
   version "1.1.1"
   resolved "https://registry.npmjs.org/@salesforce/kit/-/kit-1.1.1.tgz#99d3f553b1376a49185a654691475a605eda5bab"
   integrity sha512-mXAyQwAFx3YO89sm6GUGxqCdvFrfg8ph2PVWYwSxBwMNkJW7xsKdt6ZzsouSl4bysvOhedXC1i3sdIg+SSr1UQ==
@@ -1846,7 +1829,7 @@ chalk@2.4.1:
     escape-string-regexp "^1.0.5"
     supports-color "^5.3.0"
 
-chalk@^2.0.0, chalk@^2.0.1, chalk@^2.3.0, chalk@^2.3.1, chalk@^2.4.0, chalk@^2.4.1, chalk@^2.4.2:
+chalk@^2.0.0, chalk@^2.0.1, chalk@^2.3.0, chalk@^2.3.1, chalk@^2.4.1, chalk@^2.4.2:
   version "2.4.2"
   resolved "https://registry.npmjs.org/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"
   integrity sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==
@@ -1907,7 +1890,7 @@ cli-cursor@^2.1.0:
   dependencies:
     restore-cursor "^2.0.0"
 
-cli-ux@^4.8.0:
+cli-ux@^4.9.3:
   version "4.9.3"
   resolved "https://registry.npmjs.org/cli-ux/-/cli-ux-4.9.3.tgz#4c3e070c1ea23eef010bbdb041192e0661be84ce"
   integrity sha512-/1owvF0SZ5Gn54cgrikJ0QskgTzeg30HGjkmjFoaHDJzAqFpuX1DBpFR8aLvsE1J5s9MgeYRENQK4BFwOag5VA==
