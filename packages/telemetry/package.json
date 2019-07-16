@@ -35,7 +35,7 @@
     "@salesforce/core": "^2.0.1",
     "@types/lodash": "^4.14.136",
     "applicationinsights": "^1.4.0",
-    "lodash": "^4.17.11"
+    "lodash": "^4.17.14"
   },
   "devDependencies": {
     "@salesforce/dev-scripts": "^0.3.14"
