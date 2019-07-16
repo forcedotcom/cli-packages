@@ -1,0 +1,47 @@
+{
+  "name": "@salesforce/telemetry",
+  "version": "1.0.0",
+  "description": "Library for application insights",
+  "main": "lib/exported",
+  "repository": "git@github.com:forcedotcom/sfdx-telemetry.git",
+  "author": "Salesforce",
+  "license": "BSD-3-Clause",
+  "scripts": {
+    "build": "yarn sfdx-build",
+    "clean": "yarn sfdx-clean",
+    "clean-all": "yarn sfdx-clean all",
+    "compile": "yarn sfdx-compile",
+    "docs": "yarn sfdx-docs",
+    "format": "yarn sfdx-format",
+    "lint": "yarn sfdx-lint",
+    "lint-fix": "yarn sfdx-lint --fix",
+    "prepack": "yarn sfdx-build",
+    "prepare": "npm run build",
+    "test": "yarn sfdx-test"
+  },
+  "keywords": [
+    "force",
+    "salesforce",
+    "sfdx",
+    "salesforcedx",
+    "sfdx-command"
+  ],
+  "files": [
+    "lib",
+    "messages",
+    "!lib/**/*.map"
+  ],
+  "dependencies": {
+    "@salesforce/core": "^2.0.1",
+    "@types/lodash": "^4.14.136",
+    "applicationinsights": "^1.4.0",
+    "lodash": "^4.17.14"
+  },
+  "devDependencies": {
+    "@salesforce/dev-scripts": "^0.3.14"
+  },
+  "types": "lib/exported.d.ts",
+  "publishConfig": {
+    "access": "public"
+  }
+}
