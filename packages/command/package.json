@@ -36,16 +36,16 @@
     "@oclif/plugin-help": "^2.2.0",
     "@oclif/test": "^1.2.4",
     "@salesforce/core": "^2.1.0",
-    "@salesforce/kit": "^1.1.1",
-    "@salesforce/ts-types": "^1.1.4",
+    "@salesforce/kit": "^1.2.0",
+    "@salesforce/ts-types": "^1.2.0",
     "chalk": "^2.4.2",
     "cli-ux": "^4.9.3"
   },
   "devDependencies": {
-    "@oclif/config": "^1.7.0",
-    "@salesforce/dev-scripts": "^0.3.12",
-    "@salesforce/ts-sinon": "^1.0.0",
-    "shelljs": "0.8.1"
+    "@oclif/config": "^1.13.2",
+    "@salesforce/dev-scripts": "^0.4.0",
+    "@salesforce/ts-sinon": "^1.1.0",
+    "shelljs": "~0.8.3"
   },
   "types": "lib/exported.d.ts",
   "publishConfig": {
