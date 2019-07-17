@@ -32,12 +32,12 @@
     "!lib/**/*.map"
   ],
   "dependencies": {
-    "@salesforce/core": "^2.0.1",
-    "applicationinsights": "^1.4.0",
-    "sinon": "^7.3.2"
+    "@salesforce/core": "^2.1.0",
+    "applicationinsights": "^1.4.0"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "^0.3.14"
+    "@salesforce/dev-scripts": "^0.3.14",
+    "@salesforce/ts-sinon": "^1.1.0"
   },
   "types": "lib/exported.d.ts",
   "publishConfig": {
