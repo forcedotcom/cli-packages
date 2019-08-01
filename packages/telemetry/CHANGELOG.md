@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.1](https://github.com/forcedotcom/sfdx-telemetry/compare/@salesforce/telemetry@1.2.0...@salesforce/telemetry@1.2.1) (2019-08-01)
+
+
+### Bug Fixes
+
+* prettier ([119b1e5](https://github.com/forcedotcom/sfdx-telemetry/commit/119b1e5))
+* prettier updates ([735ee52](https://github.com/forcedotcom/sfdx-telemetry/commit/735ee52))
+* provide the ability to opt out of insights ([50debf0](https://github.com/forcedotcom/sfdx-telemetry/commit/50debf0))
+* remove nested if ([774ae02](https://github.com/forcedotcom/sfdx-telemetry/commit/774ae02))
+
+
+
+
+
 # [1.2.0](https://github.com/forcedotcom/sfdx-telemetry/compare/@salesforce/telemetry@1.1.0...@salesforce/telemetry@1.2.0) (2019-07-17)
 
 
