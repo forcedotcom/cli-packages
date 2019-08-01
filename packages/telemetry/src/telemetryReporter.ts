@@ -50,7 +50,7 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
    */
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
     if (!this.isSfdxTelemetryEnabled()) {
-      return
+      return;
     }
 
     if (this.appInsightsClient) {
