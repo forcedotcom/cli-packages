@@ -64,20 +64,19 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
         throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
       }
     } else {
-        if (this.isSfdxTelemetryEnabled()) {
-          this.logger.warn('Failed to send telemetry event because the appInsightsClient does not exist');
-          throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
-        }
+      if (this.isSfdxTelemetryEnabled()) {
+        this.logger.warn('Failed to send telemetry event because the appInsightsClient does not exist');
+        throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
       }
+    }
   }
 
   /**
    * Initiates the app insights client
    */
   private createAppInsightsClient(): void {
-
     if (!this.isSfdxTelemetryEnabled()) {
-      return
+      return;
     }
 
     this.logger.debug('creating appInsightsClient');
