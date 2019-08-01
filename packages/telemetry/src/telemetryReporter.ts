@@ -49,25 +49,27 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
    * @param attributes {Attributes} - map of properties to publish alongside the event.
    */
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
-    if (this.isSfdxTelemetryEnabled()) {
-      if (this.appInsightsClient) {
-        const name = `${this.options.project}/${eventName}`;
-        const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
-        this.logger.debug(`Sending telemetry event: ${name}`);
-        try {
-          this.appInsightsClient.trackEvent({ name, properties, measurements });
-          this.appInsightsClient.flush();
-        } catch (e) {
-          if (e.code === 'ETIMEDOUT') {
-            throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'timedOut');
-          }
-          const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
-          throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
+    if (!this.isSfdxTelemetryEnabled()) {
+      return
+    }
+
+    if (this.appInsightsClient) {
+      const name = `${this.options.project}/${eventName}`;
+      const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
+      this.logger.debug(`Sending telemetry event: ${name}`);
+      try {
+        this.appInsightsClient.trackEvent({ name, properties, measurements });
+        this.appInsightsClient.flush();
+      } catch (e) {
+        if (e.code === 'ETIMEDOUT') {
+          throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'timedOut');
         }
-      } else {
-        this.logger.warn('Failed to send telemetry event because the appInsightsClient does not exist');
-        throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
+        const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
+        throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
       }
+    } else {
+      this.logger.warn('Failed to send telemetry event because the appInsightsClient does not exist');
+      throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
     }
   }
 
