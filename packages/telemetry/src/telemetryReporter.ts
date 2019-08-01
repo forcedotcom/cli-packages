@@ -49,10 +49,6 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
    * @param attributes {Attributes} - map of properties to publish alongside the event.
    */
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
-    if (!this.isSfdxTelemetryEnabled()) {
-      return;
-    }
-
     if (this.appInsightsClient) {
       const name = `${this.options.project}/${eventName}`;
       const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
@@ -68,15 +64,22 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
         throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
       }
     } else {
-      this.logger.warn('Failed to send telemetry event because the appInsightsClient does not exist');
-      throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
-    }
+        if (this.isSfdxTelemetryEnabled()) {
+          this.logger.warn('Failed to send telemetry event because the appInsightsClient does not exist');
+          throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
+        }
+      }
   }
 
   /**
    * Initiates the app insights client
    */
   private createAppInsightsClient(): void {
+
+    if (!this.isSfdxTelemetryEnabled()) {
+      return
+    }
+
     this.logger.debug('creating appInsightsClient');
     appInsights
       .setup(this.options.key)
@@ -87,6 +90,7 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
       .setAutoDependencyCorrelation(false)
       .setAutoCollectConsole(false)
       .setUseDiskRetryCaching(true)
+      .setInternalLogging(false, false)
       .start();
 
     this.appInsightsClient = appInsights.defaultClient;

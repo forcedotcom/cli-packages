@@ -150,15 +150,9 @@ describe('TelemetryReporter', () => {
     const env = new Env({});
     env.setBoolean(TelemetryReporter.SFDX_DISABLE_INSIGHTS, true);
     const options = { project, key, env };
-
     const reporter = await TelemetryReporter.create(options);
-    if (reporter.appInsightsClient) {
-      trackEventStub = sandbox.stub(reporter.appInsightsClient, 'trackEvent').callsFake(() => {});
-      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
-    }
     reporter.sendTelemetryEvent('testEvent');
-    expect(trackEventStub.calledOnce).to.be.false;
-    expect(flushStub.calledOnce).to.be.false;
+    expect(reporter.appInsightsClient).to.be.undefined;
   });
 
   it('should handle missing os.cpus value', () => {
