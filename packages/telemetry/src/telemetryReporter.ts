@@ -1,7 +1,5 @@
-'use strict';
-
-import { Logger } from '@salesforce/core';
-import { AsyncCreatable } from '@salesforce/kit';
+import { Logger, Messages, SfdxError } from '@salesforce/core';
+import { AsyncCreatable, Env } from '@salesforce/kit';
 import * as appInsights from 'applicationinsights';
 import * as os from 'os';
 import * as process from 'process';
@@ -23,9 +21,13 @@ export interface TelemetryOptions {
   key: string;
   commonProperties?: Properties;
   contextTags?: Properties;
+  env?: Env;
 }
 
+Messages.importMessagesDirectory(__dirname);
+
 export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
+  public static SFDX_DISABLE_INSIGHTS = 'SFDX_DISABLE_INSIGHTS';
   private static ASIMOV_ENDPOINT = 'https://vortex.data.microsoft.com/collect/v1';
   public appInsightsClient: appInsights.TelemetryClient | undefined;
   private options: TelemetryOptions;
@@ -47,15 +49,27 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
    * @param attributes {Attributes} - map of properties to publish alongside the event.
    */
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
+    if (!this.isSfdxTelemetryEnabled()) {
+      return;
+    }
+
     if (this.appInsightsClient) {
       const name = `${this.options.project}/${eventName}`;
       const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
       this.logger.debug(`Sending telemetry event: ${name}`);
-      this.appInsightsClient.trackEvent({ name, properties, measurements });
-      this.appInsightsClient.flush();
+      try {
+        this.appInsightsClient.trackEvent({ name, properties, measurements });
+        this.appInsightsClient.flush();
+      } catch (e) {
+        if (e.code === 'ETIMEDOUT') {
+          throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'timedOut');
+        }
+        const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
+        throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
+      }
     } else {
-      this.logger.warn('Failed to send telemetry event because appInsightsClient does not exist');
-      throw Error('Failed to send telemetry event because appInsightsClient does not exist');
+      this.logger.warn('Failed to send telemetry event because the appInsightsClient does not exist');
+      throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
     }
   }
 
@@ -106,6 +120,17 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
   private buildContextTags(): Properties {
     const currentTags = this.appInsightsClient ? this.appInsightsClient.context.tags : {};
     return Object.assign({}, currentTags, this.options.contextTags);
+  }
+
+  /**
+   * Determine if the telemetry event should be logger.
+   * Currently setting SFDX_DISABLE_INSIGHTS to true will disable insights for errors and diagnostics.
+   */
+  private isSfdxTelemetryEnabled(): boolean {
+    const env = this.options.env || new Env();
+    const isEnabled = !env.getBoolean(TelemetryReporter.SFDX_DISABLE_INSIGHTS);
+    this.logger.debug(`'${TelemetryReporter.SFDX_DISABLE_INSIGHTS}': ${isEnabled}`);
+    return isEnabled;
   }
 }
 
