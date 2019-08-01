@@ -1,10 +1,12 @@
+import { Env } from '@salesforce/kit';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import * as os from 'os';
 import * as sinon from 'sinon';
-import { Env } from '@salesforce/kit'
 import TelemetryReporter, {
-  buildPropertiesAndMeasurements, getCpus, getPlatformVersion
+  buildPropertiesAndMeasurements,
+  getCpus,
+  getPlatformVersion
 } from '../../src/telemetryReporter';
 import set = Reflect.set;
 
@@ -91,7 +93,8 @@ describe('TelemetryReporter', () => {
     const options = { project, key };
     const reporter = await TelemetryReporter.create(options);
     delete reporter.appInsightsClient;
-    expect(() => reporter.sendTelemetryEvent('testEvent')).to.throw(Error)
+    expect(() => reporter.sendTelemetryEvent('testEvent'))
+      .to.throw(Error)
       .and.have.property('name', 'sendFailed');
   });
 
@@ -115,11 +118,14 @@ describe('TelemetryReporter', () => {
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
         const error = new Error();
         set(error, 'code', 'ETIMEDOUT');
-        throw error
+        throw error;
       });
     }
-    expect(() => { reporter.sendTelemetryEvent('testEvent') })
-      .to.throw(Error).and.have.property('name', 'timedOut');
+    expect(() => {
+      reporter.sendTelemetryEvent('testEvent');
+    })
+      .to.throw(Error)
+      .and.have.property('name', 'timedOut');
   });
 
   it('send telemetry event will fail unknown', async () => {
@@ -130,14 +136,17 @@ describe('TelemetryReporter', () => {
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
         const error = new Error();
         set(error, 'code', 'ExtraTerrestrialBiologicalEntityFromZetaReticuli');
-        throw error
+        throw error;
       });
     }
-    expect(() => { reporter.sendTelemetryEvent('testEvent') })
-      .to.throw(Error).and.have.property('name', 'unknownError');
+    expect(() => {
+      reporter.sendTelemetryEvent('testEvent');
+    })
+      .to.throw(Error)
+      .and.have.property('name', 'unknownError');
   });
 
-  it('shouldn\'t send telemetry event', async () => {
+  it("shouldn't send telemetry event", async () => {
     const env = new Env({});
     env.setBoolean(TelemetryReporter.SFDX_DISABLE_INSIGHTS, true);
     const options = { project, key, env };
@@ -151,7 +160,6 @@ describe('TelemetryReporter', () => {
     expect(trackEventStub.calledOnce).to.be.false;
     expect(flushStub.calledOnce).to.be.false;
   });
-
 
   it('should handle missing os.cpus value', () => {
     osStub = sandbox.stub(os, 'cpus').callsFake(() => {});
@@ -167,4 +175,3 @@ describe('TelemetryReporter', () => {
     expect(osStub.calledOnce).to.be.true;
   });
 });
-
