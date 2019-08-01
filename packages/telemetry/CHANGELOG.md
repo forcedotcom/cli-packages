@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.2.0](https://github.com/forcedotcom/sfdx-telemetry/compare/@salesforce/telemetry@1.1.0...@salesforce/telemetry@1.2.0) (2019-07-17)
+
+
+### Bug Fixes
+
+* telemetry test coverage ([0cb7c39](https://github.com/forcedotcom/sfdx-telemetry/commit/0cb7c39))
+
+
+### Features
+
+* updating core ([cd4e6b0](https://github.com/forcedotcom/sfdx-telemetry/commit/cd4e6b0))
+* upgrade core ([4696c5f](https://github.com/forcedotcom/sfdx-telemetry/commit/4696c5f))
+
+
+
+
+
 # 1.1.0 (2019-07-16)
 
 

@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.1.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@2.0.0...@salesforce/command@2.1.0) (2019-07-17)
+
+
+### Features
+
+* updating core ([cd4e6b0](https://github.com/forcedotcom/cli-packages/commit/cd4e6b0))
+* upgrade core ([4696c5f](https://github.com/forcedotcom/cli-packages/commit/4696c5f))
+
+
+
+
+
 # [2.0.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@1.5.3...@salesforce/command@2.0.0) (2019-06-18)
 
 
