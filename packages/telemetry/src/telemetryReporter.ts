@@ -1,8 +1,13 @@
 import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AsyncCreatable, Env } from '@salesforce/kit';
 import * as appInsights from 'applicationinsights';
+import { ChildProcess, fork } from 'child_process';
 import * as os from 'os';
-import * as process from 'process';
+import * as path from 'path';
+
+const MODULE_PATH = path.resolve(path.join(__dirname, './telemetryChildProcess.js'));
+
+const SFDX_DISABLE_INSIGHTS = 'SFDX_DISABLE_INSIGHTS';
 
 type Properties = {
   [key: string]: string;
@@ -26,12 +31,12 @@ export interface TelemetryOptions {
 
 Messages.importMessagesDirectory(__dirname);
 
-export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
-  public static SFDX_DISABLE_INSIGHTS = 'SFDX_DISABLE_INSIGHTS';
+export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
   private static ASIMOV_ENDPOINT = 'https://vortex.data.microsoft.com/collect/v1';
   public appInsightsClient: appInsights.TelemetryClient | undefined;
   private options: TelemetryOptions;
   private logger!: Logger;
+  private env!: Env;
 
   constructor(options: TelemetryOptions) {
     super(options);
@@ -39,7 +44,8 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
   }
 
   public async init(): Promise<void> {
-    this.logger = await Logger.child('telemetry');
+    this.logger = await Logger.child('TelemetryReporter');
+    this.env = this.options.env || new Env();
     this.createAppInsightsClient();
   }
 
@@ -49,9 +55,7 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
    * @param attributes {Attributes} - map of properties to publish alongside the event.
    */
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
-    if (!this.isSfdxTelemetryEnabled()) {
-      return;
-    }
+    if (!isSfdxTelemetryEnabled(this.env)) return;
 
     if (this.appInsightsClient) {
       const name = `${this.options.project}/${eventName}`;
@@ -61,9 +65,6 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
         this.appInsightsClient.trackEvent({ name, properties, measurements });
         this.appInsightsClient.flush();
       } catch (e) {
-        if (e.code === 'ETIMEDOUT') {
-          throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'timedOut');
-        }
         const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
         throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
       }
@@ -77,7 +78,11 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
    * Initiates the app insights client
    */
   private createAppInsightsClient(): void {
+    logTelemetryStatus(this.env, this.logger);
+    if (!isSfdxTelemetryEnabled(this.env)) return;
+
     this.logger.debug('creating appInsightsClient');
+
     appInsights
       .setup(this.options.key)
       .setAutoCollectRequests(false)
@@ -86,7 +91,8 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
       .setAutoCollectDependencies(false)
       .setAutoDependencyCorrelation(false)
       .setAutoCollectConsole(false)
-      .setUseDiskRetryCaching(true)
+      .setUseDiskRetryCaching(false)
+      .setInternalLogging(false, false)
       .start();
 
     this.appInsightsClient = appInsights.defaultClient;
@@ -108,7 +114,7 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
       'common.os': os.platform(),
       'common.platformversion': getPlatformVersion(),
       'common.systemmemory': getSystemMemory(),
-      'common.usertype': process.env['USER_TYPE'] || 'normal'
+      'common.usertype': this.env.getString('SFDX_USER_TYPE') || 'normal'
     };
     return Object.assign(baseProperties, this.options.commonProperties);
   }
@@ -121,16 +127,90 @@ export default class TelemetryReporter extends AsyncCreatable<TelemetryOptions> 
     const currentTags = this.appInsightsClient ? this.appInsightsClient.context.tags : {};
     return Object.assign({}, currentTags, this.options.contextTags);
   }
+}
+
+export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
+  public static SFDX_INSIGHTS_TIMEOUT = 'SFDX_INSIGHTS_TIMEOUT';
+  public forkedProcess!: ChildProcess;
+  private modulePath: string = MODULE_PATH;
+  private options: TelemetryOptions;
+  private logger!: Logger;
+  private env!: Env;
+
+  constructor(options: TelemetryOptions) {
+    super(options);
+    this.options = options;
+  }
+
+  public async init(): Promise<void> {
+    this.logger = await Logger.child('SpawnedTelemetry');
+    this.env = this.options.env || new Env();
+    this.beginLifecycle();
+  }
 
   /**
-   * Determine if the telemetry event should be logger.
-   * Currently setting SFDX_DISABLE_INSIGHTS to true will disable insights for errors and diagnostics.
+   * Initializes the module at this.modulePath in a child process.
    */
-  private isSfdxTelemetryEnabled(): boolean {
-    const env = this.options.env || new Env();
-    const isEnabled = !env.getBoolean(TelemetryReporter.SFDX_DISABLE_INSIGHTS);
-    this.logger.debug(`'${TelemetryReporter.SFDX_DISABLE_INSIGHTS}': ${isEnabled}`);
-    return isEnabled;
+  public start(): void {
+    this.logger.debug('starting child process');
+    const args = JSON.stringify(this.options);
+    this.forkedProcess = fork(this.modulePath, [args]);
+    this.logger.debug(`child process started at PID: ${this.forkedProcess.pid}`);
+  }
+
+  /**
+   * Immediately kills the child process.
+   */
+  public stop(): void {
+    this.logger.debug('stopping child process');
+    this.forkedProcess.kill();
+  }
+
+  /**
+   * Sends message to child process.
+   * @param eventName {string} - name of the event you want published.
+   * @param attributes {Attributes} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
+    if (this.forkedProcess) {
+      this.forkedProcess.send({ eventName, attributes });
+    }
+  }
+
+  /**
+   * Starts the child process, waits, and then stops the child process.
+   */
+  private beginLifecycle(): void {
+    logTelemetryStatus(this.env, this.logger);
+    if (!isSfdxTelemetryEnabled(this.env)) return;
+
+    this.start();
+    const insightsTimeout = Number(this.env.getString(SpawnedTelemetryReporter.SFDX_INSIGHTS_TIMEOUT)) || 3000;
+    this.logger.debug(`Waiting ${insightsTimeout} ms to stop child process`);
+    setTimeout(() => {
+      this.stop();
+      this.logger.debug('Stopped child process');
+    }, insightsTimeout);
+  }
+}
+
+/**
+ * Determine if the telemetry event should be logged.
+ * Setting SFDX_DISABLE_INSIGHTS to true will disable insights for errors and diagnostics.
+ */
+function isSfdxTelemetryEnabled(env: Env): boolean {
+  const sfdxDisableInsights = env.getBoolean(SFDX_DISABLE_INSIGHTS);
+  const isEnabled = !sfdxDisableInsights;
+  return isEnabled;
+}
+
+function logTelemetryStatus(env: Env, logger: Logger): void {
+  const isEnabled = isSfdxTelemetryEnabled(env);
+  logger.debug(`'${SFDX_DISABLE_INSIGHTS}': ${!isEnabled}`);
+  if (isEnabled) {
+    logger.warn(`Insights logging in enabled. This can be disabled by setting ${SFDX_DISABLE_INSIGHTS}=true`);
+  } else {
+    logger.warn(`Insights logging in disabled. This can be enabled by setting ${SFDX_DISABLE_INSIGHTS}=false`);
   }
 }
 
