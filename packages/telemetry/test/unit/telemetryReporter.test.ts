@@ -1,12 +1,15 @@
 import { Env } from '@salesforce/kit';
 import { expect } from 'chai';
+import * as cp from 'child_process';
 import { describe, it } from 'mocha';
 import * as os from 'os';
 import * as sinon from 'sinon';
-import TelemetryReporter, {
+import {
   buildPropertiesAndMeasurements,
   getCpus,
-  getPlatformVersion
+  getPlatformVersion,
+  SpawnedTelemetryReporter,
+  TelemetryReporter
 } from '../../src/telemetryReporter';
 import set = Reflect.set;
 
@@ -110,24 +113,6 @@ describe('TelemetryReporter', () => {
     expect(flushStub.calledOnce).to.be.true;
   });
 
-  it('send telemetry event will time out', async () => {
-    const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
-    if (reporter.appInsightsClient) {
-      trackEventStub = sandbox.stub(reporter.appInsightsClient, 'trackEvent').callsFake(() => {});
-      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
-        const error = new Error();
-        set(error, 'code', 'ETIMEDOUT');
-        throw error;
-      });
-    }
-    expect(() => {
-      reporter.sendTelemetryEvent('testEvent');
-    })
-      .to.throw(Error)
-      .and.have.property('name', 'timedOut');
-  });
-
   it('send telemetry event will fail unknown', async () => {
     const options = { project, key };
     const reporter = await TelemetryReporter.create(options);
@@ -146,19 +131,12 @@ describe('TelemetryReporter', () => {
       .and.have.property('name', 'unknownError');
   });
 
-  it("shouldn't send telemetry event", async () => {
+  it('should not create appInsightsClient when insights are disabled', async () => {
     const env = new Env({});
-    env.setBoolean(TelemetryReporter.SFDX_DISABLE_INSIGHTS, true);
+    env.setBoolean('SFDX_DISABLE_INSIGHTS', true);
     const options = { project, key, env };
-
     const reporter = await TelemetryReporter.create(options);
-    if (reporter.appInsightsClient) {
-      trackEventStub = sandbox.stub(reporter.appInsightsClient, 'trackEvent').callsFake(() => {});
-      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
-    }
-    reporter.sendTelemetryEvent('testEvent');
-    expect(trackEventStub.calledOnce).to.be.false;
-    expect(flushStub.calledOnce).to.be.false;
+    expect(reporter.appInsightsClient).to.be.undefined;
   });
 
   it('should handle missing os.cpus value', () => {
@@ -174,4 +152,64 @@ describe('TelemetryReporter', () => {
     expect(actual).to.equal('');
     expect(osStub.calledOnce).to.be.true;
   });
+});
+
+describe('SpawnedTelemetryReporter', () => {
+  const key = 'foo-bar-123';
+  const project = 'force-com-toolbelt';
+
+  let sandbox: sinon.SinonSandbox;
+  let forkedProcessStub: sinon.SinonStub;
+  let killStub: sinon.SinonStub;
+  let sendStub: sinon.SinonStub;
+
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  it('should created a forked process', async () => {
+    killStub = sandbox.stub().callsFake(() => {});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({kill: killStub});
+    const options = { project, key };
+    const reporter = await SpawnedTelemetryReporter.create(options);
+    reporter.start();
+    expect(forkedProcessStub.calledTwice).to.be.true;
+  });
+
+  it('should kill a forked process after 3 seconds', async () => {
+    killStub = sandbox.stub().callsFake(() => {});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({kill: killStub});
+    const options = { project, key };
+    const reporter = await SpawnedTelemetryReporter.create(options);
+    expect(reporter).to.not.be.undefined;
+    setTimeout(() => {
+      expect(killStub.calledOnce).to.be.true;
+    }, 3001);
+  });
+
+  it('should send a telemetry event', async () => {
+    sendStub = sandbox.stub().callsFake(() => {});
+    killStub = sandbox.stub().callsFake(() => {});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({
+      send: sendStub,
+      kill: killStub
+    });
+    const options = { project, key };
+    const reporter = await SpawnedTelemetryReporter.create(options);
+    reporter.sendTelemetryEvent('testName');
+    expect(sendStub.calledOnce).to.be.true;
+  });
+
+  it('should not begin lifecycle when insights are disabled', async () => {
+    const env = new Env({});
+    env.setBoolean('SFDX_DISABLE_INSIGHTS', true);
+    const options = { project, key, env };
+    const reporter = await SpawnedTelemetryReporter.create(options);
+    expect(reporter.forkedProcess).to.be.undefined;
+  });
+
 });
