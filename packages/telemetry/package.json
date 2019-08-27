@@ -3,7 +3,7 @@
   "version": "1.2.2",
   "description": "Library for application insights",
   "main": "lib/exported",
-  "repository": "git@github.com:forcedotcom/sfdx-telemetry.git",
+  "repository": "https://github.com/forcedotcom/cli-packages",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
   "scripts": {
