@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/telemetry",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Library for application insights",
   "main": "lib/exported",
   "repository": "https://github.com/forcedotcom/cli-packages",
