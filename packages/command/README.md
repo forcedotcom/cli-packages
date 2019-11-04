@@ -13,6 +13,7 @@ Commands that extend `SfdxCommand` can only be used with Salesforce CLI version 
 ```bash
 $ sfdx version
 sfdx-cli/6.42.0-ae478b3cb8 (darwin-x64) node-v8.9.4
+
 ```
 
 ### Features
