@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.5](https://github.com/forcedotcom/cli-packages/compare/@salesforce/telemetry@1.2.4...@salesforce/telemetry@1.2.5) (2019-11-04)
+
+
+### Bug Fixes
+
+* poke circle ([849640d](https://github.com/forcedotcom/cli-packages/commit/849640d))
+
+
+
+
+
 ## [1.2.4](https://github.com/forcedotcom/cli-packages/compare/@salesforce/telemetry@1.2.3...@salesforce/telemetry@1.2.4) (2019-11-04)
 
 **Note:** Version bump only for package @salesforce/telemetry

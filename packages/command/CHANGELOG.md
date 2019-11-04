@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.3](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@2.1.2...@salesforce/command@2.1.3) (2019-11-04)
+
+
+### Bug Fixes
+
+* poke circle ([849640d](https://github.com/forcedotcom/cli-packages/commit/849640d))
+
+
+
+
+
 ## [2.1.2](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@2.1.1...@salesforce/command@2.1.2) (2019-11-04)
 
 **Note:** Version bump only for package @salesforce/command
