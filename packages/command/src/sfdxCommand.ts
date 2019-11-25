@@ -272,7 +272,8 @@ export abstract class SfdxCommand extends Command {
 
     // Ensure this.isJson, this.logger, and this.ux are set before super init, flag parsing, or help generation
     // (all of which can throw and prevent these from being available for command error handling).
-    this.isJson = this.argv.includes('--json');
+    const isContentTypeJSON = env.getString('SFDX_CONTENT_TYPE', '').toUpperCase() === 'JSON';
+    this.isJson = this.argv.includes('--json') || isContentTypeJSON;
 
     // Regex match on loglevel flag in argv and set on the root logger so the proper log level
     // is used.  If no match, the default root log level is used.
@@ -306,36 +307,12 @@ export abstract class SfdxCommand extends Command {
     this.flags = flags;
     this.args = args;
 
-    // If this command is deprecated, emit a warning
-    if (this.statics.deprecated) {
-      let def: DeprecationDefinition;
-      if (has(this.statics.deprecated, 'version')) {
-        def = {
-          name: this.statics.name,
-          type: 'command',
-          ...this.statics.deprecated
-        };
-      } else {
-        def = this.statics.deprecated;
-      }
-      this.ux.warn(UX.formatDeprecationWarning(def));
+    // The json flag was set by the environment variables
+    if (isContentTypeJSON) {
+      this.flags.json = true;
     }
 
-    if (this.statics.flagsConfig) {
-      // If any deprecated flags were passed, emit warnings
-      for (const flag of Object.keys(this.flags)) {
-        const def = this.statics.flagsConfig[flag];
-        if (def && def.deprecated) {
-          this.ux.warn(
-            UX.formatDeprecationWarning({
-              name: flag,
-              type: 'flag',
-              ...def.deprecated
-            })
-          );
-        }
-      }
-    }
+    this.warnIfDeprecated();
 
     // If this command supports varargs, parse them from argv.
     if (this.statics.varargs) {
@@ -434,6 +411,39 @@ export abstract class SfdxCommand extends Command {
         this.ux.logJson(output);
       } else {
         this.result.display();
+      }
+    }
+  }
+
+  // If this command is deprecated, emit a warning
+  protected warnIfDeprecated() {
+    if (this.statics.deprecated) {
+      let def: DeprecationDefinition;
+      if (has(this.statics.deprecated, 'version')) {
+        def = {
+          name: this.statics.name,
+          type: 'command',
+          ...this.statics.deprecated
+        };
+      } else {
+        def = this.statics.deprecated;
+      }
+      this.ux.warn(UX.formatDeprecationWarning(def));
+    }
+
+    if (this.statics.flagsConfig) {
+      // If any deprecated flags were passed, emit warnings
+      for (const flag of Object.keys(this.flags)) {
+        const def = this.statics.flagsConfig[flag];
+        if (def && def.deprecated) {
+          this.ux.warn(
+            UX.formatDeprecationWarning({
+              name: flag,
+              type: 'flag',
+              ...def.deprecated
+            })
+          );
+        }
       }
     }
   }

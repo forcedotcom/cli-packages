@@ -493,24 +493,52 @@ describe('SfdxCommand', () => {
     });
   });
 
-  it('should set this.isJson and only output ux.logJson with the --json flag', async () => {
-    // Run the command
-    class TestCommand extends BaseTestCommand {}
-    const output = await TestCommand.run(['--json']);
-
-    expect(output).to.equal(TestCommand.output);
-    expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
-    verifyCmdFlags({ flag1: { type: 'option' } });
-    verifyInstanceProps({
-      flags: Object.assign({ json: true }, DEFAULT_INSTANCE_PROPS.flags),
-      isJson: true
+  describe('JSON', () => {
+    afterEach(() => {
+      env.unset('SFDX_CONTENT_TYPE');
     });
-    const expectedResult = {
-      data: TestCommand.output,
-      tableColumnData: undefined
-    };
-    expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
-    verifyUXOutput({ logJson: [{ status: 0, result: TestCommand.output }] });
+
+    it('should set this.isJson and only output ux.logJson with the --json flag', async () => {
+      // Run the command
+      class TestCommand extends BaseTestCommand {}
+      const output = await TestCommand.run(['--json']);
+
+      expect(output).to.equal(TestCommand.output);
+      expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
+      verifyCmdFlags({ flag1: { type: 'option' } });
+      verifyInstanceProps({
+        flags: Object.assign({ json: true }, DEFAULT_INSTANCE_PROPS.flags),
+        isJson: true
+      });
+      const expectedResult = {
+        data: TestCommand.output,
+        tableColumnData: undefined
+      };
+      expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
+      verifyUXOutput({ logJson: [{ status: 0, result: TestCommand.output }] });
+    });
+
+    it('should set this.isJson and only output ux.logJson with SFDX_CONTENT_TYPE=JSON', async () => {
+      // Run the command
+      class TestCommand extends BaseTestCommand {}
+
+      env.setString('SFDX_CONTENT_TYPE', 'Json');
+      const output = await TestCommand.run([]);
+
+      expect(output).to.equal(TestCommand.output);
+      expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
+      verifyCmdFlags({ flag1: { type: 'option' } });
+      verifyInstanceProps({
+        flags: Object.assign({ json: true }, DEFAULT_INSTANCE_PROPS.flags),
+        isJson: true
+      });
+      const expectedResult = {
+        data: TestCommand.output,
+        tableColumnData: undefined
+      };
+      expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
+      verifyUXOutput({ logJson: [{ status: 0, result: TestCommand.output }] });
+    });
   });
 
   it('should allow adding information to the returned object for --json', async () => {
