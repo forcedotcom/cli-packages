@@ -7,6 +7,7 @@
 
 import { Logger } from '@salesforce/core';
 import { testSetup } from '@salesforce/core/lib/testSetup';
+import { env } from '@salesforce/kit';
 import { Dictionary, Optional } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import chalk from 'chalk';
@@ -45,19 +46,39 @@ describe('UX', () => {
     expect(ux1).to.equal(ux);
   });
 
-  it('log() should not log to stdout when json is set via the process args', () => {
-    const info = $$.SANDBOX.stub($$.TEST_LOGGER, 'info');
-    const log = $$.SANDBOX.stub(cli, 'log');
-    process.argv = ['--json'];
-    const ux = new UX($$.TEST_LOGGER, undefined, cli);
-    const logMsg = 'test log() 1 for log wrapper';
+  describe('JSON', () => {
+    afterEach(() => {
+      env.unset('SFDX_CONTENT_TYPE');
+    });
 
-    const ux1 = ux.log(logMsg);
+    it('log() should not log to stdout when json is set via the process args', () => {
+      const info = $$.SANDBOX.stub($$.TEST_LOGGER, 'info');
+      const log = $$.SANDBOX.stub(cli, 'log');
+      process.argv = ['--json'];
+      const ux = new UX($$.TEST_LOGGER, undefined, cli);
+      const logMsg = 'test log() 1 for log wrapper';
 
-    expect(info.called).to.equal(true);
-    expect(info.firstCall.args[0]).to.equal(logMsg);
-    expect(log.called).to.equal(false);
-    expect(ux1).to.equal(ux);
+      const ux1 = ux.log(logMsg);
+
+      expect(info.called).to.equal(true);
+      expect(info.firstCall.args[0]).to.equal(logMsg);
+      expect(log.called).to.equal(false);
+      expect(ux1).to.equal(ux);
+    });
+    it('log() should not log to stdout when SFDX_CONTENT_TYPE=JSON', () => {
+      const info = $$.SANDBOX.stub($$.TEST_LOGGER, 'info');
+      const log = $$.SANDBOX.stub(cli, 'log');
+      env.setString('SFDX_CONTENT_TYPE', 'jSON');
+      const ux = new UX($$.TEST_LOGGER, undefined, cli);
+      const logMsg = 'test log() 1 for log wrapper';
+
+      const ux1 = ux.log(logMsg);
+
+      expect(info.called).to.equal(true);
+      expect(info.firstCall.args[0]).to.equal(logMsg);
+      expect(log.called).to.equal(false);
+      expect(ux1).to.equal(ux);
+    });
   });
 
   it('log() should log to the logger and stdout when output IS enabled', () => {
