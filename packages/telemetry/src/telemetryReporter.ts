@@ -75,6 +75,29 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
   }
 
   /**
+   * Publishes exception to app insights dashboard
+   * @param exception {Error} - exception you want published.
+   * @param measurements {Measurements} - map of measurements to publish alongside the exception.
+   */
+  public sendTelemetryException(exception: Error, measurements?: Measurements): void {
+    if (!isSfdxTelemetryEnabled(this.env)) return;
+
+    if (this.appInsightsClient) {
+      this.logger.debug(`Sending telemetry exception: ${exception.message}`);
+      try {
+        this.appInsightsClient.trackException({ exception, measurements });
+        this.appInsightsClient.flush();
+      } catch (e) {
+        const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
+        throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
+      }
+    } else {
+      this.logger.warn('Failed to send telemetry event because the appInsightsClient does not exist');
+      throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
+    }
+  }
+
+  /**
    * Initiates the app insights client
    */
   private createAppInsightsClient(): void {
@@ -174,6 +197,17 @@ export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
     if (this.forkedProcess) {
       this.forkedProcess.send({ eventName, attributes });
+    }
+  }
+
+  /**
+   * Sends exceptopm to child process.
+   * @param exception {Error} - exception you want published.
+   * @param measurements {Measurements} - map of measurements to publish alongside the event.
+   */
+  public sendTelemetryException(exception: Error, measurements: Measurements = {}): void {
+    if (this.forkedProcess) {
+      this.forkedProcess.send({ exception, measurements });
     }
   }
 
