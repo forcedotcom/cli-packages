@@ -7,6 +7,10 @@ import { TelemetryReporter } from './telemetryReporter';
   const options = JSON.parse(args[0]);
   const reporter = await TelemetryReporter.create(options);
   process.on('message', event => {
-    reporter.sendTelemetryEvent(event.eventName, event.attributes);
+    if (event.eventName) {
+      reporter.sendTelemetryEvent(event.eventName, event.attributes);
+    } else if (event.exception) {
+      reporter.sendTelemetryException(event.exception, event.measurements);
+    }
   });
 })();
