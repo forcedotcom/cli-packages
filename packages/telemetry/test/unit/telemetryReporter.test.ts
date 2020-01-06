@@ -1,19 +1,19 @@
-import { Env } from '@salesforce/kit';
+import set = Reflect.set;
+import { ConfigAggregator } from '@salesforce/core';
 import { expect } from 'chai';
 import * as cp from 'child_process';
 import { describe, it } from 'mocha';
 import * as os from 'os';
 import * as sinon from 'sinon';
 import {
+  AppInsights,
   buildPropertiesAndMeasurements,
   getCpus,
   getPlatformVersion,
-  SpawnedTelemetryReporter,
   TelemetryReporter
 } from '../../src/telemetryReporter';
-import set = Reflect.set;
 
-describe('TelemetryReporter', () => {
+describe('AppInsights', () => {
   const key = 'foo-bar-123';
   const project = 'force-com-toolbelt';
 
@@ -21,6 +21,7 @@ describe('TelemetryReporter', () => {
   let trackEventStub: sinon.SinonStub;
   let flushStub: sinon.SinonStub;
   let osStub: sinon.SinonStub;
+  let configStub: sinon.SinonStub;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -32,7 +33,7 @@ describe('TelemetryReporter', () => {
 
   it('should connect to app insights dashboard', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     const reporterKey = reporter.appInsightsClient ? reporter.appInsightsClient.config.instrumentationKey : null;
     expect(reporter.appInsightsClient).to.not.be.undefined;
     expect(reporterKey).to.equal(key);
@@ -40,7 +41,7 @@ describe('TelemetryReporter', () => {
 
   it('should build base properties', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     const actualBaseProps = reporter.appInsightsClient ? reporter.appInsightsClient.commonProperties : {};
     const expectedBaseProps = [
       'common.cpus',
@@ -55,7 +56,7 @@ describe('TelemetryReporter', () => {
   it('should add common properties', async () => {
     const commonProperties = { foo: 'bar', hello: 'world' };
     const options = { project, key, commonProperties };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     const actualProps = reporter.appInsightsClient ? reporter.appInsightsClient.commonProperties : {};
     expect(actualProps).to.contain(commonProperties);
 
@@ -67,7 +68,7 @@ describe('TelemetryReporter', () => {
   it('should add context tags', async () => {
     const contextTags = { foo: 'bar', hello: 'world' };
     const options = { project, key, contextTags };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     const actualTags = reporter.appInsightsClient ? reporter.appInsightsClient.context.tags : {};
     expect(actualTags).to.contain(contextTags);
 
@@ -78,7 +79,7 @@ describe('TelemetryReporter', () => {
 
   it('should change url when using Asimov key', async () => {
     const options = { project, key: 'AIF-12345' };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     const url = reporter.appInsightsClient ? reporter.appInsightsClient.config.endpointUrl : {};
     expect(url).to.equal('https://vortex.data.microsoft.com/collect/v1');
   });
@@ -94,7 +95,7 @@ describe('TelemetryReporter', () => {
 
   it('should handle non existent appInsightsClient', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     delete reporter.appInsightsClient;
     expect(() => reporter.sendTelemetryEvent('testEvent'))
       .to.throw(Error)
@@ -103,7 +104,7 @@ describe('TelemetryReporter', () => {
 
   it('should send telemetry event', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     if (reporter.appInsightsClient) {
       trackEventStub = sandbox.stub(reporter.appInsightsClient, 'trackEvent').callsFake(() => {});
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
@@ -115,7 +116,7 @@ describe('TelemetryReporter', () => {
 
   it('send telemetry event will fail unknown', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     if (reporter.appInsightsClient) {
       trackEventStub = sandbox.stub(reporter.appInsightsClient, 'trackEvent').callsFake(() => {});
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
@@ -132,11 +133,11 @@ describe('TelemetryReporter', () => {
   });
 
   it('should not create appInsightsClient when insights are disabled', async () => {
-    const env = new Env({});
-    env.setBoolean('SFDX_DISABLE_INSIGHTS', true);
-    const options = { project, key, env };
-    const reporter = await TelemetryReporter.create(options);
+    configStub = sandbox.stub(ConfigAggregator.prototype, 'getPropertyValue').returns(true);
+    const options = { project, key };
+    const reporter = await AppInsights.create(options);
     expect(reporter.appInsightsClient).to.be.undefined;
+    expect(configStub.calledTwice).to.be.true;
   });
 
   it('should handle missing os.cpus value', () => {
@@ -154,7 +155,7 @@ describe('TelemetryReporter', () => {
   });
 });
 
-describe('SpawnedTelemetryReporter', () => {
+describe('TelemetryReporter', () => {
   const key = 'foo-bar-123';
   const project = 'force-com-toolbelt';
 
@@ -162,6 +163,7 @@ describe('SpawnedTelemetryReporter', () => {
   let forkedProcessStub: sinon.SinonStub;
   let killStub: sinon.SinonStub;
   let sendStub: sinon.SinonStub;
+  let configStub: sinon.SinonStub;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -173,18 +175,18 @@ describe('SpawnedTelemetryReporter', () => {
 
   it('should created a forked process', async () => {
     killStub = sandbox.stub().callsFake(() => {});
-    forkedProcessStub = sandbox.stub(cp, 'fork').returns({kill: killStub});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({ kill: killStub });
     const options = { project, key };
-    const reporter = await SpawnedTelemetryReporter.create(options);
+    const reporter = await TelemetryReporter.create(options);
     reporter.start();
     expect(forkedProcessStub.calledTwice).to.be.true;
   });
 
   it('should kill a forked process after 3 seconds', async () => {
     killStub = sandbox.stub().callsFake(() => {});
-    forkedProcessStub = sandbox.stub(cp, 'fork').returns({kill: killStub});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({ kill: killStub });
     const options = { project, key };
-    const reporter = await SpawnedTelemetryReporter.create(options);
+    const reporter = await TelemetryReporter.create(options);
     expect(reporter).to.not.be.undefined;
     setTimeout(() => {
       expect(killStub.calledOnce).to.be.true;
@@ -199,17 +201,16 @@ describe('SpawnedTelemetryReporter', () => {
       kill: killStub
     });
     const options = { project, key };
-    const reporter = await SpawnedTelemetryReporter.create(options);
+    const reporter = await TelemetryReporter.create(options);
     reporter.sendTelemetryEvent('testName');
     expect(sendStub.calledOnce).to.be.true;
   });
 
   it('should not begin lifecycle when insights are disabled', async () => {
-    const env = new Env({});
-    env.setBoolean('SFDX_DISABLE_INSIGHTS', true);
-    const options = { project, key, env };
-    const reporter = await SpawnedTelemetryReporter.create(options);
+    configStub = sandbox.stub(ConfigAggregator.prototype, 'getPropertyValue').returns(true);
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
     expect(reporter.forkedProcess).to.be.undefined;
+    expect(configStub.calledTwice).to.be.true;
   });
-
 });
