@@ -1,4 +1,6 @@
+import { env } from '@salesforce/kit';
 import { ensure } from '@salesforce/ts-types';
+
 /*
  * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
@@ -85,8 +87,9 @@ export class UX {
     if (isBoolean(isOutputEnabled)) {
       this.isOutputEnabled = isOutputEnabled;
     } else {
-      // Respect the --json flag for consumers who don't explicitly check
-      this.isOutputEnabled = !process.argv.find(arg => arg === '--json');
+      // Respect the --json flag and SFDX_CONTENT_TYPE for consumers who don't explicitly check
+      const isContentTypeJSON = env.getString('SFDX_CONTENT_TYPE', '').toUpperCase() === 'JSON';
+      this.isOutputEnabled = !(process.argv.find(arg => arg === '--json') || isContentTypeJSON);
     }
   }
 
