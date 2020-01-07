@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.4](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@2.1.3...@salesforce/command@2.1.4) (2020-01-07)
+
+
+### Bug Fixes
+
+* respect SFDX_CONTENT_TYPE=JSON ([554f2bf](https://github.com/forcedotcom/cli-packages/commit/554f2bf))
+
+
+
+
+
 ## [2.1.3](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@2.1.2...@salesforce/command@2.1.3) (2019-11-04)
 
 
