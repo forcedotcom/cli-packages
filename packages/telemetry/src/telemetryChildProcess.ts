@@ -10,7 +10,11 @@ import { TelemetryReporter } from './telemetryReporter';
     if (event.eventName) {
       reporter.sendTelemetryEvent(event.eventName, event.attributes);
     } else if (event.exception) {
-      reporter.sendTelemetryException(event.exception, event.measurements);
+      reporter.sendTelemetryException(event.exception, event.attributes);
+    } else if (event.traceMessage) {
+      reporter.sendTelemetryTrace(event.traceMessage, event.properties);
+    } else if (event.metricName) {
+      reporter.sendTelemetryMetric(event.exception, event.value, event.properties);
     }
   });
 })();
