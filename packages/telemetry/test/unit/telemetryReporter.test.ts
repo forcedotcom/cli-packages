@@ -111,6 +111,24 @@ describe('TelemetryReporter', () => {
       .and.have.property('name', 'sendFailed');
   });
 
+  it('should handle non existent appInsightsClient when sendTelemetryTrace is called', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    delete reporter.appInsightsClient;
+    expect(() => reporter.sendTelemetryTrace('testTrace'))
+      .to.throw(Error)
+      .and.have.property('name', 'sendFailed');
+  });
+
+  it('should handle non existent appInsightsClient when sendTelemetryMetric is called', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    delete reporter.appInsightsClient;
+    expect(() => reporter.sendTelemetryMetric('testMetric', 0))
+      .to.throw(Error)
+      .and.have.property('name', 'sendFailed');
+  });
+
   it('should send telemetry event', async () => {
     const options = { project, key };
     const reporter = await TelemetryReporter.create(options);
@@ -166,6 +184,66 @@ describe('TelemetryReporter', () => {
     }
     expect(() => {
       reporter.sendTelemetryException(new Error('testException'));
+    })
+      .to.throw(Error)
+      .and.have.property('name', 'unknownError');
+  });
+
+  it('should send telemetry trace', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    if (reporter.appInsightsClient) {
+      trackExceptionStub = sandbox.stub(reporter.appInsightsClient, 'trackTrace').callsFake(() => {});
+      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
+    }
+    reporter.sendTelemetryTrace('testTrace');
+    expect(trackExceptionStub.calledOnce).to.be.true;
+    expect(flushStub.calledOnce).to.be.true;
+  });
+
+  it('send telemetry trace will fail unknown', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    if (reporter.appInsightsClient) {
+      trackExceptionStub = sandbox.stub(reporter.appInsightsClient, 'trackTrace').callsFake(() => {});
+      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
+        const error = new Error();
+        set(error, 'code', 'ExtraTerrestrialBiologicalEntityFromZetaReticuli');
+        throw error;
+      });
+    }
+    expect(() => {
+      reporter.sendTelemetryTrace('testTrace');
+    })
+      .to.throw(Error)
+      .and.have.property('name', 'unknownError');
+  });
+
+  it('should send telemetry metric', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    if (reporter.appInsightsClient) {
+      trackExceptionStub = sandbox.stub(reporter.appInsightsClient, 'trackMetric').callsFake(() => {});
+      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
+    }
+    reporter.sendTelemetryMetric('testMetric', 0);
+    expect(trackExceptionStub.calledOnce).to.be.true;
+    expect(flushStub.calledOnce).to.be.true;
+  });
+
+  it('send telemetry metric will fail unknown', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    if (reporter.appInsightsClient) {
+      trackExceptionStub = sandbox.stub(reporter.appInsightsClient, 'trackMetric').callsFake(() => {});
+      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
+        const error = new Error();
+        set(error, 'code', 'ExtraTerrestrialBiologicalEntityFromZetaReticuli');
+        throw error;
+      });
+    }
+    expect(() => {
+      reporter.sendTelemetryMetric('testMetric', 0);
     })
       .to.throw(Error)
       .and.have.property('name', 'unknownError');
@@ -254,6 +332,32 @@ describe('SpawnedTelemetryReporter', () => {
     const options = { project, key };
     const reporter = await SpawnedTelemetryReporter.create(options);
     reporter.sendTelemetryException(new Error('testException'));
+    expect(sendStub.calledOnce).to.be.true;
+  });
+
+  it('should send a telemetry trace', async () => {
+    sendStub = sandbox.stub().callsFake(() => {});
+    killStub = sandbox.stub().callsFake(() => {});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({
+      send: sendStub,
+      kill: killStub
+    });
+    const options = { project, key };
+    const reporter = await SpawnedTelemetryReporter.create(options);
+    reporter.sendTelemetryTrace('testTrace');
+    expect(sendStub.calledOnce).to.be.true;
+  });
+
+  it('should send a telemetry metric', async () => {
+    sendStub = sandbox.stub().callsFake(() => {});
+    killStub = sandbox.stub().callsFake(() => {});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({
+      send: sendStub,
+      kill: killStub
+    });
+    const options = { project, key };
+    const reporter = await SpawnedTelemetryReporter.create(options);
+    reporter.sendTelemetryMetric('testMetric', 0);
     expect(sendStub.calledOnce).to.be.true;
   });
 
