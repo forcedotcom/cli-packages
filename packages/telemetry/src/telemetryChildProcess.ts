@@ -14,7 +14,7 @@ import { TelemetryReporter } from './telemetryReporter';
     } else if (event.traceMessage) {
       reporter.sendTelemetryTrace(event.traceMessage, event.properties);
     } else if (event.metricName) {
-      reporter.sendTelemetryMetric(event.exception, event.value, event.properties);
+      reporter.sendTelemetryMetric(event.metricName, event.value, event.properties);
     }
   });
 })();
