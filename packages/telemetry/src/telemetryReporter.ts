@@ -69,7 +69,78 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
         throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
       }
     } else {
-      this.logger.warn('Failed to send telemetry event because the appInsightsClient does not exist');
+      this.logger.warn('Failed to send telemetry data because the appInsightsClient does not exist');
+      throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
+    }
+  }
+
+  /**
+   * Publishes exception to app insights dashboard
+   * @param exception {Error} - exception you want published.
+   * @param attributes {Attributes} - map of measurements to publish alongside the exception.
+   */
+  public sendTelemetryException(exception: Error, attributes: Attributes = {}): void {
+    if (!isSfdxTelemetryEnabled(this.env)) return;
+
+    if (this.appInsightsClient) {
+      this.logger.debug(`Sending telemetry exception: ${exception.message}`);
+      try {
+        const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
+        this.appInsightsClient.trackException({ exception, properties, measurements });
+        this.appInsightsClient.flush();
+      } catch (e) {
+        const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
+        throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
+      }
+    } else {
+      this.logger.warn('Failed to send telemetry data because the appInsightsClient does not exist');
+      throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
+    }
+  }
+
+  /**
+   * Publishes diagnostic information to app insights dashboard
+   * @param message {string} - trace message to sen to app insights.
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryTrace(traceMessage: string, properties?: Properties): void {
+    if (!isSfdxTelemetryEnabled(this.env)) return;
+
+    if (this.appInsightsClient) {
+      this.logger.debug(`Sending telemetry trace: ${traceMessage}`);
+      try {
+        this.appInsightsClient.trackTrace({ message: traceMessage, properties });
+        this.appInsightsClient.flush();
+      } catch (e) {
+        const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
+        throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
+      }
+    } else {
+      this.logger.warn('Failed to send telemetry data because the appInsightsClient does not exist');
+      throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
+    }
+  }
+
+  /**
+   * Publishes metric to app insights dashboard
+   * @param name {string} - name of the metric you want published
+   * @param value {number} - value of the metric
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryMetric(metricName: string, value: number, properties?: Properties): void {
+    if (!isSfdxTelemetryEnabled(this.env)) return;
+
+    if (this.appInsightsClient) {
+      this.logger.debug(`Sending telemetry exception: ${metricName}`);
+      try {
+        this.appInsightsClient.trackMetric({ name: metricName, value, properties });
+        this.appInsightsClient.flush();
+      } catch (e) {
+        const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
+        throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
+      }
+    } else {
+      this.logger.warn('Failed to send telemetry data because the appInsightsClient does not exist');
       throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
     }
   }
@@ -174,6 +245,40 @@ export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
     if (this.forkedProcess) {
       this.forkedProcess.send({ eventName, attributes });
+    }
+  }
+
+  /**
+   * Sends exceptopm to child process.
+   * @param exception {Error} - exception you want published.
+   * @param measurements {Measurements} - map of measurements to publish alongside the event.
+   */
+  public sendTelemetryException(exception: Error, attributes: Attributes = {}): void {
+    if (this.forkedProcess) {
+      this.forkedProcess.send({ exception, attributes });
+    }
+  }
+
+  /**
+   * Publishes diagnostic information to app insights dashboard
+   * @param message {string} - trace message to sen to app insights.
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryTrace(traceMessage: string, properties?: Properties): void {
+    if (this.forkedProcess) {
+      this.forkedProcess.send({ traceMessage, properties });
+    }
+  }
+
+  /**
+   * Publishes metric to app insights dashboard
+   * @param name {string} - name of the metric you want published
+   * @param value {number} - value of the metric
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryMetric(metricName: string, value: number, properties?: Properties): void {
+    if (this.forkedProcess) {
+      this.forkedProcess.send({ metricName, value, properties });
     }
   }
 

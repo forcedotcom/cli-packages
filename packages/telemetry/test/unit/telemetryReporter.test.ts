@@ -18,7 +18,7 @@ describe('TelemetryReporter', () => {
   const project = 'force-com-toolbelt';
 
   let sandbox: sinon.SinonSandbox;
-  let trackEventStub: sinon.SinonStub;
+  let trackStub: sinon.SinonStub;
   let flushStub: sinon.SinonStub;
   let osStub: sinon.SinonStub;
 
@@ -92,7 +92,7 @@ describe('TelemetryReporter', () => {
     expect(measurements).to.deep.equal(expectedMeasurements);
   });
 
-  it('should handle non existent appInsightsClient', async () => {
+  it('should handle non existent appInsightsClient when sendTelemetryEvent is called', async () => {
     const options = { project, key };
     const reporter = await TelemetryReporter.create(options);
     delete reporter.appInsightsClient;
@@ -101,15 +101,42 @@ describe('TelemetryReporter', () => {
       .and.have.property('name', 'sendFailed');
   });
 
+  it('should handle non existent appInsightsClient when sendTelemetryException is called', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    delete reporter.appInsightsClient;
+    expect(() => reporter.sendTelemetryException(new Error('testException')))
+      .to.throw(Error)
+      .and.have.property('name', 'sendFailed');
+  });
+
+  it('should handle non existent appInsightsClient when sendTelemetryTrace is called', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    delete reporter.appInsightsClient;
+    expect(() => reporter.sendTelemetryTrace('testTrace'))
+      .to.throw(Error)
+      .and.have.property('name', 'sendFailed');
+  });
+
+  it('should handle non existent appInsightsClient when sendTelemetryMetric is called', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    delete reporter.appInsightsClient;
+    expect(() => reporter.sendTelemetryMetric('testMetric', 0))
+      .to.throw(Error)
+      .and.have.property('name', 'sendFailed');
+  });
+
   it('should send telemetry event', async () => {
     const options = { project, key };
     const reporter = await TelemetryReporter.create(options);
     if (reporter.appInsightsClient) {
-      trackEventStub = sandbox.stub(reporter.appInsightsClient, 'trackEvent').callsFake(() => {});
+      trackStub = sandbox.stub(reporter.appInsightsClient, 'trackEvent').callsFake(() => {});
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
     }
     reporter.sendTelemetryEvent('testEvent');
-    expect(trackEventStub.calledOnce).to.be.true;
+    expect(trackStub.calledOnce).to.be.true;
     expect(flushStub.calledOnce).to.be.true;
   });
 
@@ -117,7 +144,7 @@ describe('TelemetryReporter', () => {
     const options = { project, key };
     const reporter = await TelemetryReporter.create(options);
     if (reporter.appInsightsClient) {
-      trackEventStub = sandbox.stub(reporter.appInsightsClient, 'trackEvent').callsFake(() => {});
+      trackStub = sandbox.stub(reporter.appInsightsClient, 'trackEvent').callsFake(() => {});
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
         const error = new Error();
         set(error, 'code', 'ExtraTerrestrialBiologicalEntityFromZetaReticuli');
@@ -126,6 +153,96 @@ describe('TelemetryReporter', () => {
     }
     expect(() => {
       reporter.sendTelemetryEvent('testEvent');
+    })
+      .to.throw(Error)
+      .and.have.property('name', 'unknownError');
+  });
+
+  it('should send telemetry exception', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    if (reporter.appInsightsClient) {
+      trackStub = sandbox.stub(reporter.appInsightsClient, 'trackException').callsFake(() => {});
+      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
+    }
+    reporter.sendTelemetryException(new Error('testException'));
+    expect(trackStub.calledOnce).to.be.true;
+    expect(flushStub.calledOnce).to.be.true;
+  });
+
+  it('send telemetry exception will fail unknown', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    if (reporter.appInsightsClient) {
+      trackStub = sandbox.stub(reporter.appInsightsClient, 'trackException').callsFake(() => {});
+      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
+        const error = new Error();
+        set(error, 'code', 'ExtraTerrestrialBiologicalEntityFromZetaReticuli');
+        throw error;
+      });
+    }
+    expect(() => {
+      reporter.sendTelemetryException(new Error('testException'));
+    })
+      .to.throw(Error)
+      .and.have.property('name', 'unknownError');
+  });
+
+  it('should send telemetry trace', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    if (reporter.appInsightsClient) {
+      trackStub = sandbox.stub(reporter.appInsightsClient, 'trackTrace').callsFake(() => {});
+      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
+    }
+    reporter.sendTelemetryTrace('testTrace');
+    expect(trackStub.calledOnce).to.be.true;
+    expect(flushStub.calledOnce).to.be.true;
+  });
+
+  it('send telemetry trace will fail unknown', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    if (reporter.appInsightsClient) {
+      trackStub = sandbox.stub(reporter.appInsightsClient, 'trackTrace').callsFake(() => {});
+      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
+        const error = new Error();
+        set(error, 'code', 'ExtraTerrestrialBiologicalEntityFromZetaReticuli');
+        throw error;
+      });
+    }
+    expect(() => {
+      reporter.sendTelemetryTrace('testTrace');
+    })
+      .to.throw(Error)
+      .and.have.property('name', 'unknownError');
+  });
+
+  it('should send telemetry metric', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    if (reporter.appInsightsClient) {
+      trackStub = sandbox.stub(reporter.appInsightsClient, 'trackMetric').callsFake(() => {});
+      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
+    }
+    reporter.sendTelemetryMetric('testMetric', 0);
+    expect(trackStub.calledOnce).to.be.true;
+    expect(flushStub.calledOnce).to.be.true;
+  });
+
+  it('send telemetry metric will fail unknown', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    if (reporter.appInsightsClient) {
+      trackStub = sandbox.stub(reporter.appInsightsClient, 'trackMetric').callsFake(() => {});
+      flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
+        const error = new Error();
+        set(error, 'code', 'ExtraTerrestrialBiologicalEntityFromZetaReticuli');
+        throw error;
+      });
+    }
+    expect(() => {
+      reporter.sendTelemetryMetric('testMetric', 0);
     })
       .to.throw(Error)
       .and.have.property('name', 'unknownError');
@@ -173,7 +290,7 @@ describe('SpawnedTelemetryReporter', () => {
 
   it('should created a forked process', async () => {
     killStub = sandbox.stub().callsFake(() => {});
-    forkedProcessStub = sandbox.stub(cp, 'fork').returns({kill: killStub});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({ kill: killStub });
     const options = { project, key };
     const reporter = await SpawnedTelemetryReporter.create(options);
     reporter.start();
@@ -182,7 +299,7 @@ describe('SpawnedTelemetryReporter', () => {
 
   it('should kill a forked process after 3 seconds', async () => {
     killStub = sandbox.stub().callsFake(() => {});
-    forkedProcessStub = sandbox.stub(cp, 'fork').returns({kill: killStub});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({ kill: killStub });
     const options = { project, key };
     const reporter = await SpawnedTelemetryReporter.create(options);
     expect(reporter).to.not.be.undefined;
@@ -204,6 +321,45 @@ describe('SpawnedTelemetryReporter', () => {
     expect(sendStub.calledOnce).to.be.true;
   });
 
+  it('should send a telemetry exception', async () => {
+    sendStub = sandbox.stub().callsFake(() => {});
+    killStub = sandbox.stub().callsFake(() => {});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({
+      send: sendStub,
+      kill: killStub
+    });
+    const options = { project, key };
+    const reporter = await SpawnedTelemetryReporter.create(options);
+    reporter.sendTelemetryException(new Error('testException'));
+    expect(sendStub.calledOnce).to.be.true;
+  });
+
+  it('should send a telemetry trace', async () => {
+    sendStub = sandbox.stub().callsFake(() => {});
+    killStub = sandbox.stub().callsFake(() => {});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({
+      send: sendStub,
+      kill: killStub
+    });
+    const options = { project, key };
+    const reporter = await SpawnedTelemetryReporter.create(options);
+    reporter.sendTelemetryTrace('testTrace');
+    expect(sendStub.calledOnce).to.be.true;
+  });
+
+  it('should send a telemetry metric', async () => {
+    sendStub = sandbox.stub().callsFake(() => {});
+    killStub = sandbox.stub().callsFake(() => {});
+    forkedProcessStub = sandbox.stub(cp, 'fork').returns({
+      send: sendStub,
+      kill: killStub
+    });
+    const options = { project, key };
+    const reporter = await SpawnedTelemetryReporter.create(options);
+    reporter.sendTelemetryMetric('testMetric', 0);
+    expect(sendStub.calledOnce).to.be.true;
+  });
+
   it('should not begin lifecycle when insights are disabled', async () => {
     const env = new Env({});
     env.setBoolean('SFDX_DISABLE_INSIGHTS', true);
@@ -211,5 +367,4 @@ describe('SpawnedTelemetryReporter', () => {
     const reporter = await SpawnedTelemetryReporter.create(options);
     expect(reporter.forkedProcess).to.be.undefined;
   });
-
 });
