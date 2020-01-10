@@ -1,6 +1,12 @@
 import { Logger, Messages, SfdxError } from '@salesforce/core';
 import { AsyncCreatable, Env } from '@salesforce/kit';
 import * as appInsights from 'applicationinsights';
+import {
+  EventTelemetry,
+  ExceptionTelemetry,
+  MetricTelemetry,
+  TraceTelemetry
+} from 'applicationinsights/out/Declarations/Contracts';
 import { ChildProcess, fork } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
@@ -20,6 +26,13 @@ type Measurements = {
 type Attributes = {
   [key: string]: string | number | undefined;
 };
+
+enum TelemetryMethod {
+  EVENT = 'trackEvent',
+  EXCEPTION = 'trackException',
+  METRIC = 'trackMetric',
+  TRACE = 'trackTrace'
+}
 
 export interface TelemetryOptions {
   project: string;
@@ -55,23 +68,9 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    * @param attributes {Attributes} - map of properties to publish alongside the event.
    */
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
-    if (!isSfdxTelemetryEnabled(this.env)) return;
-
-    if (this.appInsightsClient) {
-      const name = `${this.options.project}/${eventName}`;
-      const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
-      this.logger.debug(`Sending telemetry event: ${name}`);
-      try {
-        this.appInsightsClient.trackEvent({ name, properties, measurements });
-        this.appInsightsClient.flush();
-      } catch (e) {
-        const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
-        throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
-      }
-    } else {
-      this.logger.warn('Failed to send telemetry data because the appInsightsClient does not exist');
-      throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
-    }
+    const name = `${this.options.project}/${eventName}`;
+    const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
+    this.sendTelemetry(TelemetryMethod.EVENT, name, { name, properties, measurements });
   }
 
   /**
@@ -80,22 +79,8 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    * @param attributes {Attributes} - map of measurements to publish alongside the exception.
    */
   public sendTelemetryException(exception: Error, attributes: Attributes = {}): void {
-    if (!isSfdxTelemetryEnabled(this.env)) return;
-
-    if (this.appInsightsClient) {
-      this.logger.debug(`Sending telemetry exception: ${exception.message}`);
-      try {
-        const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
-        this.appInsightsClient.trackException({ exception, properties, measurements });
-        this.appInsightsClient.flush();
-      } catch (e) {
-        const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
-        throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
-      }
-    } else {
-      this.logger.warn('Failed to send telemetry data because the appInsightsClient does not exist');
-      throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
-    }
+    const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
+    this.sendTelemetry(TelemetryMethod.EXCEPTION, exception.message, { exception, properties, measurements });
   }
 
   /**
@@ -104,21 +89,7 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    * @param properties {Properties} - map of properties to publish alongside the event.
    */
   public sendTelemetryTrace(traceMessage: string, properties?: Properties): void {
-    if (!isSfdxTelemetryEnabled(this.env)) return;
-
-    if (this.appInsightsClient) {
-      this.logger.debug(`Sending telemetry trace: ${traceMessage}`);
-      try {
-        this.appInsightsClient.trackTrace({ message: traceMessage, properties });
-        this.appInsightsClient.flush();
-      } catch (e) {
-        const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
-        throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
-      }
-    } else {
-      this.logger.warn('Failed to send telemetry data because the appInsightsClient does not exist');
-      throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
-    }
+    this.sendTelemetry(TelemetryMethod.TRACE, traceMessage, { message: traceMessage, properties });
   }
 
   /**
@@ -128,12 +99,37 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    * @param properties {Properties} - map of properties to publish alongside the event.
    */
   public sendTelemetryMetric(metricName: string, value: number, properties?: Properties): void {
+    this.sendTelemetry(TelemetryMethod.METRIC, metricName, { name: metricName, value, properties });
+  }
+
+  private sendTelemetry(
+    method: TelemetryMethod,
+    message: string,
+    data: EventTelemetry | ExceptionTelemetry | MetricTelemetry | TraceTelemetry
+  ): void {
     if (!isSfdxTelemetryEnabled(this.env)) return;
 
     if (this.appInsightsClient) {
-      this.logger.debug(`Sending telemetry exception: ${metricName}`);
+      this.logger.debug(`Sending telemetry: ${message}`);
       try {
-        this.appInsightsClient.trackMetric({ name: metricName, value, properties });
+        switch (method) {
+          case TelemetryMethod.EVENT: {
+            this.appInsightsClient.trackEvent(data as EventTelemetry);
+            break;
+          }
+          case TelemetryMethod.EXCEPTION: {
+            this.appInsightsClient.trackException(data as ExceptionTelemetry);
+            break;
+          }
+          case TelemetryMethod.METRIC: {
+            this.appInsightsClient.trackMetric(data as MetricTelemetry);
+            break;
+          }
+          case TelemetryMethod.TRACE: {
+            this.appInsightsClient.trackTrace(data as TraceTelemetry);
+            break;
+          }
+        }
         this.appInsightsClient.flush();
       } catch (e) {
         const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
