@@ -240,7 +240,7 @@ export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    */
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
     if (this.forkedProcess) {
-      this.forkedProcess.send({ eventName, attributes });
+      this.forkedProcess.send({ type: 'event', eventName, attributes });
     }
   }
 
@@ -251,7 +251,7 @@ export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    */
   public sendTelemetryException(exception: Error, attributes: Attributes = {}): void {
     if (this.forkedProcess) {
-      this.forkedProcess.send({ exception, attributes });
+      this.forkedProcess.send({ type: 'exception', exception, attributes });
     }
   }
 
@@ -262,7 +262,7 @@ export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    */
   public sendTelemetryTrace(traceMessage: string, properties?: Properties): void {
     if (this.forkedProcess) {
-      this.forkedProcess.send({ traceMessage, properties });
+      this.forkedProcess.send({ type: 'trace', traceMessage, properties });
     }
   }
 
@@ -274,7 +274,7 @@ export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    */
   public sendTelemetryMetric(metricName: string, value: number, properties?: Properties): void {
     if (this.forkedProcess) {
-      this.forkedProcess.send({ metricName, value, properties });
+      this.forkedProcess.send({ type: 'metric', metricName, value, properties });
     }
   }
 
