@@ -27,6 +27,8 @@ type Attributes = {
   [key: string]: string | number | undefined;
 };
 
+type TelemetryData = EventTelemetry | ExceptionTelemetry | MetricTelemetry | TraceTelemetry;
+
 enum TelemetryMethod {
   EVENT = 'trackEvent',
   EXCEPTION = 'trackException',
@@ -102,11 +104,7 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
     this.sendTelemetry(TelemetryMethod.METRIC, metricName, { name: metricName, value, properties });
   }
 
-  private sendTelemetry(
-    method: TelemetryMethod,
-    message: string,
-    data: EventTelemetry | ExceptionTelemetry | MetricTelemetry | TraceTelemetry
-  ): void {
+  private sendTelemetry(method: TelemetryMethod, message: string, data: TelemetryData): void {
     if (!isSfdxTelemetryEnabled(this.env)) return;
 
     if (this.appInsightsClient) {
