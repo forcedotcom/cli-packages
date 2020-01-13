@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.3.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/telemetry@1.2.5...@salesforce/telemetry@1.3.0) (2020-01-13)
+
+
+### Bug Fixes
+
+* alias telemetry types as TelemetryData ([b7e05ff](https://github.com/forcedotcom/cli-packages/commit/b7e05ff))
+* fix merge error ([b1be6bd](https://github.com/forcedotcom/cli-packages/commit/b1be6bd))
+* flag type when passing data to child process ([0e5204b](https://github.com/forcedotcom/cli-packages/commit/0e5204b))
+* misspelled 'exception' ([088b604](https://github.com/forcedotcom/cli-packages/commit/088b604))
+* refactor common logic to new function ([1bd097e](https://github.com/forcedotcom/cli-packages/commit/1bd097e))
+* use config var to opt out of telemetry ([2f0360d](https://github.com/forcedotcom/cli-packages/commit/2f0360d))
+
+
+### Features
+
+* add more telemetry types for AppInsights ([7456912](https://github.com/forcedotcom/cli-packages/commit/7456912))
+
+
+
+
+
 ## [1.2.5](https://github.com/forcedotcom/cli-packages/compare/@salesforce/telemetry@1.2.4...@salesforce/telemetry@1.2.5) (2019-11-04)
 
 
