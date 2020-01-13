@@ -104,7 +104,7 @@ describe('AppInsights', () => {
 
   it('should handle non existent appInsightsClient when sendTelemetryException is called', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     delete reporter.appInsightsClient;
     expect(() => reporter.sendTelemetryException(new Error('testException')))
       .to.throw(Error)
@@ -113,7 +113,7 @@ describe('AppInsights', () => {
 
   it('should handle non existent appInsightsClient when sendTelemetryTrace is called', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     delete reporter.appInsightsClient;
     expect(() => reporter.sendTelemetryTrace('testTrace'))
       .to.throw(Error)
@@ -122,7 +122,7 @@ describe('AppInsights', () => {
 
   it('should handle non existent appInsightsClient when sendTelemetryMetric is called', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     delete reporter.appInsightsClient;
     expect(() => reporter.sendTelemetryMetric('testMetric', 0))
       .to.throw(Error)
@@ -161,7 +161,7 @@ describe('AppInsights', () => {
 
   it('should send telemetry exception', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     if (reporter.appInsightsClient) {
       trackStub = sandbox.stub(reporter.appInsightsClient, 'trackException').callsFake(() => {});
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
@@ -173,7 +173,7 @@ describe('AppInsights', () => {
 
   it('send telemetry exception will fail unknown', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     if (reporter.appInsightsClient) {
       trackStub = sandbox.stub(reporter.appInsightsClient, 'trackException').callsFake(() => {});
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
@@ -191,7 +191,7 @@ describe('AppInsights', () => {
 
   it('should send telemetry trace', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     if (reporter.appInsightsClient) {
       trackStub = sandbox.stub(reporter.appInsightsClient, 'trackTrace').callsFake(() => {});
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
@@ -203,7 +203,7 @@ describe('AppInsights', () => {
 
   it('send telemetry trace will fail unknown', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     if (reporter.appInsightsClient) {
       trackStub = sandbox.stub(reporter.appInsightsClient, 'trackTrace').callsFake(() => {});
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
@@ -221,7 +221,7 @@ describe('AppInsights', () => {
 
   it('should send telemetry metric', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     if (reporter.appInsightsClient) {
       trackStub = sandbox.stub(reporter.appInsightsClient, 'trackMetric').callsFake(() => {});
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {});
@@ -233,7 +233,7 @@ describe('AppInsights', () => {
 
   it('send telemetry metric will fail unknown', async () => {
     const options = { project, key };
-    const reporter = await TelemetryReporter.create(options);
+    const reporter = await AppInsights.create(options);
     if (reporter.appInsightsClient) {
       trackStub = sandbox.stub(reporter.appInsightsClient, 'trackMetric').callsFake(() => {});
       flushStub = sandbox.stub(reporter.appInsightsClient, 'flush').callsFake(() => {
@@ -331,7 +331,7 @@ describe('TelemetryReporter', () => {
       kill: killStub
     });
     const options = { project, key };
-    const reporter = await SpawnedTelemetryReporter.create(options);
+    const reporter = await TelemetryReporter.create(options);
     reporter.sendTelemetryException(new Error('testException'));
     expect(sendStub.calledOnce).to.be.true;
   });
@@ -344,7 +344,7 @@ describe('TelemetryReporter', () => {
       kill: killStub
     });
     const options = { project, key };
-    const reporter = await SpawnedTelemetryReporter.create(options);
+    const reporter = await TelemetryReporter.create(options);
     reporter.sendTelemetryTrace('testTrace');
     expect(sendStub.calledOnce).to.be.true;
   });
@@ -357,7 +357,7 @@ describe('TelemetryReporter', () => {
       kill: killStub
     });
     const options = { project, key };
-    const reporter = await SpawnedTelemetryReporter.create(options);
+    const reporter = await TelemetryReporter.create(options);
     reporter.sendTelemetryMetric('testMetric', 0);
     expect(sendStub.calledOnce).to.be.true;
   });

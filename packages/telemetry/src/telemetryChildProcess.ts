@@ -5,7 +5,7 @@ import { AppInsights } from './telemetryReporter';
 (async function() {
   const args = process.argv.slice(2);
   const options = JSON.parse(args[0]);
-  const reporter = await TelemetryReporter.create(options);
+  const reporter = await AppInsights.create(options);
   process.on('message', telemetry => {
     switch (telemetry.type) {
       case 'event': {

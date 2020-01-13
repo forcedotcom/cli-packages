@@ -107,7 +107,7 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
   }
 
   private sendTelemetry(method: TelemetryMethod, message: string, data: TelemetryData): void {
-    if (!isSfdxTelemetryEnabled(this.env)) return;
+    if (!isSfdxTelemetryEnabled(this.config)) return;
 
     if (this.appInsightsClient) {
       this.logger.debug(`Sending telemetry: ${message}`);
@@ -297,7 +297,8 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
     if (!isSfdxTelemetryEnabled(this.config)) return;
 
     this.start();
-    const insightsTimeout = Number(this.env.getString(TelemetryReporter.SFDX_INSIGHTS_TIMEOUT)) || Duration.seconds(3).milliseconds;
+    const insightsTimeout =
+      Number(this.env.getString(TelemetryReporter.SFDX_INSIGHTS_TIMEOUT)) || Duration.seconds(3).milliseconds;
     this.logger.debug(`Waiting ${insightsTimeout} ms to stop child process`);
     setTimeout(() => {
       this.stop();
