@@ -245,7 +245,7 @@ export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
   }
 
   /**
-   * Sends exceptopm to child process.
+   * Sends exception to child process.
    * @param exception {Error} - exception you want published.
    * @param measurements {Measurements} - map of measurements to publish alongside the event.
    */
