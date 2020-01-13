@@ -1,6 +1,12 @@
 import { ConfigAggregator, Logger, Messages, SfdxError } from '@salesforce/core';
 import { AsyncCreatable, Duration, Env, sleep } from '@salesforce/kit';
 import * as appInsights from 'applicationinsights';
+import {
+  EventTelemetry,
+  ExceptionTelemetry,
+  MetricTelemetry,
+  TraceTelemetry
+} from 'applicationinsights/out/Declarations/Contracts';
 import { ChildProcess, fork } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
@@ -20,6 +26,15 @@ type Measurements = {
 type Attributes = {
   [key: string]: string | number | undefined;
 };
+
+type TelemetryData = EventTelemetry | ExceptionTelemetry | MetricTelemetry | TraceTelemetry;
+
+enum TelemetryMethod {
+  EVENT = 'trackEvent',
+  EXCEPTION = 'trackException',
+  METRIC = 'trackMetric',
+  TRACE = 'trackTrace'
+}
 
 export interface TelemetryOptions {
   project: string;
@@ -57,21 +72,71 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
    * @param attributes {Attributes} - map of properties to publish alongside the event.
    */
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
+    const name = `${this.options.project}/${eventName}`;
+    const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
+    this.sendTelemetry(TelemetryMethod.EVENT, name, { name, properties, measurements });
+  }
+
+  /**
+   * Publishes exception to app insights dashboard
+   * @param exception {Error} - exception you want published.
+   * @param attributes {Attributes} - map of measurements to publish alongside the exception.
+   */
+  public sendTelemetryException(exception: Error, attributes: Attributes = {}): void {
+    const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
+    this.sendTelemetry(TelemetryMethod.EXCEPTION, exception.message, { exception, properties, measurements });
+  }
+
+  /**
+   * Publishes diagnostic information to app insights dashboard
+   * @param message {string} - trace message to sen to app insights.
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryTrace(traceMessage: string, properties?: Properties): void {
+    this.sendTelemetry(TelemetryMethod.TRACE, traceMessage, { message: traceMessage, properties });
+  }
+
+  /**
+   * Publishes metric to app insights dashboard
+   * @param name {string} - name of the metric you want published
+   * @param value {number} - value of the metric
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryMetric(metricName: string, value: number, properties?: Properties): void {
+    this.sendTelemetry(TelemetryMethod.METRIC, metricName, { name: metricName, value, properties });
+  }
+
+  private sendTelemetry(method: TelemetryMethod, message: string, data: TelemetryData): void {
     if (!isSfdxTelemetryEnabled(this.config)) return;
 
     if (this.appInsightsClient) {
-      const name = `${this.options.project}/${eventName}`;
-      const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
-      this.logger.debug(`Sending telemetry event: ${name}`);
+      this.logger.debug(`Sending telemetry: ${message}`);
       try {
-        this.appInsightsClient.trackEvent({ name, properties, measurements });
+        switch (method) {
+          case TelemetryMethod.EVENT: {
+            this.appInsightsClient.trackEvent(data as EventTelemetry);
+            break;
+          }
+          case TelemetryMethod.EXCEPTION: {
+            this.appInsightsClient.trackException(data as ExceptionTelemetry);
+            break;
+          }
+          case TelemetryMethod.METRIC: {
+            this.appInsightsClient.trackMetric(data as MetricTelemetry);
+            break;
+          }
+          case TelemetryMethod.TRACE: {
+            this.appInsightsClient.trackTrace(data as TraceTelemetry);
+            break;
+          }
+        }
         this.appInsightsClient.flush();
       } catch (e) {
         const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
         throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
       }
     } else {
-      this.logger.warn('Failed to send telemetry event because the appInsightsClient does not exist');
+      this.logger.warn('Failed to send telemetry data because the appInsightsClient does not exist');
       throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
     }
   }
@@ -183,7 +248,44 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
     this.logger.debug('Received telemetry event');
     if (this.forkedProcess) {
       this.logger.debug('Sending telemetry event to forked process');
-      this.forkedProcess.send({ eventName, attributes });
+      this.forkedProcess.send({ type: 'event', eventName, attributes });
+    }
+  }
+
+  /**
+   * Sends exception to child process.
+   * @param exception {Error} - exception you want published.
+   * @param measurements {Measurements} - map of measurements to publish alongside the event.
+   */
+  public sendTelemetryException(exception: Error, attributes: Attributes = {}): void {
+    if (this.forkedProcess) {
+      this.logger.debug('Sending telemetry exception to forked process');
+      this.forkedProcess.send({ type: 'exception', exception, attributes });
+    }
+  }
+
+  /**
+   * Publishes diagnostic information to app insights dashboard
+   * @param message {string} - trace message to sen to app insights.
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryTrace(traceMessage: string, properties?: Properties): void {
+    if (this.forkedProcess) {
+      this.logger.debug('Sending telemetry trace to forked process');
+      this.forkedProcess.send({ type: 'trace', traceMessage, properties });
+    }
+  }
+
+  /**
+   * Publishes metric to app insights dashboard
+   * @param name {string} - name of the metric you want published
+   * @param value {number} - value of the metric
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryMetric(metricName: string, value: number, properties?: Properties): void {
+    if (this.forkedProcess) {
+      this.logger.debug('Sending telemetry metric to forked process');
+      this.forkedProcess.send({ type: 'metric', metricName, value, properties });
     }
   }
 
@@ -195,7 +297,8 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
     if (!isSfdxTelemetryEnabled(this.config)) return;
 
     this.start();
-    const insightsTimeout = Number(this.env.getString(TelemetryReporter.SFDX_INSIGHTS_TIMEOUT)) || Duration.seconds(3).milliseconds;
+    const insightsTimeout =
+      Number(this.env.getString(TelemetryReporter.SFDX_INSIGHTS_TIMEOUT)) || Duration.seconds(3).milliseconds;
     this.logger.debug(`Waiting ${insightsTimeout} ms to stop child process`);
     setTimeout(() => {
       this.stop();

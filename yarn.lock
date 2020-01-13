@@ -1137,6 +1137,23 @@
     mkdirp "0.5.1"
     sfdx-faye "^1.0.9"
 
+"@salesforce/core@^2.1.6":
+  version "2.1.6"
+  resolved "https://registry.npmjs.org/@salesforce/core/-/core-2.1.6.tgz#ef24ed53a9dc9f7b2bd3f16abfe326565c45a4d0"
+  integrity sha512-9Y2tk3KljwsSOIP7AyCJhaQoqzYRiJ7QMTdafxTWyvr9UPRu5lVILsEUb++8I3jUG4zRcUluwc9EVz2PESr/uw==
+  dependencies:
+    "@salesforce/kit" "^1.0.0"
+    "@salesforce/ts-sinon" "^1.0.0"
+    "@salesforce/ts-types" "^1.0.0"
+    "@types/jsforce" "1.9.2"
+    bunyan-sfdx-no-dtrace "1.8.2"
+    debug "^3.1.0"
+    jsen "0.6.6"
+    jsforce "1.9.3"
+    jsonwebtoken "8.5.0"
+    mkdirp "0.5.1"
+    sfdx-faye "^1.0.9"
+
 "@salesforce/dev-config@^1.4.4", "@salesforce/dev-config@^1.5.0":
   version "1.5.0"
   resolved "https://registry.npmjs.org/@salesforce/dev-config/-/dev-config-1.5.0.tgz#6a7a63a4b2a9fb27811c456d3a3387d961f8b637"
