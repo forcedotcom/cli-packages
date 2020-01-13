@@ -1,5 +1,5 @@
 import * as process from 'process';
-import { TelemetryReporter } from './telemetryReporter';
+import { AppInsights } from './telemetryReporter';
 
 // tslint:disable-next-line: only-arrow-functions no-floating-promises
 (async function() {
