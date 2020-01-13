@@ -1,13 +1,19 @@
-import { Logger, Messages, SfdxError } from '@salesforce/core';
-import { AsyncCreatable, Env } from '@salesforce/kit';
+import { ConfigAggregator, Logger, Messages, SfdxError } from '@salesforce/core';
+import { AsyncCreatable, Duration, Env, sleep } from '@salesforce/kit';
 import * as appInsights from 'applicationinsights';
+import {
+  EventTelemetry,
+  ExceptionTelemetry,
+  MetricTelemetry,
+  TraceTelemetry
+} from 'applicationinsights/out/Declarations/Contracts';
 import { ChildProcess, fork } from 'child_process';
 import * as os from 'os';
 import * as path from 'path';
 
 const MODULE_PATH = path.resolve(path.join(__dirname, './telemetryChildProcess.js'));
 
-const SFDX_DISABLE_INSIGHTS = 'SFDX_DISABLE_INSIGHTS';
+const DISABLE_TELEMETRY = 'disableTelemetry';
 
 type Properties = {
   [key: string]: string;
@@ -21,6 +27,15 @@ type Attributes = {
   [key: string]: string | number | undefined;
 };
 
+type TelemetryData = EventTelemetry | ExceptionTelemetry | MetricTelemetry | TraceTelemetry;
+
+enum TelemetryMethod {
+  EVENT = 'trackEvent',
+  EXCEPTION = 'trackException',
+  METRIC = 'trackMetric',
+  TRACE = 'trackTrace'
+}
+
 export interface TelemetryOptions {
   project: string;
   key: string;
@@ -31,12 +46,13 @@ export interface TelemetryOptions {
 
 Messages.importMessagesDirectory(__dirname);
 
-export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
+export class AppInsights extends AsyncCreatable<TelemetryOptions> {
   private static ASIMOV_ENDPOINT = 'https://vortex.data.microsoft.com/collect/v1';
   public appInsightsClient: appInsights.TelemetryClient | undefined;
   private options: TelemetryOptions;
   private logger!: Logger;
   private env!: Env;
+  private config!: ConfigAggregator;
 
   constructor(options: TelemetryOptions) {
     super(options);
@@ -44,8 +60,9 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
   }
 
   public async init(): Promise<void> {
-    this.logger = await Logger.child('TelemetryReporter');
+    this.logger = await Logger.child('AppInsights');
     this.env = this.options.env || new Env();
+    this.config = await ConfigAggregator.create({});
     this.createAppInsightsClient();
   }
 
@@ -55,21 +72,71 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    * @param attributes {Attributes} - map of properties to publish alongside the event.
    */
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
-    if (!isSfdxTelemetryEnabled(this.env)) return;
+    const name = `${this.options.project}/${eventName}`;
+    const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
+    this.sendTelemetry(TelemetryMethod.EVENT, name, { name, properties, measurements });
+  }
+
+  /**
+   * Publishes exception to app insights dashboard
+   * @param exception {Error} - exception you want published.
+   * @param attributes {Attributes} - map of measurements to publish alongside the exception.
+   */
+  public sendTelemetryException(exception: Error, attributes: Attributes = {}): void {
+    const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
+    this.sendTelemetry(TelemetryMethod.EXCEPTION, exception.message, { exception, properties, measurements });
+  }
+
+  /**
+   * Publishes diagnostic information to app insights dashboard
+   * @param message {string} - trace message to sen to app insights.
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryTrace(traceMessage: string, properties?: Properties): void {
+    this.sendTelemetry(TelemetryMethod.TRACE, traceMessage, { message: traceMessage, properties });
+  }
+
+  /**
+   * Publishes metric to app insights dashboard
+   * @param name {string} - name of the metric you want published
+   * @param value {number} - value of the metric
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryMetric(metricName: string, value: number, properties?: Properties): void {
+    this.sendTelemetry(TelemetryMethod.METRIC, metricName, { name: metricName, value, properties });
+  }
+
+  private sendTelemetry(method: TelemetryMethod, message: string, data: TelemetryData): void {
+    if (!isSfdxTelemetryEnabled(this.config)) return;
 
     if (this.appInsightsClient) {
-      const name = `${this.options.project}/${eventName}`;
-      const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
-      this.logger.debug(`Sending telemetry event: ${name}`);
+      this.logger.debug(`Sending telemetry: ${message}`);
       try {
-        this.appInsightsClient.trackEvent({ name, properties, measurements });
+        switch (method) {
+          case TelemetryMethod.EVENT: {
+            this.appInsightsClient.trackEvent(data as EventTelemetry);
+            break;
+          }
+          case TelemetryMethod.EXCEPTION: {
+            this.appInsightsClient.trackException(data as ExceptionTelemetry);
+            break;
+          }
+          case TelemetryMethod.METRIC: {
+            this.appInsightsClient.trackMetric(data as MetricTelemetry);
+            break;
+          }
+          case TelemetryMethod.TRACE: {
+            this.appInsightsClient.trackTrace(data as TraceTelemetry);
+            break;
+          }
+        }
         this.appInsightsClient.flush();
       } catch (e) {
         const messages = Messages.loadMessages('@salesforce/telemetry', 'telemetry');
         throw new SfdxError(messages.getMessage('unknownError'), 'unknownError', undefined, undefined, e);
       }
     } else {
-      this.logger.warn('Failed to send telemetry event because the appInsightsClient does not exist');
+      this.logger.warn('Failed to send telemetry data because the appInsightsClient does not exist');
       throw SfdxError.create('@salesforce/telemetry', 'telemetry', 'sendFailed');
     }
   }
@@ -78,8 +145,8 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    * Initiates the app insights client
    */
   private createAppInsightsClient(): void {
-    logTelemetryStatus(this.env, this.logger);
-    if (!isSfdxTelemetryEnabled(this.env)) return;
+    logTelemetryStatus(this.logger, this.config);
+    if (!isSfdxTelemetryEnabled(this.config)) return;
 
     this.logger.debug('creating appInsightsClient');
 
@@ -100,7 +167,7 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
     this.appInsightsClient.context.tags = this.buildContextTags();
 
     if (isAsimovKey(this.options.key)) {
-      this.appInsightsClient.config.endpointUrl = TelemetryReporter.ASIMOV_ENDPOINT;
+      this.appInsightsClient.config.endpointUrl = AppInsights.ASIMOV_ENDPOINT;
     }
   }
 
@@ -129,13 +196,14 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
   }
 }
 
-export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
+export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
   public static SFDX_INSIGHTS_TIMEOUT = 'SFDX_INSIGHTS_TIMEOUT';
   public forkedProcess!: ChildProcess;
   private modulePath: string = MODULE_PATH;
   private options: TelemetryOptions;
   private logger!: Logger;
   private env!: Env;
+  private config!: ConfigAggregator;
 
   constructor(options: TelemetryOptions) {
     super(options);
@@ -143,9 +211,14 @@ export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
   }
 
   public async init(): Promise<void> {
-    this.logger = await Logger.child('SpawnedTelemetry');
+    this.logger = await Logger.child('TelemetryReporter');
     this.env = this.options.env || new Env();
+    this.config = await ConfigAggregator.create({});
     this.beginLifecycle();
+    // This is used to ensure that the appInsightsClient is running before we start receiving events
+    // It's necessary because applicationinsights does not proivide any way to wait for a connection
+    // to be made.
+    await sleep(Duration.milliseconds(500));
   }
 
   /**
@@ -172,8 +245,47 @@ export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    * @param attributes {Attributes} - map of properties to publish alongside the event.
    */
   public sendTelemetryEvent(eventName: string, attributes: Attributes = {}): void {
+    this.logger.debug('Received telemetry event');
     if (this.forkedProcess) {
-      this.forkedProcess.send({ eventName, attributes });
+      this.logger.debug('Sending telemetry event to forked process');
+      this.forkedProcess.send({ type: 'event', eventName, attributes });
+    }
+  }
+
+  /**
+   * Sends exception to child process.
+   * @param exception {Error} - exception you want published.
+   * @param measurements {Measurements} - map of measurements to publish alongside the event.
+   */
+  public sendTelemetryException(exception: Error, attributes: Attributes = {}): void {
+    if (this.forkedProcess) {
+      this.logger.debug('Sending telemetry exception to forked process');
+      this.forkedProcess.send({ type: 'exception', exception, attributes });
+    }
+  }
+
+  /**
+   * Publishes diagnostic information to app insights dashboard
+   * @param message {string} - trace message to sen to app insights.
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryTrace(traceMessage: string, properties?: Properties): void {
+    if (this.forkedProcess) {
+      this.logger.debug('Sending telemetry trace to forked process');
+      this.forkedProcess.send({ type: 'trace', traceMessage, properties });
+    }
+  }
+
+  /**
+   * Publishes metric to app insights dashboard
+   * @param name {string} - name of the metric you want published
+   * @param value {number} - value of the metric
+   * @param properties {Properties} - map of properties to publish alongside the event.
+   */
+  public sendTelemetryMetric(metricName: string, value: number, properties?: Properties): void {
+    if (this.forkedProcess) {
+      this.logger.debug('Sending telemetry metric to forked process');
+      this.forkedProcess.send({ type: 'metric', metricName, value, properties });
     }
   }
 
@@ -181,11 +293,12 @@ export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    * Starts the child process, waits, and then stops the child process.
    */
   private beginLifecycle(): void {
-    logTelemetryStatus(this.env, this.logger);
-    if (!isSfdxTelemetryEnabled(this.env)) return;
+    logTelemetryStatus(this.logger, this.config);
+    if (!isSfdxTelemetryEnabled(this.config)) return;
 
     this.start();
-    const insightsTimeout = Number(this.env.getString(SpawnedTelemetryReporter.SFDX_INSIGHTS_TIMEOUT)) || 3000;
+    const insightsTimeout =
+      Number(this.env.getString(TelemetryReporter.SFDX_INSIGHTS_TIMEOUT)) || Duration.seconds(3).milliseconds;
     this.logger.debug(`Waiting ${insightsTimeout} ms to stop child process`);
     setTimeout(() => {
       this.stop();
@@ -196,21 +309,24 @@ export class SpawnedTelemetryReporter extends AsyncCreatable<TelemetryOptions> {
 
 /**
  * Determine if the telemetry event should be logged.
- * Setting SFDX_DISABLE_INSIGHTS to true will disable insights for errors and diagnostics.
+ * Setting the disableTelemetry config var to true will disable insights for errors and diagnostics.
  */
-function isSfdxTelemetryEnabled(env: Env): boolean {
-  const sfdxDisableInsights = env.getBoolean(SFDX_DISABLE_INSIGHTS);
+function isSfdxTelemetryEnabled(config: ConfigAggregator): boolean {
+  const sfdxDisableInsights = config.getPropertyValue(DISABLE_TELEMETRY);
   const isEnabled = !sfdxDisableInsights;
   return isEnabled;
 }
 
-function logTelemetryStatus(env: Env, logger: Logger): void {
-  const isEnabled = isSfdxTelemetryEnabled(env);
-  logger.debug(`'${SFDX_DISABLE_INSIGHTS}': ${!isEnabled}`);
+function logTelemetryStatus(logger: Logger, config: ConfigAggregator): void {
+  const isEnabled = isSfdxTelemetryEnabled(config);
   if (isEnabled) {
-    logger.warn(`Insights logging in enabled. This can be disabled by setting ${SFDX_DISABLE_INSIGHTS}=true`);
+    logger.warn(
+      `Telemetry is enabled. This can be disabled by running sfdx force:config:set ${DISABLE_TELEMETRY}=true`
+    );
   } else {
-    logger.warn(`Insights logging in disabled. This can be enabled by setting ${SFDX_DISABLE_INSIGHTS}=false`);
+    logger.warn(
+      `Telemetry is disabled. This can be enabled by running sfdx force:config:set ${DISABLE_TELEMETRY}=false`
+    );
   }
 }
 

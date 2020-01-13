@@ -1,8 +1,5 @@
 'use strict';
 
-import { SpawnedTelemetryReporter } from './telemetryReporter';
-
-// tslint:disable-next-line: variable-name
-const TelemetryReporter = SpawnedTelemetryReporter;
+import { TelemetryReporter } from './telemetryReporter';
 
 export default TelemetryReporter;
