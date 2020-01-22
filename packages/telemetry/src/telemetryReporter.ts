@@ -47,6 +47,7 @@ export interface TelemetryOptions {
 Messages.importMessagesDirectory(__dirname);
 
 export class AppInsights extends AsyncCreatable<TelemetryOptions> {
+  public static GDPR_HIDDEN = '<GDPR_HIDDEN>';
   private static ASIMOV_ENDPOINT = 'https://vortex.data.microsoft.com/collect/v1';
   public appInsightsClient: appInsights.TelemetryClient | undefined;
   private options: TelemetryOptions;
@@ -192,7 +193,17 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
    */
   private buildContextTags(): Properties {
     const currentTags = this.appInsightsClient ? this.appInsightsClient.context.tags : {};
-    return Object.assign({}, currentTags, this.options.contextTags);
+    const cleanedTags = this.hideGDPRdata(currentTags);
+    return Object.assign({}, cleanedTags, this.options.contextTags);
+  }
+  // filters out non-GDPR compliant tags
+  private hideGDPRdata(tags: Properties) {
+    const keys = new appInsights.Contracts.ContextTagKeys();
+    const gdprSensitiveKeys = [keys.cloudRoleInstance];
+    gdprSensitiveKeys.forEach(key => {
+      tags[key] = AppInsights.GDPR_HIDDEN;
+    });
+    return tags;
   }
 }
 

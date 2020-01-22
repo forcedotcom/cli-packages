@@ -77,6 +77,14 @@ describe('AppInsights', () => {
     expect(actualTagsCount).to.be.greaterThan(providedTagsCount);
   });
 
+  it(`should replace GDPR sensitive value with ${AppInsights.GDPR_HIDDEN}`, async () => {
+    const options = { project, key };
+    const reporter = await AppInsights.create(options);
+    const actualTags = reporter.appInsightsClient ? reporter.appInsightsClient.context.tags : {};
+
+    expect(actualTags['ai.cloud.roleInstance']).to.equal(AppInsights.GDPR_HIDDEN);
+  });
+
   it('should change url when using Asimov key', async () => {
     const options = { project, key: 'AIF-12345' };
     const reporter = await AppInsights.create(options);
