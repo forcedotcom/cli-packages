@@ -26,7 +26,7 @@ You would only do this once after you cloned the repository.
 
 When you are ready to commit
 
-1. We enforces commit message format. We recommend using [commitizen](https://github.com/commitizen/cz-cli) by installing it with `yarn add --global commitizen` then commit using `git cz` which will prompt you questions to format the commit message.
+1. We enforces commit message format. We recommend using [commitizen](https://github.com/commitizen/cz-cli) by installing it with `yarn global add commitizen` then commit using `git cz` which will prompt you questions to format the commit message.
 1. Before commit and push, husky will run several hooks to ensure the message and that everything lints and compiles properly.
 
 ## List of Useful commands
@@ -52,7 +52,7 @@ This runs `yarn compile` on each of the package in packages.
 
 ### `yarn clean`
 
-This run `yarn clean` on each of the package in packages. Running `yarn cleal-all` will also clean up the node_module directories.
+This run `yarn clean` on each of the package in packages. Running `yarn clean-all` will also clean up the node_module directories.
 
 ### `yarn test`
 
