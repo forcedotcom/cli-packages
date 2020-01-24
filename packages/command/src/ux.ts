@@ -24,10 +24,18 @@ import { ensure } from '@salesforce/ts-types';
  * @property {'normal' | 'mask' | 'hide'} type `Normal` does not hide the user input, `mask` hides the user input after the user presses `ENTER`, and `hide` hides the user input as it is being typed.
  */
 
+/**
+ * An action option configuration as defined by
+ * [oclif/cli-ux](https://github.com/oclif/cli-ux/blob/master/src/action/base.ts).
+ * @typedef {object} OclifActionOptions
+ * @property {boolean} stdout The option to display to stdout or not.
+ */
+
 import { Logger, LoggerLevel } from '@salesforce/core';
 import { has, isArray, isBoolean, isString, Optional } from '@salesforce/ts-types';
 import chalk from 'chalk';
 import { cli, IPromptOptions } from 'cli-ux';
+import { Options as OclifActionOptions } from 'cli-ux/lib/action/base';
 import { TableColumn, TableOptions as OclifTableOptions } from 'cli-ux/lib/styled/table';
 
 /**
@@ -148,10 +156,12 @@ export class UX {
   /**
    * Start a spinner action after displaying the given message.
    * @param {string} message The message displayed to the user.
+   * @param {string} status The status displayed to the user.
+   * @param {OclifActionOptions} opts The options to select whereas spinner will output to stderr or stdout.
    */
-  public startSpinner(message: string): void {
+  public startSpinner(message: string, status?: string, opts: OclifActionOptions = {}): void {
     if (this.isOutputEnabled) {
-      this.cli.action.start(message);
+      this.cli.action.start(message, status, opts);
     }
   }
 

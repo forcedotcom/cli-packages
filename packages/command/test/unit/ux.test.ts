@@ -392,6 +392,16 @@ describe('UX', () => {
       expect(start.called).to.equal(true);
     });
 
+    it('startSpinner() should call action.start() with all parameters', () => {
+      const ux = new UX($$.TEST_LOGGER, true, cli);
+      const start = $$.SANDBOX.stub(cli.action, 'start');
+      ux.startSpinner('test message', 'test status', { stdout: true });
+      expect(start.called).to.equal(true);
+      expect(start.firstCall.args[0]).to.equal('test message');
+      expect(start.firstCall.args[1]).to.equal('test status');
+      expect(start.firstCall.args[2].stdout).to.equal(true);
+    });
+
     it("startSpinner() shouldn't call action.start()", () => {
       const ux = new UX($$.TEST_LOGGER, false, cli);
       const start = $$.SANDBOX.stub(cli.action, 'start');
