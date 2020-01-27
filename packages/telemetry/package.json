@@ -33,6 +33,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "^2.1.6",
+    "@salesforce/ts-types": "^1.2.1",
     "applicationinsights": "^1.4.0"
   },
   "devDependencies": {
