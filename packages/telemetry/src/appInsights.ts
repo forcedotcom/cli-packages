@@ -24,6 +24,7 @@ export interface TelemetryOptions {
   commonProperties?: Properties;
   contextTags?: Properties;
   env?: Env;
+  gdprSensitiveKeys?: string[];
 }
 
 Messages.importMessagesDirectory(__dirname);
@@ -41,15 +42,25 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
   private options: TelemetryOptions;
   private logger!: Logger;
   private env!: Env;
+  private gdprSensitiveKeys: string[] = [];
 
   constructor(options: TelemetryOptions) {
     super(options);
     this.options = options;
+
+    this.env = this.options.env || new Env();
+
+    if (this.options.gdprSensitiveKeys) {
+      this.gdprSensitiveKeys = this.options.gdprSensitiveKeys;
+    } else {
+      // By default, cloudRoleInstance if a gdpr sensitive property.
+      const keys = new appInsights.Contracts.ContextTagKeys();
+      this.gdprSensitiveKeys = [keys.cloudRoleInstance];
+    }
   }
 
   public async init(): Promise<void> {
     this.logger = await Logger.child('AppInsights');
-    this.env = this.options.env || new Env();
     this.createAppInsightsClient();
   }
 
@@ -150,9 +161,7 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
   }
   // filters out non-GDPR compliant tags
   private hideGDPRdata(tags: Properties) {
-    const keys = new appInsights.Contracts.ContextTagKeys();
-    const gdprSensitiveKeys = [keys.cloudRoleInstance];
-    gdprSensitiveKeys.forEach(key => {
+    this.gdprSensitiveKeys.forEach(key => {
       tags[key] = AppInsights.GDPR_HIDDEN;
     });
     return tags;

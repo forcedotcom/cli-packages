@@ -2,6 +2,7 @@ import { ConfigAggregator, Logger } from '@salesforce/core';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { TelemetryReporter } from '../../src/telemetryReporter';
+import { AppInsights } from '../../src/appInsights';
 
 describe('TelemetryReporter', () => {
   const key = 'foo-bar-123';
@@ -33,6 +34,7 @@ describe('TelemetryReporter', () => {
 
     reporter.sendTelemetryException(new Error('testException'));
     expect(sendStub.calledOnce).to.be.true;
+    expect(sendStub.firstCall.args[0].exception.stack).to.contain(AppInsights.GDPR_HIDDEN);
   });
 
   it('should send a telemetry trace', async () => {

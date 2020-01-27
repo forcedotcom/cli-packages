@@ -8,7 +8,7 @@ This package serves an interface for [Microsoft's Application Insights npm modul
 
 ## Usage
 
-For long running servers:
+### For long running process:
 
 ```javascript
 import TelemetryReporter from '@salesforce/telemetry';
@@ -20,7 +20,17 @@ reporter.start();
 reporter.sendTelemetryEvent('event-name', { foo: 'bar', executionTime: 0.5912 });
 ```
 
-For short lived processes:
+By default, some common properties are hidden for GDPR. This is to protect client side tools that send telemetry. If the owner of the long running process controls the machines too, you can redefine the GDPR sensitive fields.
+
+```javascript
+const reporter = await TelemetryReporter.create({
+  project: 'my-project-name',
+  key: 'my-instrumentation-key',
+  gdprSensitiveKeys: []
+});
+```
+
+### For short lived processes:
 
 ```javascript
 import TelemetryReporter from '@salesforce/telemetry';
