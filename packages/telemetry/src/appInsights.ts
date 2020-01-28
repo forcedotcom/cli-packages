@@ -25,6 +25,8 @@ export interface TelemetryOptions {
   contextTags?: Properties;
   env?: Env;
   gdprSensitiveKeys?: string[];
+  userId?: string;
+  sessionId?: string;
 }
 
 Messages.importMessagesDirectory(__dirname);
@@ -132,6 +134,12 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
 
     if (isAsimovKey(this.options.key)) {
       this.appInsightsClient.config.endpointUrl = AppInsights.ASIMOV_ENDPOINT;
+    }
+    if (this.options.userId) {
+      this.appInsightsClient.context.tags['ai.user.id'] = this.options.userId;
+    }
+    if (this.options.sessionId) {
+      this.appInsightsClient.context.tags['ai.session.id'] = this.options.sessionId;
     }
   }
 

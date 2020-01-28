@@ -1,8 +1,8 @@
 import { ConfigAggregator, Logger } from '@salesforce/core';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { TelemetryReporter } from '../../src/telemetryReporter';
 import { AppInsights } from '../../src/appInsights';
+import { TelemetryReporter } from '../../src/telemetryReporter';
 
 describe('TelemetryReporter', () => {
   const key = 'foo-bar-123';
@@ -16,6 +16,7 @@ describe('TelemetryReporter', () => {
 
   afterEach(() => {
     sandbox.restore();
+    delete TelemetryReporter['config'];
   });
 
   it('should send a telemetry event', async () => {
@@ -116,5 +117,16 @@ describe('TelemetryReporter', () => {
     reporter.logTelemetryStatus();
     expect(warn.calledOnce).to.be.true;
     expect(warn.firstCall.args[0]).to.contain('=true');
+  });
+
+  it('should cache config aggregator', async () => {
+    const stub = sandbox.stub(ConfigAggregator, 'create');
+
+    stub.resolves({ getPropertyValue: () => false });
+    expect(await TelemetryReporter.determineSfdxTelemetryEnabled()).to.be.true;
+
+    stub.reset();
+    stub.resolves({ getPropertyValue: () => true });
+    expect(await TelemetryReporter.determineSfdxTelemetryEnabled()).to.be.true;
   });
 });

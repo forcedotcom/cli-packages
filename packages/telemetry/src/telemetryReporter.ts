@@ -13,6 +13,22 @@ export { TelemetryOptions, Attributes, Properties, TelemetryClient } from './app
  * Reports telemetry events to app insights. We do not send if the config 'disableTelemetry' is set.
  */
 export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
+  /**
+   * Determine if the telemetry event should be logged.
+   * Setting the disableTelemetry config var to true will disable insights for errors and diagnostics.
+   */
+  public static async determineSfdxTelemetryEnabled(): Promise<boolean> {
+    if (!TelemetryReporter.config) {
+      TelemetryReporter.config = await ConfigAggregator.create({});
+    }
+    const sfdxDisableInsights = TelemetryReporter.config.getPropertyValue(DISABLE_TELEMETRY);
+    const isEnabled = !sfdxDisableInsights;
+    return isEnabled;
+  }
+
+  // Keep a cache of config aggregator so we aren't loading it every time.
+  private static config: ConfigAggregator;
+
   private options: TelemetryOptions;
   private logger!: Logger;
   private config!: ConfigAggregator;
@@ -25,7 +41,10 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
 
   public async init(): Promise<void> {
     this.logger = await Logger.child('TelemetryReporter');
-    this.config = await ConfigAggregator.create({});
+    if (!TelemetryReporter.config) {
+      TelemetryReporter.config = await ConfigAggregator.create({});
+    }
+    this.config = TelemetryReporter.config;
     this.reporter = await AppInsights.create(this.options);
   }
 
