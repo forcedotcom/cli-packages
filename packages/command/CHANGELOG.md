@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.1.5](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@2.1.4...@salesforce/command@2.1.5) (2020-01-29)
+
+
+### Bug Fixes
+
+* **error:** removed logic preventing correct error ([d92d691](https://github.com/forcedotcom/cli-packages/commit/d92d691))
+
+
+
+
+
 ## [2.1.4](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@2.1.3...@salesforce/command@2.1.4) (2020-01-07)
 
 

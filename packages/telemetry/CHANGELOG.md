@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/telemetry@1.3.0...@salesforce/telemetry@2.0.0) (2020-01-29)
+
+
+### Bug Fixes
+
+* add ability to override gdpr keys ([183282a](https://github.com/forcedotcom/cli-packages/commit/183282a))
+* cache config and add static for consumers to call ([ab2a5c0](https://github.com/forcedotcom/cli-packages/commit/ab2a5c0))
+* **gdpr:** adds logic to clear gdpr sentive tags + test ([5e55c88](https://github.com/forcedotcom/cli-packages/commit/5e55c88))
+
+
+### Features
+
+* remove forked process in favor or dispose ([b997f5e](https://github.com/forcedotcom/cli-packages/commit/b997f5e))
+
+
+### BREAKING CHANGES
+
+* Refactor/remove the telemetry signatures. Remove the forked process. Requires a
+
+
+
+
+
 # [1.3.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/telemetry@1.2.5...@salesforce/telemetry@1.3.0) (2020-01-13)
 
 
