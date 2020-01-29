@@ -1241,6 +1241,13 @@
   dependencies:
     tslib "^1.10.0"
 
+"@salesforce/ts-types@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-1.2.1.tgz#1f738d0e7df55843e78d2726617b9fdd17291842"
+  integrity sha512-kEpyfvTRfwQFpDc1rfb6aaQbl5SDIwCksgr8ftJaooGXDVWFK9llso9cwimee+KVqTeQ6Jf4tZclcPb8I6G6sg==
+  dependencies:
+    tslib "^1.10.0"
+
 "@sinonjs/commons@^1", "@sinonjs/commons@^1.0.2":
   version "1.4.0"
   resolved "https://registry.npmjs.org/@sinonjs/commons/-/commons-1.4.0.tgz#7b3ec2d96af481d7a0321252e7b1c94724ec5a78"

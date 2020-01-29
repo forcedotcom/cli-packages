@@ -238,10 +238,10 @@ export abstract class SfdxCommand extends Command {
       // Throw an error if the command requires a devhub and there is no targetdevhubusername
       // flag set and no defaultdevhubusername set.
       if (this.statics.requiresDevhubUsername) {
-        if (err.name === 'NoUsername') {
+        if (err.name === 'AuthInfoCreationError' || err.name === 'NoUsername') {
           throw SfdxError.create('@salesforce/command', 'command', 'RequiresDevhubUsernameError');
         }
-        throw err;
+        throw SfdxError.wrap(err);
       }
     }
   }
