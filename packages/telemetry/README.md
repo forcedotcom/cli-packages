@@ -8,16 +8,44 @@ This package serves an interface for [Microsoft's Application Insights npm modul
 
 ## Usage
 
+### For long running process:
+
 ```javascript
 import TelemetryReporter from '@salesforce/telemetry';
 
-const REPORTER = await TelemetryReporter.create({ project: 'my-project-name', key: 'my-instrumentation-key' });
+const reporter = await TelemetryReporter.create({ project: 'my-project-name', key: 'my-instrumentation-key' });
+reporter.start();
 
-REPORTER.sendTelemetryEvent('event-name', { foo: 'bar', executionTime: 0.5912 });
+// Now you can send events and the reporter will batch and send.
+reporter.sendTelemetryEvent('event-name', { foo: 'bar', executionTime: 0.5912 });
 ```
+
+By default, some common properties are hidden for GDPR. This is to protect client side tools that send telemetry. If the owner of the long running process controls the machines too, you can redefine the GDPR sensitive fields.
+
+```javascript
+const reporter = await TelemetryReporter.create({
+  project: 'my-project-name',
+  key: 'my-instrumentation-key',
+  gdprSensitiveKeys: []
+});
+```
+
+### For short lived processes:
+
+```javascript
+import TelemetryReporter from '@salesforce/telemetry';
+
+const reporter = await TelemetryReporter.create({ project: 'my-project-name', key: 'my-instrumentation-key' });
+
+// Send events.
+reporter.sendTelemetryEvent('event-name', { foo: 'bar', executionTime: 0.5912 });
+
+// When all finished sending events, stop the reporter or the process may hang.
+reporter.stop();
+```
+
+**Note:** For short lived processes, the telemetry can take 0-3 seconds to send all events to the server on stop, and even longer if there is a timeout. It is recommended to send telemetry in a detached spawned process. i.e. `spawn(..., { stdio: 'ignore'}).unref();`
 
 ## Env Variables
 
 `SFDX_DISABLE_INSIGHTS`: Set to `true` if you want to disable telemetry.
-`SFDX_INSIGHTS_TIMEOUT`: Amount of time (in milliseconds) allowed for sending events before the connection is closed.
-This timeout is a necessary precaution for when customers have the App Insights IP blocked in their firewall. Defaults to 3000ms.
