@@ -118,7 +118,8 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    * Setting the disableTelemetry config var to true will disable insights for errors and diagnostics.
    */
   public isSfdxTelemetryEnabled(): boolean {
-    const sfdxDisableInsights = this.config.getPropertyValue(DISABLE_TELEMETRY);
+    const configValue = this.config.getPropertyValue(DISABLE_TELEMETRY);
+    const sfdxDisableInsights = configValue === 'true' || env.getBoolean('SFDX_DISABLE_INSIGHTS');
     const isEnabled = !sfdxDisableInsights;
     return isEnabled;
   }
