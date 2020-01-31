@@ -1,5 +1,5 @@
 import { ConfigAggregator, Logger } from '@salesforce/core';
-import { AsyncCreatable } from '@salesforce/kit';
+import { AsyncCreatable, env } from '@salesforce/kit';
 
 import * as os from 'os';
 import { AppInsights, Attributes, Properties, TelemetryOptions } from './appInsights';
@@ -21,7 +21,8 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
     if (!TelemetryReporter.config) {
       TelemetryReporter.config = await ConfigAggregator.create({});
     }
-    const sfdxDisableInsights = TelemetryReporter.config.getPropertyValue(DISABLE_TELEMETRY);
+    const configValue = TelemetryReporter.config.getPropertyValue(DISABLE_TELEMETRY);
+    const sfdxDisableInsights = configValue === 'true' || env.getBoolean('SFDX_DISABLE_INSIGHTS');
     const isEnabled = !sfdxDisableInsights;
     return isEnabled;
   }
@@ -117,7 +118,8 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
    * Setting the disableTelemetry config var to true will disable insights for errors and diagnostics.
    */
   public isSfdxTelemetryEnabled(): boolean {
-    const sfdxDisableInsights = this.config.getPropertyValue(DISABLE_TELEMETRY);
+    const configValue = this.config.getPropertyValue(DISABLE_TELEMETRY);
+    const sfdxDisableInsights = configValue === 'true' || env.getBoolean('SFDX_DISABLE_INSIGHTS');
     const isEnabled = !sfdxDisableInsights;
     return isEnabled;
   }
