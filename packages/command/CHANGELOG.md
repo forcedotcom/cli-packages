@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.2.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@2.1.5...@salesforce/command@2.2.0) (2020-01-31)
+
+
+### Features
+
+* add oclif parameters to ux.startSpinner [#268](https://github.com/forcedotcom/cli-packages/issues/268) ([cfe5ef8](https://github.com/forcedotcom/cli-packages/commit/cfe5ef8))
+
+
+
+
+
 ## [2.1.5](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@2.1.4...@salesforce/command@2.1.5) (2020-01-29)
 
 
