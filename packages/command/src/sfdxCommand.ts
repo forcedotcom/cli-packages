@@ -378,7 +378,7 @@ export abstract class SfdxCommand extends Command {
 
     if (this.isJson) {
       // This should default to true, which will require a major version bump.
-      const sendToStdout = env.getBoolean('SFDX_JSON_TO_STDOUT');
+      const sendToStdout = env.getBoolean('SFDX_JSON_TO_STDOUT', true);
       if (sendToStdout) {
         this.ux.logJson(userDisplayError);
       } else {
