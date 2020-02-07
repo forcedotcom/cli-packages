@@ -152,8 +152,7 @@ describe('SfdxCommand', () => {
     };
 
     jsonToStdout = env.getBoolean('SFDX_JSON_TO_STDOUT');
-    // Test right now assume this not to be true
-    env.setBoolean('SFDX_JSON_TO_STDOUT', false);
+    env.unset('SFDX_JSON_TO_STDOUT');
 
     UX.warnings.clear();
   });
@@ -913,7 +912,7 @@ describe('SfdxCommand', () => {
     verifyUXOutput();
   });
 
-  it('should only output to ux.errorJson when isJson is true and an error occurs', async () => {
+  it('should only output to ux.logJson when isJson is true and an error occurs', async () => {
     const sfdxError = new SfdxError('err_msg', 'TestError', ['take action 1'], 100);
     sfdxError.data = 'here is more data';
     sfdxError.stack = 'here is the stack';
@@ -926,7 +925,7 @@ describe('SfdxCommand', () => {
     expect(output).to.equal(undefined);
     expect(process.exitCode).to.equal(100);
     verifyUXOutput({
-      errorJson: [
+      logJson: [
         {
           actions: sfdxError.actions,
           commandName: 'TestCommand',
@@ -943,7 +942,7 @@ describe('SfdxCommand', () => {
     });
   });
 
-  it('should only output to ux.errorJson when isJson is true and an error occurs', async () => {
+  it('should only output to ux.logJson when isJson is true and an error occurs with warning', async () => {
     const sfdxError = new SfdxError('err_msg', 'TestError', ['take action 1'], 100);
     sfdxError.data = 'here is more data';
     sfdxError.stack = 'here is the stack';
@@ -957,7 +956,7 @@ describe('SfdxCommand', () => {
     expect(output).to.equal(undefined);
     expect(process.exitCode).to.equal(100);
     verifyUXOutput({
-      errorJson: [
+      logJson: [
         {
           actions: sfdxError.actions,
           commandName: 'TestCommand',
@@ -1381,7 +1380,7 @@ describe('SfdxCommand', () => {
     });
   });
 
-  it('should send errors with --json to stderr by default', async () => {
+  it('should send errors with --json to stdout by default', async () => {
     // Run the command
     class StderrCommand extends SfdxCommand {
       public async run() {
@@ -1392,11 +1391,11 @@ describe('SfdxCommand', () => {
     expect(output).to.equal(undefined);
     expect(process.exitCode).to.equal(1);
 
-    const errorJson = UX_OUTPUT['errorJson'];
-    expect(errorJson.length, 'errorJson did not get called with error json').to.equal(1);
-    const json = ensureJsonMap(errorJson[0]);
-    expect(json.message, 'errorJson did not get called with the right error').to.contains('Ahhh!');
-    expect(UX_OUTPUT['logJson'].length, 'errorJson got called when it should not have').to.equal(0);
+    const logJson = UX_OUTPUT['logJson'];
+    expect(logJson.length, 'logJson did not get called with error json').to.equal(1);
+    const json = ensureJsonMap(logJson[0]);
+    expect(json.message, 'logJson did not get called with the right error').to.contains('Ahhh!');
+    expect(UX_OUTPUT['errorJson'].length, 'errorJson got called when it should not have').to.equal(0);
   });
 
   it('should honor the SFDX_JSON_TO_STDOUT on command errors', async () => {
@@ -1416,6 +1415,25 @@ describe('SfdxCommand', () => {
     const json = ensureJsonMap(logJson[0]);
     expect(json.message, 'logJson did not get called with the right error').to.contains('Ahhh!');
     expect(UX_OUTPUT['errorJson'].length, 'errorJson got called when it should not have').to.equal(0);
+  });
+
+  it('should honor the SFDX_JSON_TO_STDOUT on command errors', async () => {
+    env.setBoolean('SFDX_JSON_TO_STDOUT', false);
+    // Run the command
+    class StdoutCommand extends SfdxCommand {
+      public async run() {
+        throw new Error('Ahhh!');
+      }
+    }
+    const output = await StdoutCommand.run(['--json']);
+    expect(output).to.equal(undefined);
+    expect(process.exitCode).to.equal(1);
+
+    const logJson = UX_OUTPUT['errorJson'];
+    expect(logJson.length, 'logJson did not get called with error json').to.equal(1);
+    const json = ensureJsonMap(logJson[0]);
+    expect(json.message, 'logJson did not get called with the right error').to.contains('Ahhh!');
+    expect(UX_OUTPUT['logJson'].length, 'errorJson got called when it should not have').to.equal(0);
   });
 
   describe('deprecations', () => {
