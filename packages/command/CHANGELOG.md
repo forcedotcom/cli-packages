@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.0.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@2.2.0...@salesforce/command@3.0.0) (2020-02-07)
+
+
+### Features
+
+* change json errors to stdout ([87d80c8](https://github.com/forcedotcom/cli-packages/commit/87d80c8))
+
+
+### BREAKING CHANGES
+
+* Moving json errors to stdout instead of stderr may break some tests or scripts
+expecting it to be in stderr.
+
+@W-5490315@
+
+
+
+
+
 # [2.2.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@2.1.5...@salesforce/command@2.2.0) (2020-01-31)
 
 
