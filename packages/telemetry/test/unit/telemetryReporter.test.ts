@@ -1,4 +1,5 @@
 import { ConfigAggregator, Logger } from '@salesforce/core';
+import axios from 'axios';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { AppInsights } from '../../src/appInsights';
@@ -108,7 +109,7 @@ describe('TelemetryReporter', () => {
     expect(warn.firstCall.args[0]).to.contain('=false');
   });
 
-  it('should log to disable telemetry metric when enable', async () => {
+  it('should log to disable telemetry metric when enabled', async () => {
     const warn = sandbox.stub();
     sandbox.stub(Logger, 'child').resolves({ warn, debug: sandbox.stub() });
     const options = { project, key };
@@ -128,5 +129,33 @@ describe('TelemetryReporter', () => {
     stub.reset();
     stub.resolves({ getPropertyValue: () => true });
     expect(await TelemetryReporter.determineSfdxTelemetryEnabled()).to.be.true;
+  });
+
+  it('should test connection to app insights if waitForConnection is true', async () => {
+    const testConnection = sandbox.stub(TelemetryReporter.prototype, 'testConnection').callsFake(async () => true);
+    const options = { project, key, waitForConnection: true };
+    await TelemetryReporter.create(options);
+    expect(testConnection.calledOnce).to.be.true;
+  });
+
+  it('should throw an error if it cannot conenct to app insights', async () => {
+    sandbox.stub(axios, 'get').throws(() => {
+      return { code: 'TIMEOUT!' };
+    });
+    const options = { project, key, waitForConnection: true };
+    try {
+      await TelemetryReporter.create(options);
+    } catch (err) {
+      expect(err.message).to.equal('Unable to connect to app insights.');
+    }
+  });
+
+  it('should get the appInsightsClient', async () => {
+    const options = { project, key };
+    const reporter = await TelemetryReporter.create(options);
+    reporter.start();
+    const client = reporter.getTelemetryClient();
+    expect(client).to.not.be.undefined;
+    reporter.stop();
   });
 });
