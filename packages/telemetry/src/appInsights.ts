@@ -27,6 +27,7 @@ export interface TelemetryOptions {
   gdprSensitiveKeys?: string[];
   userId?: string;
   sessionId?: string;
+  waitForConnection?: boolean;
 }
 
 Messages.importMessagesDirectory(__dirname);
@@ -39,6 +40,7 @@ Messages.importMessagesDirectory(__dirname);
  */
 export class AppInsights extends AsyncCreatable<TelemetryOptions> {
   public static GDPR_HIDDEN = '<GDPR_HIDDEN>';
+  public static APP_INSIGHTS_SERVER = 'https://dc.services.visualstudio.com';
   private static ASIMOV_ENDPOINT = 'https://vortex.data.microsoft.com/collect/v1';
   public appInsightsClient!: appInsights.TelemetryClient;
   private options: TelemetryOptions;
