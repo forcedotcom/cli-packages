@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.0.2](https://github.com/forcedotcom/cli-packages/compare/@salesforce/telemetry@2.0.1...@salesforce/telemetry@2.0.2) (2020-03-02)
+
+
+### Bug Fixes
+
+* check connection to app insights ([d4d5748](https://github.com/forcedotcom/cli-packages/commit/d4d5748))
+
+
+
+
+
 ## [2.0.1](https://github.com/forcedotcom/cli-packages/compare/@salesforce/telemetry@2.0.0...@salesforce/telemetry@2.0.1) (2020-01-31)
 
 
