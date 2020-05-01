@@ -14,8 +14,9 @@
     "format": "yarn sfdx-format",
     "lint": "yarn sfdx-lint",
     "prepack": "yarn sfdx-build",
-    "prepare": "npm run build",
-    "test": "yarn sfdx-test"
+    "prepare": "npm run snyk-protect && npm run build",
+    "test": "yarn sfdx-test",
+    "snyk-protect": "snyk protect"
   },
   "keywords": [
     "force",
@@ -39,7 +40,8 @@
     "@salesforce/kit": "^1.2.0",
     "@salesforce/ts-types": "^1.2.0",
     "chalk": "^2.4.2",
-    "cli-ux": "^4.9.3"
+    "cli-ux": "^4.9.3",
+    "snyk": "^1.316.1"
   },
   "devDependencies": {
     "@oclif/config": "^1.13.2",
@@ -50,5 +52,6 @@
   "types": "lib/exported.d.ts",
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "snyk": true
 }
