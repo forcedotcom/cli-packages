@@ -16,8 +16,9 @@
     "lint": "yarn sfdx-lint",
     "lint-fix": "yarn sfdx-lint --fix",
     "prepack": "yarn sfdx-build",
-    "prepare": "npm run build",
-    "test": "yarn sfdx-test"
+    "prepare": "npm run snyk-protect && npm run build",
+    "test": "yarn sfdx-test",
+    "snyk-protect": "snyk protect"
   },
   "keywords": [
     "force",
@@ -35,7 +36,8 @@
     "@salesforce/core": "^2.1.6",
     "@salesforce/ts-types": "^1.2.1",
     "applicationinsights": "^1.4.0",
-    "axios": "^0.19.2"
+    "axios": "^0.19.2",
+    "snyk": "^1.316.1"
   },
   "devDependencies": {
     "@salesforce/dev-scripts": "^0.3.14",
@@ -44,5 +46,6 @@
   "types": "lib/exported.d.ts",
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "snyk": true
 }
