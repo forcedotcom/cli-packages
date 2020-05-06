@@ -185,6 +185,13 @@ export abstract class SfdxCommand extends Command {
     }
   }
 
+  /**
+   * Actual command run code goes here.
+   * @returns {Promise<any>} Returns a promise
+   * @throws {Error | SfdxError} Throws an error. If the error is not an SfdxError, it will
+   * be wrapped in an SfdxError. If the error contains exitCode field, process.exitCode
+   * will set to it.
+   */
   public abstract async run(): Promise<any>; // tslint:disable-line no-any (matches oclif)
 
   // Assign this.project if the command requires to be run from within a project.
