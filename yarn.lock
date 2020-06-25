@@ -1005,7 +1005,7 @@
     debug "^4.1.1"
     semver "^5.6.0"
 
-"@oclif/config@^1", "@oclif/config@^1.13.2":
+"@oclif/config@^1":
   version "1.13.2"
   resolved "https://registry.npmjs.org/@oclif/config/-/config-1.13.2.tgz#c1dc25296bf06c039fd5fb0b90e4132be2213b2a"
   integrity sha512-RUOKeuAaopo3zrA5hcgE0PT2lbAUT72+eJdqTlWyI9sbPrGHZgUwV+vrL6Qal7ywWYDkL0vrKd1YS4yXtKIDKw==
@@ -1014,7 +1014,17 @@
     debug "^4.1.1"
     tslib "^1.9.3"
 
-"@oclif/errors@^1.2.2":
+"@oclif/config@^1.15.1":
+  version "1.15.1"
+  resolved "https://registry.npmjs.org/@oclif/config/-/config-1.15.1.tgz#39950c70811ab82d75bb3cdb33679ed0a4c21c57"
+  integrity sha512-GdyHpEZuWlfU8GSaZoiywtfVBsPcfYn1KuSLT1JTfvZGpPG6vShcGr24YZ3HG2jXUFlIuAqDcYlTzOrqOdTPNQ==
+  dependencies:
+    "@oclif/errors" "^1.0.0"
+    "@oclif/parser" "^3.8.0"
+    debug "^4.1.1"
+    tslib "^1.9.3"
+
+"@oclif/errors@^1.0.0", "@oclif/errors@^1.2.2":
   version "1.2.2"
   resolved "https://registry.npmjs.org/@oclif/errors/-/errors-1.2.2.tgz#9d8f269b15f13d70aa93316fed7bebc24688edc2"
   integrity sha512-Eq8BFuJUQcbAPVofDxwdE0bL14inIiwt5EaKRVY9ZDIG11jwdXZqiQEECJx0VfnLyUZdYfRd/znDI/MytdJoKg==
@@ -1120,22 +1130,17 @@
     universal-user-agent "^3.0.0"
     url-template "^2.0.8"
 
-"@salesforce/core@^2.1.4":
-  version "2.1.4"
-  resolved "https://registry.npmjs.org/@salesforce/core/-/core-2.1.4.tgz#f60ae66875528685cec5f87bb6365efb4de25498"
-  integrity sha512-ncMsHq3KCiiiDH0tVWOySgWCIHMjh4Tz+SzYHVSu93og44Q0jVUtFCjURHY7mmTLKw+sterjiI88Vs6tgsEbPQ==
+"@salesforce/bunyan@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/@salesforce/bunyan/-/bunyan-2.0.0.tgz#8dbe377f2cf7d35348a23260416fee15adba5f97"
+  integrity sha512-5hq+HWQSeymuygl3i9ehlQo3XWrlBE+A+QzmpDaoK37op4u9M+SBUbXfOW0IABOQCg+JmfQPocSMV74hRoqU9w==
   dependencies:
-    "@salesforce/kit" "^1.0.0"
-    "@salesforce/ts-sinon" "^1.0.0"
-    "@salesforce/ts-types" "^1.0.0"
-    "@types/jsforce" "1.9.2"
-    bunyan-sfdx-no-dtrace "1.8.2"
-    debug "^3.1.0"
-    jsen "0.6.6"
-    jsforce "1.9.3"
-    jsonwebtoken "8.5.0"
-    mkdirp "0.5.1"
-    sfdx-faye "^1.0.9"
+    dayjs "^1.8.16"
+    dayjs-plugin-utc "^0.1.2"
+  optionalDependencies:
+    dtrace-provider "~0.6"
+    mv "~2"
+    safe-json-stringify "~1"
 
 "@salesforce/core@^2.1.6":
   version "2.1.6"
@@ -1152,6 +1157,23 @@
     jsforce "1.9.3"
     jsonwebtoken "8.5.0"
     mkdirp "0.5.1"
+    sfdx-faye "^1.0.9"
+
+"@salesforce/core@^2.6.0":
+  version "2.6.0"
+  resolved "https://registry.npmjs.org/@salesforce/core/-/core-2.6.0.tgz#e774c06159c5d99f3806f524a95b34bba4f8fdfc"
+  integrity sha512-sGqDMHK7T4Uf8dYGbO6gRjiQc0WLa6uS8KL/xYeNRkAzUipaW/ggBbkcQafUCbAiaPR/U1PtuOZtpUGwc3WQTg==
+  dependencies:
+    "@salesforce/bunyan" "^2.0.0"
+    "@salesforce/kit" "^1.2.2"
+    "@salesforce/schemas" "^1.0.1"
+    "@salesforce/ts-types" "^1.0.0"
+    "@types/jsforce" "1.9.2"
+    debug "^3.1.0"
+    jsen "0.6.6"
+    jsforce "1.9.3"
+    jsonwebtoken "8.5.0"
+    mkdirp "1.0.4"
     sfdx-faye "^1.0.9"
 
 "@salesforce/dev-config@^1.4.4", "@salesforce/dev-config@^1.5.0":
@@ -1217,13 +1239,26 @@
     typedoc-plugin-external-module-name "~1.1.3"
     xunit-file "^1.0.0"
 
-"@salesforce/kit@^1.0.0", "@salesforce/kit@^1.2.0":
+"@salesforce/kit@^1.0.0":
   version "1.2.0"
   resolved "https://registry.npmjs.org/@salesforce/kit/-/kit-1.2.0.tgz#a7187e113da9b1442547cf491d25d5e614de42a7"
   integrity sha512-zc+HcN0A7twyWFtWO5YPQF1TyC7+MTsoRn875aLKagLkUyGarWOrj2gonyKyXmwT8kz8uSYpwb8xR4mPYAgjPg==
   dependencies:
     "@salesforce/ts-types" "^1.2.0"
     tslib "^1.10.0"
+
+"@salesforce/kit@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.npmjs.org/@salesforce/kit/-/kit-1.2.2.tgz#9efaee2f520fba4c87a1e138fb31579cc5de69bd"
+  integrity sha512-MQXUh8Ka8oB1SOPUF1kOynXQWcLeZ8YWOyqPtg6j8U9NxLlkTF2vfUfhZEm//jXjejDy7CEes5rEKRHm2df/OA==
+  dependencies:
+    "@salesforce/ts-types" "^1.2.2"
+    tslib "^1.10.0"
+
+"@salesforce/schemas@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.npmjs.org/@salesforce/schemas/-/schemas-1.0.1.tgz#d1db56759d2b22a7688e1821aec564e979237ad2"
+  integrity sha512-78pP1GB/DbIS8nSWGL0GpQ27g02drrEo0vzYdRipGYAIXHMzlh1gqEsq0pOiIQlPm1MxWyEqbmf4GG5qSVsd0Q==
 
 "@salesforce/ts-sinon@^1.0.0", "@salesforce/ts-sinon@^1.1.0":
   version "1.1.0"
@@ -1245,6 +1280,13 @@
   version "1.2.1"
   resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-1.2.1.tgz#1f738d0e7df55843e78d2726617b9fdd17291842"
   integrity sha512-kEpyfvTRfwQFpDc1rfb6aaQbl5SDIwCksgr8ftJaooGXDVWFK9llso9cwimee+KVqTeQ6Jf4tZclcPb8I6G6sg==
+  dependencies:
+    tslib "^1.10.0"
+
+"@salesforce/ts-types@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.npmjs.org/@salesforce/ts-types/-/ts-types-1.2.2.tgz#2e6dc771fa42a2cfc1a2e6b13d2f789add0cdf7c"
+  integrity sha512-inTkNP5jwJTbKqmBv6Cku/ezU6+ErYbUH4YorDfgZ/wDCsdLc9UyPGKGMO8aZ78vvyUTYWEiDxWlMqb1QXEfEw==
   dependencies:
     tslib "^1.10.0"
 
@@ -2408,6 +2450,16 @@ dateformat@^3.0.0:
   version "3.0.3"
   resolved "https://registry.npmjs.org/dateformat/-/dateformat-3.0.3.tgz#a6e37499a4d9a9cf85ef5872044d62901c9889ae"
   integrity sha512-jyCETtSl3VMZMWeRo7iY1FL19ges1t55hMo5yaam4Jrsm5EPL89UQkoQRyiI+Yf4k8r2ZpdngkV8hr1lIdjb3Q==
+
+dayjs-plugin-utc@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.npmjs.org/dayjs-plugin-utc/-/dayjs-plugin-utc-0.1.2.tgz#48e552407024143922d6499a40f6c765f8c93d03"
+  integrity sha512-ExERH5o3oo6jFOdkvMP3gytTCQ9Ksi5PtylclJWghr7k7m3o2U5QrwtdiJkOxLOH4ghr0EKhpqGefzGz1VvVJg==
+
+dayjs@^1.8.16:
+  version "1.8.28"
+  resolved "https://registry.npmjs.org/dayjs/-/dayjs-1.8.28.tgz#37aa6201df483d089645cb6c8f6cef6f0c4dbc07"
+  integrity sha512-ccnYgKC0/hPSGXxj7Ju6AV/BP4HUkXC2u15mikXT5mX9YorEaoi1bEKOmAqdkJHN4EEkmAf97SpH66Try5Mbeg==
 
 debug@3.1.0, debug@=3.1.0:
   version "3.1.0"
@@ -4534,6 +4586,11 @@ mkdirp@*, mkdirp@0.5.1, mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.1:
   integrity sha1-MAV0OOrGz3+MR2fzhkjWaX11yQM=
   dependencies:
     minimist "0.0.8"
+
+mkdirp@1.0.4:
+  version "1.0.4"
+  resolved "https://registry.npmjs.org/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
+  integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
 mocha@^5, mocha@^5.2.0:
   version "5.2.0"
