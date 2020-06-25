@@ -7,7 +7,17 @@
 
 import Command from '@oclif/command';
 import { OutputArgs, OutputFlags } from '@oclif/parser';
-import { ConfigAggregator, Global, Logger, Messages, Mode, Org, SfdxError, SfdxProject } from '@salesforce/core';
+import {
+  ConfigAggregator,
+  Global,
+  Lifecycle,
+  Logger,
+  Messages,
+  Mode,
+  Org,
+  SfdxError,
+  SfdxProject
+} from '@salesforce/core';
 import { env } from '@salesforce/kit';
 import { AnyJson, Dictionary, get, isBoolean, JsonMap, Optional } from '@salesforce/ts-types';
 import { has } from '@salesforce/ts-types';
@@ -163,6 +173,9 @@ export abstract class SfdxCommand extends Command {
   // The parsed varargs for easy reference by this command
   protected varargs?: JsonMap;
 
+  // event names to be registered for command specific hooks
+  protected readonly lifecycleEventNames: string[] = [];
+
   private isJson = false;
 
   public async _run<T>(): Promise<Optional<T>> {
@@ -265,6 +278,24 @@ export abstract class SfdxCommand extends Command {
     return true;
   }
 
+  protected async hooksFromLifecycleEvent(lifecycleEventNames: string[]) {
+    if (lifecycleEventNames) {
+      const options = {
+        Command: this.ctor,
+        argv: this.argv,
+        commandId: this.id
+      };
+
+      const lifecycle = Lifecycle.getInstance();
+
+      lifecycleEventNames.forEach(eventName => {
+        lifecycle.on(eventName, async result => {
+          await this.config.runHook(eventName, Object.assign(options, { result }));
+        });
+      });
+    }
+  }
+
   protected async init() {
     // If we made it to the init method, the exit code should not be set yet. It will be
     // successful unless the base init or command throws an error.
@@ -352,6 +383,9 @@ export abstract class SfdxCommand extends Command {
     if (this.statics.supportsDevhubUsername || this.statics.requiresDevhubUsername) {
       await this.assignHubOrg();
     }
+
+    // register event listeners for command specific hooks
+    await this.hooksFromLifecycleEvent(this.lifecycleEventNames);
   }
 
   // tslint:disable no-reserved-keywords
