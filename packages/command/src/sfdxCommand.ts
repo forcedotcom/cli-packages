@@ -173,7 +173,7 @@ export abstract class SfdxCommand extends Command {
   // The parsed varargs for easy reference by this command
   protected varargs?: JsonMap;
 
-  // event names to be registered for command specific hooks
+  /** event names to be registered for command specific hooks */ 
   protected readonly lifecycleEventNames: string[] = [];
 
   private isJson = false;
@@ -279,21 +279,19 @@ export abstract class SfdxCommand extends Command {
   }
 
   protected async hooksFromLifecycleEvent(lifecycleEventNames: string[]) {
-    if (lifecycleEventNames) {
-      const options = {
-        Command: this.ctor,
-        argv: this.argv,
-        commandId: this.id
-      };
+    const options = {
+      Command: this.ctor,
+      argv: this.argv,
+      commandId: this.id
+    };
 
-      const lifecycle = Lifecycle.getInstance();
+    const lifecycle = Lifecycle.getInstance();
 
-      lifecycleEventNames.forEach(eventName => {
-        lifecycle.on(eventName, async result => {
-          await this.config.runHook(eventName, Object.assign(options, { result }));
-        });
+    lifecycleEventNames.forEach(eventName => {
+      lifecycle.on(eventName, async result => {
+        await this.config.runHook(eventName, Object.assign(options, { result }));
       });
-    }
+    });
   }
 
   protected async init() {
