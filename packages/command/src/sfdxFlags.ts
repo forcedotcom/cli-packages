@@ -150,7 +150,9 @@ function buildStringArray(kind: flags.Kind, options: flags.Array<string>): flags
   const { options: values, validate, ...rest } = options;
   const allowed = new Set(values);
   return option(kind, rest, val => {
-    const vals = val.split(options.delimiter || ',');
+    const regex = /\"(.*?)\"|\'(.*?)\'|,/g;
+    const vals = val.split(regex).filter(i => !!i);
+
     validateArrayValues(kind, val, vals, options.validate);
     validateArrayOptions(kind, val, vals, allowed);
     return vals;
@@ -160,17 +162,13 @@ function buildStringArray(kind: flags.Kind, options: flags.Array<string>): flags
 function buildMappedArray<T>(kind: flags.Kind, options: flags.MappedArray<T>): flags.Discriminated<flags.Array<T>> {
   const { options: values, validate, ...rest } = options;
   const allowed = new Set(values);
-  return option(
-    kind,
-    rest,
-    (val: string): T[] => {
-      const vals = val.split(options.delimiter || ',');
-      validateArrayValues(kind, val, vals, options.validate);
-      const mappedVals = vals.map(options.map);
-      validateArrayOptions(kind, val, mappedVals, allowed);
-      return mappedVals;
-    }
-  );
+  return option(kind, rest, (val: string): T[] => {
+    const vals = val.split(options.delimiter || ',');
+    validateArrayValues(kind, val, vals, options.validate);
+    const mappedVals = vals.map(options.map);
+    validateArrayOptions(kind, val, mappedVals, allowed);
+    return mappedVals;
+  });
 }
 
 function buildDate(options: flags.DateTime): flags.Discriminated<flags.DateTime> {

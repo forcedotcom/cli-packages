@@ -353,6 +353,19 @@ describe('SfdxFlags', () => {
           'The flag value "1,2,c" is not in the correct format for "array." Must only contain valid values.'
         );
       });
+
+      it('should handle various arrangments of comma separated lists without errors', () => {
+        const array = flags.array({ description: 'test' });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('"1, 2, 3, 4, 5, 6"')).to.deep.equal(['1, 2, 3, 4, 5, 6']);
+        expect(array.parse('1,2,3,4,5,6')).to.deep.equal(['1', '2', '3', '4', '5', '6']);
+        expect(array.parse('"1, 2","3, 4","5, 6"')).to.deep.equal(['1, 2', '3, 4', '5, 6']);
+        expect(array.parse('1,"2, 3","4, 5",6')).to.deep.equal(['1', '2, 3', '4, 5', '6']);
+        expect(array.parse('"1, 2",3,4,"5, 6"')).to.deep.equal(['1, 2', '3', '4', '5, 6']);
+        expect(array.parse("'1,2','3,4','5,6'")).to.deep.equal(['1,2', '3,4', '5,6']);
+        expect(array.parse("'1,2',3,4,'5,6'")).to.deep.equal(['1,2', '3', '4', '5,6']);
+        expect(array.parse("1,'2, 3','4, 5',6")).to.deep.equal(['1', '2, 3', '4, 5', '6']);
+      });
     });
 
     describe('usage', () => {
