@@ -10,6 +10,7 @@ import {
   ConfigAggregator,
   ConfigInfo,
   Global,
+  Lifecycle,
   Logger,
   LoggerLevel,
   Messages,
@@ -54,6 +55,7 @@ class BaseTestCommand extends SfdxCommand {
     flag1: flags.string({ char: 'f', description: 'my desc' })
   };
   public static result: Dictionary;
+  protected readonly lifecycleEventNames = ['test1', 'test2'];
   protected get statics(): typeof BaseTestCommand {
     return this.constructor as typeof BaseTestCommand;
   }
@@ -971,6 +973,21 @@ describe('SfdxCommand', () => {
         }
       ]
     });
+  });
+
+  it('should register lifecycle events when command is run', async () => {
+    Lifecycle.getInstance().removeAllListeners('test1');
+    Lifecycle.getInstance().removeAllListeners('test2');
+
+    expect(Lifecycle.getInstance().getListeners('test1').length).to.be.equal(0);
+    expect(Lifecycle.getInstance().getListeners('test2').length).to.be.equal(0);
+
+    // Run the command
+    class TestCommand extends BaseTestCommand {}
+    await TestCommand.run([]);
+
+    expect(Lifecycle.getInstance().getListeners('test1').length).to.be.equal(1);
+    expect(Lifecycle.getInstance().getListeners('test2').length).to.be.equal(1);
   });
 
   describe('Varargs', () => {
