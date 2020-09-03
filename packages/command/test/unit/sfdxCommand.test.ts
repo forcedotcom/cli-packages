@@ -818,7 +818,7 @@ describe('SfdxCommand', () => {
       error: [
         [
           'ERROR running TestCommand: ',
-          'This command requires a scratch org username set either with a flag or by default in the config.'
+          'This command requires a username. Specify it with the -u parameter or with the "sfdx config:set defaultusername=<username>" command.'
         ]
       ]
     });
@@ -884,7 +884,7 @@ describe('SfdxCommand', () => {
       error: [
         [
           'ERROR running TestCommand: ',
-          'This command requires a dev hub org username set either with a flag or by default in the config.'
+          'This command requires a dev hub username. Specify it with the -v parameter or with the "sfdx config:set defaultdevhubusername=<username>" command.'
         ]
       ]
     });
