@@ -1,6 +1,6 @@
 {
-  "RequiresUsernameError": "This command requires a username. Specify it with the -u parameter or by setting the defaultusername config value withe the config:set command.",
-  "RequiresDevhubUsernameError": "This command requires a dev hub username. Specify it with the -v parameter or by setting the defaultdevhubusername config value withe the config:set command.",
+  "RequiresUsernameError": "This command requires a username. Specify it with the -u parameter or by \"sfdx config:set defaultusername=<username>\".",
+  "RequiresDevhubUsernameError": "This command requires a dev hub username. Specify it with the -v parameter or by \"sfdx config:set defaultdevhubusername=<username>\".",
   "RequiresProjectError": "This command is required to run from within an SFDX project.",
   "apiVersionOverrideWarning": "apiVersion configuration overridden at %s",
   "OrgCreateError": "Could not connect to org with username '%s'\nDue to:\n%s: %s",
