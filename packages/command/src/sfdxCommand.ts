@@ -234,7 +234,7 @@ export abstract class SfdxCommand extends Command {
       }
     } catch (err) {
       if (this.statics.requiresUsername) {
-        if (err.name === 'NoUsername') {
+        if (err.name === 'NoUsername' || err.name === 'AuthInfoCreationError') {
           throw SfdxError.create('@salesforce/command', 'command', 'RequiresUsernameError');
         }
         throw err;
