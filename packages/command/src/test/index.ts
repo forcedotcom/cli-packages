@@ -105,9 +105,7 @@ const withConnectionRequest = (fakeFunction: (request: AnyJson, options?: AnyJso
 const withProject = (sfdxProjectJson?: JsonMap) => {
   return {
     run(ctx: Dictionary) {
-      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').callsFake((path: string) => {
-        return $$.localPathRetriever(path || $$.id);
-      });
+      $$.inProject(true);
       const DEFAULT_PROJECT_JSON = {
         sfdcLoginUrl: 'https://login.salesforce.com'
       };
