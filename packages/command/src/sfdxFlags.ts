@@ -45,14 +45,25 @@ function toValidatorFn(validator?: unknown): (val: string) => boolean {
   };
 }
 
+function merge<T>(
+  kind: flags.Kind,
+  flag: IOptionFlag<T | undefined>,
+  describable: flags.Describable
+): flags.Discriminated<flags.Option<T>>;
+function merge<T>(
+  kind: flags.Kind,
+  flag: IBooleanFlag<T>,
+  describable: flags.Describable
+): flags.Discriminated<flags.Boolean<T>>;
 function merge<T>(kind: flags.Kind, flag: IFlag<T>, describable: flags.Describable): flags.Discriminated<flags.Any<T>> {
   if (has(flag, 'validate') && hasFunction(flag, 'parse')) {
-    const parse: <O>(val: string, ctx: unknown) => O = flag.parse.bind(flag);
-    flag.parse = <O>(val: string, ctx: unknown): O => {
+    const parse = flag.parse.bind(flag);
+    flag.parse = <T>(val: string, ctx: unknown): T => {
       validateValue(toValidatorFn(flag.validate)(val), val, kind);
-      return parse(val, ctx);
+      return parse(val, ctx) as T;
     };
   }
+
   return {
     kind,
     ...flag,
@@ -66,7 +77,9 @@ function option<T>(
   options: flags.Option<T>,
   parse: (val: string, ctx: unknown) => T
 ): flags.Discriminated<flags.Option<T>> {
-  return merge(kind, OclifFlags.build(Object.assign(options, { parse }))(), options);
+  const flag = OclifFlags.option({ ...options, parse });
+  const merged = merge<T>(kind, flag, options);
+  return merged;
 }
 
 export namespace flags {
@@ -91,7 +104,7 @@ export namespace flags {
   export type Minutes = Option<Duration> & Bounds<Duration | number>;
   export type Number = Option<number> & NumericBounds;
   export type NumericBounds = Bounds<number>;
-  export type Option<T> = Partial<IOptionFlag<Optional<T>>> & SfdxProperties & Validatable;
+  export type Option<T> = Partial<IOptionFlag<T>> & SfdxProperties & Validatable;
   export type Output = OclifFlags.Output;
   // allow numeric bounds for back compat
   export type Seconds = Option<Duration> & Bounds<Duration | number>;
@@ -104,7 +117,8 @@ export namespace flags {
 // oclif
 
 function buildBoolean<T = boolean>(options: flags.Boolean<T>): flags.Discriminated<flags.Boolean<T>> {
-  return merge('boolean', OclifFlags.boolean(options), options);
+  const flag = OclifFlags.boolean(options);
+  return merge<T>('boolean', flag, options);
 }
 
 function buildEnum<T>(options: flags.Enum<T>): flags.Discriminated<flags.Enum<T>> {
@@ -161,7 +175,7 @@ function buildOption<T>(
 }
 
 function buildString(options: flags.String): flags.Discriminated<flags.String> {
-  return merge('string', OclifFlags.string(options), options);
+  return merge<string>('string', OclifFlags.string(options), options);
 }
 
 function buildVersion(options?: flags.BaseBoolean<boolean>): flags.Discriminated<flags.Boolean<void>> {
@@ -224,7 +238,9 @@ function buildStringArray(kind: flags.Kind, options: flags.Array<string>): flags
 
 function buildArray(options: flags.Array<string>): flags.Discriminated<flags.Array<string>>;
 function buildArray<T>(options: flags.MappedArray<T>): flags.Discriminated<flags.Array<T>>;
-function buildArray<T>(options: flags.Array | flags.MappedArray<T>): flags.Discriminated<flags.Array<T>> {
+function buildArray<T>(
+  options: flags.Array | flags.MappedArray<T>
+): flags.Discriminated<flags.Array<string>> | flags.Discriminated<flags.Array<T>> {
   const kind = 'array';
   return 'map' in options ? buildMappedArray(kind, options) : buildStringArray(kind, options);
 }
@@ -663,7 +679,7 @@ export function buildSfdxFlags(
       }
       output[key] = optionalBuiltinFlags[key](flag);
     } else {
-      output[key] = validateCustomFlag(key, flag);
+      output[key] = validateCustomFlag<unknown>(key, flag);
     }
   });
 
