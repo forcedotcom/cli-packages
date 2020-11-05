@@ -38,7 +38,7 @@
     "axios": "^0.19.2"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "^0.3.14",
+    "@salesforce/dev-scripts": "^0.6.2",
     "@salesforce/ts-sinon": "^1.1.0"
   },
   "types": "lib/exported.d.ts",

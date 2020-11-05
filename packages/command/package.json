@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@oclif/config": "^1.15.1",
-    "@salesforce/dev-scripts": "^0.4.0",
+    "@salesforce/dev-scripts": "^0.6.2",
     "@salesforce/ts-sinon": "^1.1.0",
     "shelljs": "~0.8.3"
   },
