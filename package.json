@@ -11,7 +11,7 @@
     "compile": "lerna run compile",
     "docs": "lerna run docs",
     "format": "lerna run format",
-    "install": "yarn sfdx-lerna-install",
+    "install": "yarn sf-lerna-install",
     "lint": "lerna run lint",
     "lint-fix": "lerna run lint -- --fix",
     "postclean-all": "yarn sfdx-clean all",
