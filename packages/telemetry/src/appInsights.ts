@@ -1,8 +1,14 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import * as os from 'os';
 import { Logger, Messages } from '@salesforce/core';
 import { AsyncCreatable, Env } from '@salesforce/kit';
 import { isBoolean, isNumber, isString, JsonPrimitive } from '@salesforce/ts-types';
 import * as appInsights from 'applicationinsights';
-import * as os from 'os';
 
 export { TelemetryClient } from 'applicationinsights';
 
@@ -70,6 +76,7 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
 
   /**
    * Publishes event to app insights dashboard
+   *
    * @param eventName {string} - name of the event you want published. Will be concatenated with this.options.project
    * @param attributes {Attributes} - map of properties to publish alongside the event.
    */
@@ -82,6 +89,7 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
 
   /**
    * Publishes exception to app insights dashboard
+   *
    * @param exception {Error} - exception you want published.
    * @param attributes {Attributes} - map of measurements to publish alongside the exception.
    */
@@ -93,6 +101,7 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
 
   /**
    * Publishes diagnostic information to app insights dashboard
+   *
    * @param message {string} - trace message to sen to app insights.
    * @param properties {Properties} - map of properties to publish alongside the event.
    */
@@ -103,6 +112,7 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
 
   /**
    * Publishes metric to app insights dashboard
+   *
    * @param name {string} - name of the metric you want published
    * @param value {number} - value of the metric
    * @param properties {Properties} - map of properties to publish alongside the event.
@@ -147,6 +157,7 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
 
   /**
    * Builds the properties to send with every event
+   *
    * @return {Properties} map of base properites and properties provided when class was created
    */
   private buildCommonProperties(): Properties {
@@ -155,13 +166,14 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
       'common.os': os.platform(),
       'common.platformversion': getPlatformVersion(),
       'common.systemmemory': getSystemMemory(),
-      'common.usertype': this.env.getString('SFDX_USER_TYPE') || 'normal'
+      'common.usertype': this.env.getString('SFDX_USER_TYPE') || 'normal',
     };
     return Object.assign(baseProperties, this.options.commonProperties);
   }
 
   /**
    * Builds the context tags for appInsightsClient
+   *
    * @return {Properties} map of tags to add to this.appInsightsClient.context.tags
    */
   private buildContextTags(): Properties {
@@ -171,7 +183,7 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
   }
   // filters out non-GDPR compliant tags
   private hideGDPRdata(tags: Properties) {
-    this.gdprSensitiveKeys.forEach(key => {
+    this.gdprSensitiveKeys.forEach((key) => {
       tags[key] = AppInsights.GDPR_HIDDEN;
     });
     return tags;
@@ -181,7 +193,7 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
 export function buildPropertiesAndMeasurements(attributes: Attributes) {
   const properties: Properties = {};
   const measurements: Measurements = {};
-  Object.keys(attributes).forEach(key => {
+  Object.keys(attributes).forEach((key) => {
     const value = attributes[key];
     if (isString(value)) {
       properties[key] = value;
@@ -212,5 +224,5 @@ function getSystemMemory(): string {
 }
 
 function isAsimovKey(key: string): boolean {
-  return !!(key && key.indexOf('AIF-') === 0);
+  return !!(key && key.startsWith('AIF-'));
 }

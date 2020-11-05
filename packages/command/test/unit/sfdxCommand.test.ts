@@ -1,10 +1,14 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { fail } from 'assert';
+import { join } from 'path';
+import { URL } from 'url';
+import * as util from 'util';
 import { IConfig } from '@oclif/config';
 import {
   ConfigAggregator,
@@ -17,19 +21,15 @@ import {
   Mode,
   Org,
   SfdxError,
-  SfdxProject
+  SfdxProject,
 } from '@salesforce/core';
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { cloneJson, Duration, env, isEmpty } from '@salesforce/kit';
 import { stubInterface } from '@salesforce/ts-sinon';
 import { AnyJson, Dictionary, ensureJsonMap, JsonArray, JsonMap, keysOf, Optional } from '@salesforce/ts-types';
-import { fail } from 'assert';
 import { expect } from 'chai';
 import chalk from 'chalk';
-import { join } from 'path';
 import { SinonStub } from 'sinon';
-import { URL } from 'url';
-import * as util from 'util';
 import { Result, SfdxCommand, SfdxResult } from '../../src/sfdxCommand';
 import { flags, FlagsConfig } from '../../src/sfdxFlags';
 import { UX } from '../../src/ux';
@@ -52,7 +52,7 @@ let testCommandMeta: TestCommandMeta;
 class BaseTestCommand extends SfdxCommand {
   public static output: string | JsonArray = 'default test output';
   public static flagsConfig: FlagsConfig = {
-    flag1: flags.string({ char: 'f', description: 'my desc' })
+    flag1: flags.string({ char: 'f', description: 'my desc' }),
   };
   public static result: Dictionary;
   protected readonly lifecycleEventNames = ['test1', 'test2'];
@@ -63,7 +63,7 @@ class BaseTestCommand extends SfdxCommand {
   public async run() {
     testCommandMeta = {
       cmdInstance: this,
-      cmd: this.statics
+      cmd: this.statics,
     };
     return this.statics.output;
   }
@@ -73,14 +73,14 @@ class BaseTestCommand extends SfdxCommand {
 const DEFAULT_CMD_PROPS = {
   flags: {
     json: { type: 'boolean' },
-    loglevel: { type: 'option' }
-  }
+    loglevel: { type: 'option' },
+  },
 };
 
 // Props that should always be added to the test command instance
 const DEFAULT_INSTANCE_PROPS = {
   flags: {
-    loglevel: LoggerLevel[Logger.DEFAULT_LEVEL].toLowerCase()
+    loglevel: LoggerLevel[Logger.DEFAULT_LEVEL].toLowerCase(),
   },
   args: {},
   isJson: false,
@@ -88,7 +88,7 @@ const DEFAULT_INSTANCE_PROPS = {
   configAggregator: { getInfo: (x: ConfigInfo) => ({ value: undefined }) },
   org: undefined,
   hubOrg: undefined,
-  project: undefined
+  project: undefined,
 };
 
 // Initial state of UX output by the command.
@@ -98,7 +98,7 @@ const UX_OUTPUT_BASE = {
   error: new Array<string[]>(),
   errorJson: new Array<AnyJson>(),
   table: new Array<string[]>(),
-  warn: new Array<string[]>()
+  warn: new Array<string[]>(),
 };
 
 // Actual UX output by the command
@@ -110,7 +110,7 @@ async function mockStdout(test: (outLines: string[]) => Promise<void>) {
   const oldStdoutWriter = process.stdout.write;
   const lines: string[] = [];
   // @ts-ignore
-  process.stdout.write = message => {
+  process.stdout.write = (message) => {
     if (message) {
       lines.push(message);
     }
@@ -140,7 +140,7 @@ describe('SfdxCommand', () => {
     $$.SANDBOX.stub(UX.prototype, 'error').callsFake((...args: string[]) => UX_OUTPUT.error.push(args));
     $$.SANDBOX.stub(UX.prototype, 'errorJson').callsFake((args: AnyJson) => UX_OUTPUT.errorJson.push(args));
     $$.SANDBOX.stub(UX.prototype, 'table').callsFake((args: string[]) => UX_OUTPUT.table.push(args));
-    $$.SANDBOX.stub(UX.prototype, 'warn').callsFake(function(this: UX, args: string[]) {
+    $$.SANDBOX.stub(UX.prototype, 'warn').callsFake(function (this: UX, args: string[]) {
       UX_OUTPUT.warn.push(args);
       UX.warnings.add(util.format(args));
     });
@@ -150,7 +150,7 @@ describe('SfdxCommand', () => {
 
     // Ensure BaseTestCommand.flagsConfig is returned to base state
     BaseTestCommand.flagsConfig = {
-      flag1: flags.string({ char: 'f', description: 'my desc' })
+      flag1: flags.string({ char: 'f', description: 'my desc' }),
     };
 
     jsonToStdout = env.getBoolean('SFDX_JSON_TO_STDOUT');
@@ -169,18 +169,16 @@ describe('SfdxCommand', () => {
     const merged = Object.assign({}, DEFAULT_CMD_PROPS.flags, verifications);
     const numOfFlagsMessage = 'Number of flag definitions for the command should match';
     expect(keysOf(testCommandMeta.cmd.flags).length, numOfFlagsMessage).to.equal(keysOf(merged).length);
-    keysOf(merged).forEach(key => {
-      expect(testCommandMeta.cmd.flags, `test for flag: ${key}`)
-        .to.have.property(key)
-        .and.include(merged[key]);
+    keysOf(merged).forEach((key) => {
+      expect(testCommandMeta.cmd.flags, `test for flag: ${key}`).to.have.property(key).and.include(merged[key]);
     });
   }
 
   function verifyInstanceProps(props: Dictionary = {}) {
     const merged = Object.assign({}, DEFAULT_INSTANCE_PROPS, props);
     keysOf(testCommandMeta.cmdInstance)
-      .filter(key => !!merged[key])
-      .forEach(key => {
+      .filter((key) => !!merged[key])
+      .forEach((key) => {
         expect(testCommandMeta.cmdInstance[key], `test for instance prop: ${key}`).to.deep.equal(merged[key]);
       });
 
@@ -189,7 +187,7 @@ describe('SfdxCommand', () => {
 
   function verifyUXOutput(output = {}) {
     const out = Object.assign({}, UX_OUTPUT_BASE, output);
-    keysOf(out).forEach(key => {
+    keysOf(out).forEach((key) => {
       expect(UX_OUTPUT[key], `test UX output for ${key}()`).to.deep.equal(out[key]);
     });
   }
@@ -199,7 +197,7 @@ describe('SfdxCommand', () => {
     const x: SfdxResult = {
       display(): void {
         result = ensureJsonMap(this.data);
-      }
+      },
     };
     if (x.display) {
       const resultStub = stubInterface<Result>($$.SANDBOX, { data: { foo: 'bar' } });
@@ -219,7 +217,7 @@ describe('SfdxCommand', () => {
     verifyInstanceProps();
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -239,12 +237,12 @@ describe('SfdxCommand', () => {
     verifyCmdFlags({
       flag1: { type: 'option' },
       targetusername: { type: 'option' },
-      apiversion: { type: 'option' }
+      apiversion: { type: 'option' },
     });
     verifyInstanceProps({ org: fakeOrg });
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -264,12 +262,12 @@ describe('SfdxCommand', () => {
     verifyCmdFlags({
       flag1: { type: 'option' },
       targetusername: { type: 'option' },
-      apiversion: { type: 'option' }
+      apiversion: { type: 'option' },
     });
     verifyInstanceProps({ org: fakeOrg });
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -289,12 +287,12 @@ describe('SfdxCommand', () => {
     verifyCmdFlags({
       flag1: { type: 'option' },
       targetdevhubusername: { type: 'option' },
-      apiversion: { type: 'option' }
+      apiversion: { type: 'option' },
     });
     verifyInstanceProps({ hubOrg: fakeOrg });
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -314,12 +312,12 @@ describe('SfdxCommand', () => {
     verifyCmdFlags({
       flag1: { type: 'option' },
       targetdevhubusername: { type: 'option' },
-      apiversion: { type: 'option' }
+      apiversion: { type: 'option' },
     });
     verifyInstanceProps({ hubOrg: fakeOrg });
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -332,8 +330,8 @@ describe('SfdxCommand', () => {
         setApiVersion: (version: string) => {
           apiVersion = version;
         },
-        getApiVersion: (version: string) => apiVersion
-      })
+        getApiVersion: (version: string) => apiVersion,
+      }),
     });
     // Run the command
     class ApiVersionCommand extends SfdxCommand {
@@ -349,9 +347,7 @@ describe('SfdxCommand', () => {
 
   it('should add a project when requiresProject is true', async () => {
     const fakeProject = 'fake_project';
-    $$.SANDBOX.stub(SfdxProject, 'resolve')
-      .withArgs()
-      .returns(fakeProject);
+    $$.SANDBOX.stub(SfdxProject, 'resolve').withArgs().returns(fakeProject);
     class TestCommand extends BaseTestCommand {}
     TestCommand['requiresProject'] = true;
 
@@ -361,12 +357,12 @@ describe('SfdxCommand', () => {
     expect(output).to.equal(TestCommand.output);
     expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
     verifyCmdFlags({
-      flag1: { type: 'option' }
+      flag1: { type: 'option' },
     });
     verifyInstanceProps({ project: fakeProject });
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -383,12 +379,12 @@ describe('SfdxCommand', () => {
     expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
     verifyCmdFlags({
       flag1: { type: 'option' },
-      verbose: { type: 'boolean' }
+      verbose: { type: 'boolean' },
     });
     verifyInstanceProps();
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -405,15 +401,15 @@ describe('SfdxCommand', () => {
     expect(output).to.equal(TestCommand.output);
     expect(testCommandMeta.cmd.args, 'TestCommand.args').to.equal(cmdArgs);
     verifyCmdFlags({
-      flag1: { type: 'option' }
+      flag1: { type: 'option' },
     });
     verifyInstanceProps({
       flags: Object.assign({ flag1: 'flag1_val' }, DEFAULT_INSTANCE_PROPS.flags),
-      args: { file: 'arg1_val' }
+      args: { file: 'arg1_val' },
     });
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -445,7 +441,7 @@ describe('SfdxCommand', () => {
   it('should honor the -h flag to generate help output, even when the subclass defines its own help flag', () => {
     class TestCommand extends BaseTestCommand {
       public static flagsConfig = {
-        help: flags.help({ char: 'h' })
+        help: flags.help({ char: 'h' }),
       };
     }
 
@@ -473,7 +469,7 @@ describe('SfdxCommand', () => {
   it('should not honor the -h flag to generate help output when used for another purpose by the subclass', () => {
     class TestCommand extends BaseTestCommand {
       public static flagsConfig = {
-        foo: flags.boolean({ char: 'h', description: 'foo' })
+        foo: flags.boolean({ char: 'h', description: 'foo' }),
       };
     }
 
@@ -483,11 +479,11 @@ describe('SfdxCommand', () => {
       expect(output).to.equal(TestCommand.output);
       expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
       verifyInstanceProps({
-        flags: Object.assign({ foo: true }, DEFAULT_INSTANCE_PROPS.flags)
+        flags: Object.assign({ foo: true }, DEFAULT_INSTANCE_PROPS.flags),
       });
       const expectedResult = {
         data: TestCommand.output,
-        tableColumnData: undefined
+        tableColumnData: undefined,
       };
       expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
       verifyUXOutput();
@@ -509,11 +505,11 @@ describe('SfdxCommand', () => {
       verifyCmdFlags({ flag1: { type: 'option' } });
       verifyInstanceProps({
         flags: Object.assign({ json: true }, DEFAULT_INSTANCE_PROPS.flags),
-        isJson: true
+        isJson: true,
       });
       const expectedResult = {
         data: TestCommand.output,
-        tableColumnData: undefined
+        tableColumnData: undefined,
       };
       expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
       verifyUXOutput({ logJson: [{ status: 0, result: TestCommand.output }] });
@@ -531,11 +527,11 @@ describe('SfdxCommand', () => {
       verifyCmdFlags({ flag1: { type: 'option' } });
       verifyInstanceProps({
         flags: Object.assign({ json: true }, DEFAULT_INSTANCE_PROPS.flags),
-        isJson: true
+        isJson: true,
       });
       const expectedResult = {
         data: TestCommand.output,
-        tableColumnData: undefined
+        tableColumnData: undefined,
       };
       expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
       verifyUXOutput({ logJson: [{ status: 0, result: TestCommand.output }] });
@@ -547,7 +543,7 @@ describe('SfdxCommand', () => {
     class TestCommand extends BaseTestCommand {
       protected getJsonResultObject(result: AnyJson, status: number) {
         return Object.assign(super.getJsonResultObject(result, status), {
-          myData: 'test'
+          myData: 'test',
         });
       }
     }
@@ -556,7 +552,7 @@ describe('SfdxCommand', () => {
     expect(output).to.equal(TestCommand.output);
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput({ logJson: [{ status: 0, result: TestCommand.output, myData: 'test' }] });
@@ -572,11 +568,11 @@ describe('SfdxCommand', () => {
     expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
     verifyCmdFlags({ flag1: { type: 'option' } });
     verifyInstanceProps({
-      flags: { loglevel }
+      flags: { loglevel },
     });
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -593,11 +589,11 @@ describe('SfdxCommand', () => {
     expect(testCommandMeta.cmd.args, 'TestCommand.args should be undefined').to.equal(undefined);
     verifyCmdFlags({ flag1: { type: 'option' } });
     verifyInstanceProps({
-      flags: { loglevel: loglevel.toLowerCase() }
+      flags: { loglevel: loglevel.toLowerCase() },
     });
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -613,7 +609,7 @@ describe('SfdxCommand', () => {
       { foo: 1000, bar: 'moscow mule', baz: false },
       { foo: 2000, bar: 'The Melvin', baz: true },
       { foo: 3000, bar: 'NE IPA', baz: true },
-      { foo: 4000, bar: 'Guinness', baz: 0 }
+      { foo: 4000, bar: 'Guinness', baz: 0 },
     ];
     const output = await TestCommand.run([]);
 
@@ -623,7 +619,7 @@ describe('SfdxCommand', () => {
     verifyInstanceProps();
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData
+      tableColumnData,
     };
     expect(testCommandMeta.cmdInstance['result']).to.deep.include(expectedResult);
     verifyUXOutput({ table: [TestCommand.output] });
@@ -643,7 +639,7 @@ describe('SfdxCommand', () => {
     verifyInstanceProps();
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData
+      tableColumnData,
     };
     expect(testCommandMeta.cmdInstance['result']).to.deep.include(expectedResult);
     verifyUXOutput({ log: ['No results found.'] });
@@ -658,7 +654,7 @@ describe('SfdxCommand', () => {
       { foo: 1000, bar: 'moscow mule', baz: false },
       { foo: 2000, bar: 'The Melvin', baz: true },
       { foo: 3000, bar: 'NE IPA', baz: true },
-      { foo: 4000, bar: 'Guinness', baz: 0 }
+      { foo: 4000, bar: 'Guinness', baz: 0 },
     ];
     const output = await TestCommand.run([]);
 
@@ -668,7 +664,7 @@ describe('SfdxCommand', () => {
     verifyInstanceProps();
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData
+      tableColumnData,
     };
     expect(testCommandMeta.cmdInstance['result']).to.deep.include(expectedResult);
     verifyUXOutput({ table: [TestCommand.output] });
@@ -677,7 +673,11 @@ describe('SfdxCommand', () => {
   it('should check the shape of SfdxResult', async () => {
     // Run the command
     const tableColumnData = {
-      columns: [{ key: 'foo', label: 'Foo' }, { key: 'bar', label: 'Bar' }, { key: 'baz', label: 'Baz' }]
+      columns: [
+        { key: 'foo', label: 'Foo' },
+        { key: 'bar', label: 'Bar' },
+        { key: 'baz', label: 'Baz' },
+      ],
     };
     // Implement a new command here to ensure the compiler checks the shape of `result`
     class MyTestCommand extends BaseTestCommand {
@@ -685,14 +685,14 @@ describe('SfdxCommand', () => {
         tableColumnData,
         display() {
           this.ux.log(`CUSTOM: ${this.data}`);
-        }
+        },
       };
     }
     MyTestCommand.output = [
       { Foo: 1000, Bar: 'moscow mule', Baz: false },
       { Foo: 2000, Bar: 'The Melvin', Baz: true },
       { Foo: 3000, Bar: 'NE IPA', Baz: true },
-      { Foo: 4000, Bar: 'Guinness', Baz: 0 }
+      { Foo: 4000, Bar: 'Guinness', Baz: 0 },
     ];
     const output = await MyTestCommand.run([]);
 
@@ -702,7 +702,7 @@ describe('SfdxCommand', () => {
     verifyInstanceProps();
     const expectedResult = {
       data: MyTestCommand.output,
-      tableColumnData
+      tableColumnData,
     };
     expect(testCommandMeta.cmdInstance['result']).to.deep.include(expectedResult);
     verifyUXOutput({ log: [`CUSTOM: ${MyTestCommand.output}`] });
@@ -711,7 +711,7 @@ describe('SfdxCommand', () => {
   it('should override result display with result.display prop', async () => {
     // Run the command
     class TestCommand extends BaseTestCommand {}
-    TestCommand['result']['display'] = function(this: Result) {
+    TestCommand['result']['display'] = function (this: Result) {
       this.ux.log(`CUSTOM: ${this.data}`);
     };
     TestCommand.output = 'new string output';
@@ -723,7 +723,7 @@ describe('SfdxCommand', () => {
     verifyInstanceProps();
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.deep.include(expectedResult);
     verifyUXOutput({ log: [`CUSTOM: ${TestCommand.output}`] });
@@ -732,7 +732,7 @@ describe('SfdxCommand', () => {
   it('should warn when apiVersion is being overridden via config', async () => {
     const apiVersion = '42.0';
     const configAggregator = {
-      getInfo: (x: ConfigInfo) => ({ value: apiVersion })
+      getInfo: (x: ConfigInfo) => ({ value: apiVersion }),
     };
     configAggregatorCreate.restore();
     configAggregatorCreate = $$.SANDBOX.stub(ConfigAggregator, 'create').returns(configAggregator);
@@ -747,18 +747,18 @@ describe('SfdxCommand', () => {
     verifyInstanceProps({ configAggregator });
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput({
-      warn: [`apiVersion configuration overridden at \"${apiVersion}\"`]
+      warn: [`apiVersion configuration overridden at \"${apiVersion}\"`],
     });
   });
 
   it('should NOT warn when apiVersion is overridden via a flag', async () => {
     const apiVersion = '42.0';
     const configAggregator = {
-      getInfo: (x: ConfigInfo) => ({ value: apiVersion })
+      getInfo: (x: ConfigInfo) => ({ value: apiVersion }),
     };
     configAggregatorCreate.restore();
     configAggregatorCreate = $$.SANDBOX.stub(ConfigAggregator, 'create').returns(configAggregator);
@@ -776,16 +776,16 @@ describe('SfdxCommand', () => {
     verifyCmdFlags({
       flag1: { type: 'option' },
       targetusername: { type: 'option' },
-      apiversion: { type: 'option' }
+      apiversion: { type: 'option' },
     });
     verifyInstanceProps({
       configAggregator,
       org: fakeOrg,
-      flags: Object.assign({ apiversion: apiversionFlagVal }, DEFAULT_INSTANCE_PROPS.flags)
+      flags: Object.assign({ apiversion: apiversionFlagVal }, DEFAULT_INSTANCE_PROPS.flags),
     });
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -801,7 +801,7 @@ describe('SfdxCommand', () => {
     expect(output).to.equal(undefined);
     expect(process.exitCode).to.equal(1);
     verifyUXOutput({
-      error: [['ERROR running TestCommand: ', 'This command is required to run from within an SFDX project.']]
+      error: [['ERROR running TestCommand: ', 'This command is required to run from within an SFDX project.']],
     });
   });
 
@@ -818,9 +818,9 @@ describe('SfdxCommand', () => {
       error: [
         [
           'ERROR running TestCommand: ',
-          'This command requires a username. Specify it with the -u parameter or with the "sfdx config:set defaultusername=<username>" command.'
-        ]
-      ]
+          'This command requires a username. Specify it with the -u parameter or with the "sfdx config:set defaultusername=<username>" command.',
+        ],
+      ],
     });
   });
 
@@ -839,7 +839,7 @@ describe('SfdxCommand', () => {
       targetusername: 'foo@bar.org',
       loglevel: 'warn',
       json: true,
-      foo: 'bar'
+      foo: 'bar',
     };
     expect(emitSpy.calledOnceWith('cmdError'), expectationMsg).to.equal(true);
     expect(emitSpy.firstCall.args[0]).to.equal('cmdError');
@@ -860,12 +860,12 @@ describe('SfdxCommand', () => {
     verifyCmdFlags({
       flag1: { type: 'option' },
       targetusername: { type: 'option' },
-      apiversion: { type: 'option' }
+      apiversion: { type: 'option' },
     });
     verifyInstanceProps();
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -884,9 +884,9 @@ describe('SfdxCommand', () => {
       error: [
         [
           'ERROR running TestCommand: ',
-          'This command requires a dev hub username. Specify it with the -v parameter or with the "sfdx config:set defaultdevhubusername=<username>" command.'
-        ]
-      ]
+          'This command requires a dev hub username. Specify it with the -v parameter or with the "sfdx config:set defaultdevhubusername=<username>" command.',
+        ],
+      ],
     });
   });
 
@@ -903,12 +903,12 @@ describe('SfdxCommand', () => {
     verifyCmdFlags({
       flag1: { type: 'option' },
       targetdevhubusername: { type: 'option' },
-      apiversion: { type: 'option' }
+      apiversion: { type: 'option' },
     });
     verifyInstanceProps();
     const expectedResult = {
       data: TestCommand.output,
-      tableColumnData: undefined
+      tableColumnData: undefined,
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput();
@@ -938,9 +938,9 @@ describe('SfdxCommand', () => {
           result: sfdxError.data,
           stack: sfdxError.stack,
           status: 100,
-          warnings: []
-        }
-      ]
+          warnings: [],
+        },
+      ],
     });
   });
 
@@ -969,9 +969,9 @@ describe('SfdxCommand', () => {
           result: sfdxError.data,
           stack: sfdxError.stack,
           status: 100,
-          warnings: ['DO NOT USE ME...']
-        }
-      ]
+          warnings: ['DO NOT USE ME...'],
+        },
+      ],
     });
   });
 
@@ -1002,7 +1002,7 @@ describe('SfdxCommand', () => {
       TestCommand['varargs'] = true;
       await TestCommand.run(['-f', 'blah', 'foo=bar']);
       expect(testCommandMeta.cmdInstance).to.have.deep.property('varargs', {
-        foo: 'bar'
+        foo: 'bar',
       });
     });
 
@@ -1012,7 +1012,7 @@ describe('SfdxCommand', () => {
       await TestCommand.run(['-f', 'blah', 'foo=bar and this', 'username=me@my.org']);
       expect(testCommandMeta.cmdInstance).to.have.deep.property('varargs', {
         foo: 'bar and this',
-        username: 'me@my.org'
+        username: 'me@my.org',
       });
     });
 
@@ -1023,7 +1023,7 @@ describe('SfdxCommand', () => {
       TestCommand['args'] = cmdArgs;
       await TestCommand.run(['myFile.json', '-f', 'blah', 'foo=bar']);
       expect(testCommandMeta.cmdInstance).to.have.deep.property('varargs', {
-        foo: 'bar'
+        foo: 'bar',
       });
     });
 
@@ -1036,9 +1036,9 @@ describe('SfdxCommand', () => {
         error: [
           [
             'ERROR running TestCommand: ',
-            'Provide required name=value pairs for the command. Enclose any values that contain spaces in double quotes.'
-          ]
-        ]
+            'Provide required name=value pairs for the command. Enclose any values that contain spaces in double quotes.',
+          ],
+        ],
       });
     });
 
@@ -1051,9 +1051,9 @@ describe('SfdxCommand', () => {
         error: [
           [
             'ERROR running TestCommand: ',
-            'Setting variables must be in the format <key>=<value> or <key>="<value with spaces>" but found foobar.'
-          ]
-        ]
+            'Setting variables must be in the format <key>=<value> or <key>="<value with spaces>" but found foobar.',
+          ],
+        ],
       });
     });
 
@@ -1063,7 +1063,7 @@ describe('SfdxCommand', () => {
       await TestCommand.run(['-f', 'blah', 'foo=bar', 'foo=that']);
       expect(process.exitCode).to.equal(1);
       verifyUXOutput({
-        error: [['ERROR running TestCommand: ', "Cannot set variable name 'foo' twice for the same command."]]
+        error: [['ERROR running TestCommand: ', "Cannot set variable name 'foo' twice for the same command."]],
       });
     });
 
@@ -1073,7 +1073,7 @@ describe('SfdxCommand', () => {
       await TestCommand.run(['-f', 'blah', 'foo=']);
       expect(process.exitCode).to.equal(1);
       verifyUXOutput({
-        error: [['ERROR running TestCommand: ', 'Vararg [foo] must not be empty.']]
+        error: [['ERROR running TestCommand: ', 'Vararg [foo] must not be empty.']],
       });
     });
   });
@@ -1083,7 +1083,7 @@ describe('SfdxCommand', () => {
       date: ` ${messages.getMessage('FormattingMessageDate')}`,
       datetime: ` ${messages.getMessage('FormattingMessageDate')}`,
       id: ` ${messages.getMessage('FormattingMessageId')}`,
-      url: ` ${messages.getMessage('FormattingMessageUrl')}`
+      url: ` ${messages.getMessage('FormattingMessageUrl')}`,
     };
 
     async function validateFlag(flagType: keyof typeof flags, val: string, err: boolean) {
@@ -1091,7 +1091,7 @@ describe('SfdxCommand', () => {
       class TestCommand extends BaseTestCommand {
         public static flagsConfig = {
           // @ts-ignore TODO: why isn't `create` invokable?!
-          doflag: create({ char: 'i', description: 'my desc' })
+          doflag: create({ char: 'i', description: 'my desc' }),
         };
       }
       const output = await TestCommand.run(['--doflag', val]);
@@ -1099,12 +1099,12 @@ describe('SfdxCommand', () => {
         const sfdxError = SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [
           val,
           TestCommand.flagsConfig.doflag.kind,
-          ERR_NEXT_STEPS[flagType] || ''
+          ERR_NEXT_STEPS[flagType] || '',
         ]);
         expect(output).to.equal(undefined);
         expect(process.exitCode).to.equal(1);
         verifyUXOutput({
-          error: [['ERROR running TestCommand: ', sfdxError.message]]
+          error: [['ERROR running TestCommand: ', sfdxError.message]],
         });
       } else {
         expect(output).to.equal(TestCommand.output);
@@ -1185,7 +1185,7 @@ describe('SfdxCommand', () => {
       expect(output).to.equal(undefined);
       expect(process.exitCode).to.equal(1);
       verifyUXOutput({
-        error: [['ERROR running TestCommand: ', sfdxError.message]]
+        error: [['ERROR running TestCommand: ', sfdxError.message]],
       });
     }
 
@@ -1196,8 +1196,8 @@ describe('SfdxCommand', () => {
           char: 'm',
           // @ts-ignore ignore invalid longDescription value
           longDescription: false,
-          description: 'my desc'
-        })
+          description: 'my desc',
+        }),
       };
 
       const output = await TestCommand.run(['--myflag', 'input']);
@@ -1208,7 +1208,7 @@ describe('SfdxCommand', () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
         // @ts-ignore ignore error about not providing description
-        myflag: flags.string({ char: 'm' })
+        myflag: flags.string({ char: 'm' }),
       };
       const output = await TestCommand.run(['--myflag', 'input']);
       validateFlagAttributes(output, 'MissingOrInvalidFlagDescription', 'myflag');
@@ -1220,8 +1220,8 @@ describe('SfdxCommand', () => {
         myflag: flags.string({
           // @ts-ignore ignore invalid char value length
           char: 'foo',
-          description: 'bar'
-        })
+          description: 'bar',
+        }),
       };
       const output = await TestCommand.run(['--myflag', 'input']);
       validateFlagAttributes(output, 'InvalidFlagChar', 'myflag');
@@ -1231,7 +1231,7 @@ describe('SfdxCommand', () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
         // @ts-ignore ignore invalid char value
-        myflag: flags.string({ char: '5', description: 'bar' })
+        myflag: flags.string({ char: '5', description: 'bar' }),
       };
       const output = await TestCommand.run(['--myflag', 'input']);
       validateFlagAttributes(output, 'InvalidFlagChar', 'myflag');
@@ -1242,8 +1242,8 @@ describe('SfdxCommand', () => {
       TestCommand.flagsConfig = {
         myFlag: {
           char: 'm',
-          description: 'foobar'
-        }
+          description: 'foobar',
+        },
       };
       const output = await TestCommand.run(['--myFlag', 'input']);
       validateFlagAttributes(output, 'InvalidFlagName', 'myFlag');
@@ -1254,8 +1254,8 @@ describe('SfdxCommand', () => {
       TestCommand.flagsConfig = {
         myFlag: flags.boolean({
           char: 'm',
-          description: 'foobar'
-        })
+          description: 'foobar',
+        }),
       };
       const output = await TestCommand.run(['--myFlag', 'input']);
       validateFlagAttributes(output, 'InvalidFlagName', 'myFlag');
@@ -1266,15 +1266,15 @@ describe('SfdxCommand', () => {
       TestCommand.flagsConfig = {
         myflag: flags.number({
           char: 'm',
-          description: 'my desc'
-        })
+          description: 'my desc',
+        }),
       };
       // @ts-ignore Allow undefined array value against the compiler spec to test underlying engine
       const output = await TestCommand.run(['--myflag', undefined]);
       expect(output).to.equal(undefined);
       expect(process.exitCode).to.equal(1);
       verifyUXOutput({
-        error: [['ERROR running TestCommand: ', 'Flag --myflag expects a value']]
+        error: [['ERROR running TestCommand: ', 'Flag --myflag expects a value']],
       });
     });
   });
@@ -1302,7 +1302,7 @@ describe('SfdxCommand', () => {
           optsintarray: flags.array({
             description: 'optsintarray',
             map: (v: string) => parseInt(v, 10),
-            options: [1, 3, 5]
+            options: [1, 3, 5],
           }),
           date: flags.date({ description: 'date' }),
           datetime: flags.datetime({ description: 'datetime' }),
@@ -1320,7 +1320,7 @@ describe('SfdxCommand', () => {
           apiversion: flags.builtin(),
           concise: flags.builtin(),
           quiet: flags.builtin(),
-          verbose: flags.builtin()
+          verbose: flags.builtin(),
         };
 
         public static supportsUsername = true;
@@ -1365,7 +1365,7 @@ describe('SfdxCommand', () => {
         '--quiet',
         '--verbose',
         '--targetdevhubusername=foo',
-        '--targetusername=bar'
+        '--targetusername=bar',
       ]);
 
       expect(inputs.boolean).to.be.true;
@@ -1457,7 +1457,7 @@ describe('SfdxCommand', () => {
     class TestCommand extends BaseTestCommand {
       public static readonly deprecated = {
         message: "Don't use this junk no more, dig?",
-        version: 41
+        version: 41,
       };
       public static readonly flagsConfig: FlagsConfig = {
         foo: flags.boolean({
@@ -1465,9 +1465,9 @@ describe('SfdxCommand', () => {
           deprecated: {
             message: 'For the love of Mike, stop using this!',
             version: '41.0',
-            to: 'bar'
-          }
-        })
+            to: 'bar',
+          },
+        }),
       };
       public async run() {
         return 'I ran!';
@@ -1479,7 +1479,8 @@ describe('SfdxCommand', () => {
       expect(output).to.equal('I ran!');
       expect(process.exitCode).to.equal(0);
 
-      const commandWarning = `The command "TestCommand" has been deprecated and will be removed in v42.0 or later. Don't use this junk no more, dig?`;
+      const commandWarning =
+        'The command "TestCommand" has been deprecated and will be removed in v42.0 or later. Don\'t use this junk no more, dig?';
       expect(UX_OUTPUT.warn[0]).to.include(commandWarning);
 
       const flagWarning =
@@ -1494,8 +1495,8 @@ describe('SfdxCommand', () => {
         result: 'I ran!',
         warnings: [
           'The command "TestCommand" has been deprecated and will be removed in v42.0 or later. Don\'t use this junk no more, dig?',
-          'The flag "foo" has been deprecated and will be removed in v42.0 or later. Use "bar" instead. For the love of Mike, stop using this!'
-        ]
+          'The flag "foo" has been deprecated and will be removed in v42.0 or later. Use "bar" instead. For the love of Mike, stop using this!',
+        ],
       });
     });
   });

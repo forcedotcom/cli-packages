@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as oclifTest from '@oclif/test';
 import { command, Config, expect, FancyTypes } from '@oclif/test';
@@ -16,7 +16,7 @@ import {
   ensure,
   ensureString,
   JsonMap,
-  Optional
+  Optional,
 } from '@salesforce/ts-types';
 
 // Need to prevent typescript error
@@ -46,28 +46,28 @@ const withOrg = (org: Partial<AuthFields> = {}, setAsDefault = true) => {
           instanceUrl: 'http://na30.salesforce.com',
           loginUrl: 'https://login.salesforce.com',
           created: '1519163543003',
-          isDevHub: false
+          isDevHub: false,
         },
         org
       );
 
       ctx.orgs[org.username].default = setAsDefault;
 
-      const readOrg = async function(this: { path: string }) {
+      const readOrg = async function (this: { path: string }) {
         const path = this.path;
         const foundOrg = asJsonMap(
-          find(ctx.orgs, val => {
-            return path.indexOf(ensureString(val.username)) >= 0;
+          find(ctx.orgs, (val) => {
+            return path.includes(ensureString(val.username));
           }),
           {}
         );
         return foundOrg;
       };
-      const writeOrg = async function(this: { path: string }) {
+      const writeOrg = async function (this: { path: string }) {
         const path = this.path;
         const foundOrg = asJsonMap(
-          find(ctx.orgs, val => {
-            return path.indexOf(ensureString(val.username)) >= 0;
+          find(ctx.orgs, (val) => {
+            return path.includes(ensureString(val.username));
           }),
           {}
         );
@@ -76,17 +76,17 @@ const withOrg = (org: Partial<AuthFields> = {}, setAsDefault = true) => {
 
       $$.configStubs.AuthInfoConfig = {
         retrieveContents: readOrg,
-        updateContents: writeOrg
+        updateContents: writeOrg,
       };
-      const defaultOrg = find(ctx.orgs, o => !!o.default && !o.isDevHub);
-      const defaultDevHubOrg = find(ctx.orgs, o => !!o.default && !!o.isDevHub);
+      const defaultOrg = find(ctx.orgs, (o) => !!o.default && !o.isDevHub);
+      const defaultDevHubOrg = find(ctx.orgs, (o) => !!o.default && !!o.isDevHub);
       $$.configStubs.Config = {
         contents: {
           defaultusername: defaultOrg && defaultOrg.username,
-          defaultdevhubusername: defaultDevHubOrg && defaultDevHubOrg.username
-        }
+          defaultdevhubusername: defaultDevHubOrg && defaultDevHubOrg.username,
+        },
       };
-    }
+    },
   };
 };
 
@@ -98,7 +98,7 @@ const withConnectionRequest = (fakeFunction: (request: AnyJson, options?: AnyJso
   return {
     run(ctx: Dictionary) {
       $$.fakeConnectionRequest = fakeFunction;
-    }
+    },
   };
 };
 
@@ -109,12 +109,12 @@ const withProject = (sfdxProjectJson?: JsonMap) => {
         return $$.localPathRetriever(path || $$.id);
       });
       const DEFAULT_PROJECT_JSON = {
-        sfdcLoginUrl: 'https://login.salesforce.com'
+        sfdcLoginUrl: 'https://login.salesforce.com',
       };
       $$.configStubs.SfdxProjectJson = {
-        contents: Object.assign({}, DEFAULT_PROJECT_JSON, sfdxProjectJson)
+        contents: Object.assign({}, DEFAULT_PROJECT_JSON, sfdxProjectJson),
       };
-    }
+    },
   };
 };
 

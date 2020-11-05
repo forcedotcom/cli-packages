@@ -53,7 +53,7 @@ describe('SfdxFlags', () => {
       const rv = buildSfdxFlags(
         {
           // @ts-ignore force setting the char to simulate a legacy toolbelt use case
-          apiversion: flags.builtin({ char: 'a' })
+          apiversion: flags.builtin({ char: 'a' }),
         },
         {}
       );
@@ -67,7 +67,7 @@ describe('SfdxFlags', () => {
           concise: flags.builtin(),
           verbose: flags.builtin(),
           quiet: flags.builtin(),
-          apiversion: flags.builtin()
+          apiversion: flags.builtin(),
         },
         {}
       );
@@ -87,7 +87,7 @@ describe('SfdxFlags', () => {
           myinteger: flags.integer({ description: 'myinteger desc' }),
           mystring: flags.string({ description: 'mystring desc' }),
           myoption: flags.option({ description: 'myoption desc', parse: (i: string) => i }),
-          myversion: flags.version({ description: 'myversion desc' })
+          myversion: flags.version({ description: 'myversion desc' }),
         },
         {}
       );
@@ -112,7 +112,7 @@ describe('SfdxFlags', () => {
           myfilepath: flags.filepath({ description: 'myfilepath desc' }),
           myid: flags.id({ description: 'myid desc' }),
           mynumber: flags.number({ description: 'mynumber desc' }),
-          myurl: flags.url({ description: 'myurl desc' })
+          myurl: flags.url({ description: 'myurl desc' }),
         },
         {}
       );
@@ -155,7 +155,7 @@ describe('SfdxFlags', () => {
       const flag = flags.date({
         description: 'string',
         // not a date but sufficient for testing since it shouldn't get far enough to parse
-        validate: '^date$'
+        validate: '^date$',
       });
       if (!hasFunction(flag, 'parse')) throw new MissingPropertyError('parse', 'date');
       expect(() => flag.parse('foo')).to.throw(
@@ -218,7 +218,7 @@ describe('SfdxFlags', () => {
       const milliseconds2 = flags.milliseconds({
         description: 'milliseconds',
         min: Duration.milliseconds(2),
-        max: Duration.milliseconds(4)
+        max: Duration.milliseconds(4),
       });
       const minutes2 = flags.minutes({ description: 'minutes', min: Duration.minutes(2), max: Duration.minutes(4) });
       const seconds2 = flags.seconds({ description: 'seconds', min: Duration.seconds(2), max: Duration.seconds(4) });
@@ -283,13 +283,13 @@ describe('SfdxFlags', () => {
       });
 
       it('should not throw for validated/options array with valid values', () => {
-        const array = flags.array({ description: 'test', validate: s => /[0-9]+/.test(s), options: ['1', '3', '5'] });
+        const array = flags.array({ description: 'test', validate: (s) => /[0-9]+/.test(s), options: ['1', '3', '5'] });
         if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
         expect(array.parse('1,3,5')).to.deep.equal(['1', '3', '5']);
       });
 
       it('should throw for validated/options array with invalid values', () => {
-        const array = flags.array({ description: 'test', validate: s => /[0-9]+/.test(s), options: ['7', '8', '9'] });
+        const array = flags.array({ description: 'test', validate: (s) => /[0-9]+/.test(s), options: ['7', '8', '9'] });
         if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
         // expect validations to fail before options checking
         expect(() => array.parse('1,2,c')).to.throw(
@@ -333,7 +333,7 @@ describe('SfdxFlags', () => {
           description: 'test',
           map: (v: string) => parseInt(v, 10),
           validate: '[0-9]+',
-          options: [1, 3, 5]
+          options: [1, 3, 5],
         });
         if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
         expect(array.parse('1,3,5')).to.deep.equal([1, 3, 5]);
@@ -344,7 +344,7 @@ describe('SfdxFlags', () => {
           description: 'test',
           map: (v: string) => parseInt(v, 10),
           validate: '[0-9]+',
-          options: [7, 8, 9]
+          options: [7, 8, 9],
         });
         if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
         // expect validations to fail before options checking

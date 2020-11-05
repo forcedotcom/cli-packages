@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import Command from '@oclif/command';
@@ -16,7 +16,7 @@ import {
   Mode,
   Org,
   SfdxError,
-  SfdxProject
+  SfdxProject,
 } from '@salesforce/core';
 import { env } from '@salesforce/kit';
 import { AnyJson, Dictionary, get, isBoolean, JsonMap, Optional } from '@salesforce/ts-types';
@@ -92,7 +92,7 @@ export abstract class SfdxCommand extends Command {
   static get flags(): Flags.Input<any> {
     return buildSfdxFlags(this.flagsConfig, {
       targetdevhubusername: !!(this.supportsDevhubUsername || this.requiresDevhubUsername),
-      targetusername: !!(this.supportsUsername || this.requiresUsername)
+      targetusername: !!(this.supportsUsername || this.requiresUsername),
     });
   }
 
@@ -200,6 +200,7 @@ export abstract class SfdxCommand extends Command {
 
   /**
    * Actual command run code goes here.
+   *
    * @returns {Promise<any>} Returns a promise
    * @throws {Error | SfdxError} Throws an error. If the error is not an SfdxError, it will
    * be wrapped in an SfdxError. If the error contains exitCode field, process.exitCode
@@ -227,7 +228,7 @@ export abstract class SfdxCommand extends Command {
     try {
       this.org = await Org.create({
         aliasOrUsername: this.flags.targetusername,
-        aggregator: this.configAggregator
+        aggregator: this.configAggregator,
       });
       if (this.flags.apiversion) {
         this.org.getConnection().setApiVersion(this.flags.apiversion);
@@ -249,7 +250,7 @@ export abstract class SfdxCommand extends Command {
       this.hubOrg = await Org.create({
         aliasOrUsername: this.flags.targetdevhubusername,
         aggregator: this.configAggregator,
-        isDevHub: true
+        isDevHub: true,
       });
       if (this.flags.apiversion) {
         this.hubOrg.getConnection().setApiVersion(this.flags.apiversion);
@@ -322,7 +323,7 @@ export abstract class SfdxCommand extends Command {
     const { args, flags, argv } = this.parse({
       flags: this.statics.flags,
       args: this.statics.args,
-      strict
+      strict,
     });
     this.flags = flags;
     this.args = args;
@@ -337,7 +338,7 @@ export abstract class SfdxCommand extends Command {
     // If this command supports varargs, parse them from argv.
     if (this.statics.varargs) {
       const argVals: string[] = Object.values(args);
-      const varargs = argv.filter(val => !argVals.includes(val));
+      const varargs = argv.filter((val) => !argVals.includes(val));
       this.varargs = this.parseVarargs(varargs);
     }
 
@@ -396,7 +397,7 @@ export abstract class SfdxCommand extends Command {
     const userDisplayError = Object.assign(this.getJsonResultObject(error.data, error.exitCode), {
       ...error.toObject(),
       stack: error.stack,
-      warnings: Array.from(UX.warnings)
+      warnings: Array.from(UX.warnings),
     });
 
     if (this.isJson) {
@@ -428,7 +429,7 @@ export abstract class SfdxCommand extends Command {
         let output = this.getJsonResultObject();
         if (UX.warnings.size > 0) {
           output = Object.assign(output, {
-            warnings: Array.from(UX.warnings)
+            warnings: Array.from(UX.warnings),
           });
         }
         this.ux.logJson(output);
@@ -446,7 +447,7 @@ export abstract class SfdxCommand extends Command {
         def = {
           name: this.statics.name,
           type: 'command',
-          ...this.statics.deprecated
+          ...this.statics.deprecated,
         };
       } else {
         def = this.statics.deprecated;
@@ -463,7 +464,7 @@ export abstract class SfdxCommand extends Command {
             UX.formatDeprecationWarning({
               name: flag,
               type: 'flag',
-              ...def.deprecated
+              ...def.deprecated,
             })
           );
         }
@@ -485,7 +486,7 @@ export abstract class SfdxCommand extends Command {
     }
 
     // Validate the format of the varargs
-    args.forEach(arg => {
+    args.forEach((arg) => {
       const split = arg.split('=');
 
       if (split.length !== 2) {
@@ -512,6 +513,7 @@ export abstract class SfdxCommand extends Command {
    * Format errors and actions for human consumption. Adds 'ERROR running <command name>',
    * and outputs all errors in red.  When there are actions, we add 'Try this:' in blue
    * followed by each action in red on its own line.
+   *
    * @returns {string[]} Returns decorated messages.
    */
   protected formatError(error: SfdxError): string[] {
@@ -526,7 +528,7 @@ export abstract class SfdxCommand extends Command {
     if (get(error, 'actions.length')) {
       colorizedArgs.push(`\n\n${chalk.blue(chalk.bold('Try this:'))}`);
       if (error.actions) {
-        error.actions.forEach(action => {
+        error.actions.forEach((action) => {
           colorizedArgs.push(`\n${chalk.red(action)}`);
         });
       }
@@ -560,13 +562,13 @@ export abstract class SfdxCommand extends Command {
     const options = {
       Command: this.ctor,
       argv: this.argv,
-      commandId: this.id
+      commandId: this.id,
     };
 
     const lifecycle = Lifecycle.getInstance();
 
-    lifecycleEventNames.forEach(eventName => {
-      lifecycle.on(eventName, async result => {
+    lifecycleEventNames.forEach((eventName) => {
+      lifecycle.on(eventName, async (result) => {
         await this.config.runHook(eventName, Object.assign(options, { result }));
       });
     });

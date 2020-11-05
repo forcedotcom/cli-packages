@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { Dictionary, ensure, ensureArray, getString, isArray, isBoolean, isPlainObject } from '@salesforce/ts-types';
 import { definiteEntriesOf } from '@salesforce/ts-types';
 import { get } from '@salesforce/ts-types';
@@ -154,6 +160,7 @@ export class DocOpts<T extends typeof SfdxCommand> {
    * For example, a flag that depends on a flag that depends on another flag.
    *
    * See tests to see what is supported.
+   *
    * @param elementMap All doc opt elements.
    * @param flagName The name of the flag to combine to.
    * @param flagNames The other flag names to combine to flagName.
@@ -171,7 +178,7 @@ export class DocOpts<T extends typeof SfdxCommand> {
     let isRequired = ensure(this.flags[flagName]).required;
     if (!isBoolean(isRequired) || !isRequired) {
       isRequired = flagNames.reduce(
-        (required, toCombine) => required || (this.cmd.flags[toCombine].required || false),
+        (required, toCombine) => required || this.cmd.flags[toCombine].required || false,
         false
       );
     }
@@ -208,9 +215,9 @@ export class DocOpts<T extends typeof SfdxCommand> {
 
     // We should also group on depends (AND, OR)
     for (const flag of this.flagList) {
-      if (alwaysBuiltinFlagKeys.find(key => key === flag.name)) {
+      if (alwaysBuiltinFlagKeys.find((key) => key === flag.name)) {
         alwaysBuiltinFlags.push(flag);
-      } else if (sometimesBuiltinFlagKeys.find(key => key === flag.name)) {
+      } else if (sometimesBuiltinFlagKeys.find((key) => key === flag.name)) {
         sometimesBuiltinFlags.push(flag);
       } else if (flag.required) {
         requiredFlags.push(flag);
@@ -223,12 +230,13 @@ export class DocOpts<T extends typeof SfdxCommand> {
       requiredFlags,
       optionalFlags,
       sometimesBuiltinFlags,
-      alwaysBuiltinFlags
+      alwaysBuiltinFlags,
     };
   }
 
   /**
    * Generate doc opt elements for all flags.
+   *
    * @param elementMap The map to add the elements to.
    * @param flagGroups The flags to generate elements for.
    */

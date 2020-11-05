@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { URL } from 'url';
 import { flags as OclifFlags } from '@oclif/command';
 import * as Parser from '@oclif/parser';
 import { EnumFlagOptions, IBooleanFlag, IFlag, IOptionFlag } from '@oclif/parser/lib/flags';
@@ -22,10 +23,9 @@ import {
   isNumber,
   isString,
   Omit,
-  Optional
+  Optional,
 } from '@salesforce/ts-types';
 import { Dictionary } from '@salesforce/ts-types';
-import { URL } from 'url';
 import { Deprecation } from './ux';
 
 Messages.importMessagesDirectory(__dirname);
@@ -43,7 +43,7 @@ function merge<T>(kind: flags.Kind, flag: IFlag<T>, describable: flags.Describab
     kind,
     ...flag,
     description: describable.description,
-    longDescription: describable.longDescription
+    longDescription: describable.longDescription,
   };
 }
 
@@ -100,14 +100,14 @@ function buildEnum<T>(options: flags.Enum<T>): flags.Discriminated<flags.Enum<T>
     ...OclifFlags.enum(options),
     options: options.options,
     description: options.description,
-    longDescription: options.longDescription
+    longDescription: options.longDescription,
   };
 }
 
 function buildHelp(options: flags.BaseBoolean<boolean>): flags.Discriminated<flags.Boolean<void>> {
   const flag = OclifFlags.help(options);
   return merge('help', OclifFlags.help(options), {
-    description: ensure(flag.description)
+    description: ensure(flag.description),
   });
 }
 
@@ -133,7 +133,7 @@ function buildString(options: flags.String): flags.Discriminated<flags.String> {
 function buildVersion(options?: flags.BaseBoolean<boolean>): flags.Discriminated<flags.Boolean<void>> {
   const flag = OclifFlags.version(options);
   return merge('version', flag, {
-    description: ensure(flag.description)
+    description: ensure(flag.description),
   });
 }
 
@@ -149,9 +149,9 @@ function buildArray<T>(options: flags.Array | flags.MappedArray<T>): flags.Discr
 function buildStringArray(kind: flags.Kind, options: flags.Array<string>): flags.Discriminated<flags.Array<string>> {
   const { options: values, validate, ...rest } = options;
   const allowed = new Set(values);
-  return option(kind, rest, val => {
+  return option(kind, rest, (val) => {
     const regex = /\"(.*?)\"|\'(.*?)\'|,/g;
-    const vals = val.split(regex).filter(i => !!i);
+    const vals = val.split(regex).filter((i) => !!i);
 
     validateArrayValues(kind, val, vals, options.validate);
     validateArrayOptions(kind, val, vals, allowed);
@@ -218,7 +218,7 @@ function buildMilliseconds(options: flags.Milliseconds): flags.Discriminated<fla
   return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
     validateValue(Number.isInteger(parsed), val, kind);
-    return Duration.milliseconds(validateBounds(kind, parsed, options, v => (isNumber(v) ? v : v[kind])));
+    return Duration.milliseconds(validateBounds(kind, parsed, options, (v) => (isNumber(v) ? v : v[kind])));
   });
 }
 
@@ -227,7 +227,7 @@ function buildMinutes(options: flags.Minutes): flags.Discriminated<flags.Minutes
   return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
     validateValue(Number.isInteger(parsed), val, kind);
-    return Duration.minutes(validateBounds(kind, parsed, options, v => (isNumber(v) ? v : v[kind])));
+    return Duration.minutes(validateBounds(kind, parsed, options, (v) => (isNumber(v) ? v : v[kind])));
   });
 }
 
@@ -245,7 +245,7 @@ function buildSeconds(options: flags.Seconds): flags.Discriminated<flags.Seconds
   return option(kind, options, (val: string) => {
     const parsed = toNumber(val);
     validateValue(Number.isInteger(parsed), val, kind);
-    return Duration.seconds(validateBounds(kind, parsed, options, v => (isNumber(v) ? v : v[kind])));
+    return Duration.seconds(validateBounds(kind, parsed, options, (v) => (isNumber(v) ? v : v[kind])));
   });
 }
 
@@ -383,20 +383,20 @@ export const flags = {
   /**
    * Declares a flag definition to be one of the builtin types, for automatic configuration.
    */
-  builtin: buildBuiltin
+  builtin: buildBuiltin,
 };
 
 export const requiredBuiltinFlags = {
   json(): flags.Discriminated<flags.Boolean<boolean>> {
     return flags.boolean({
       description: messages.getMessage('jsonFlagDescription'),
-      longDescription: messages.getMessage('jsonFlagLongDescription')
+      longDescription: messages.getMessage('jsonFlagLongDescription'),
     });
   },
 
   loglevel(): flags.Discriminated<flags.Enum<string>> {
     return flags.enum({
-      options: Logger.LEVEL_NAMES.concat(Logger.LEVEL_NAMES.map(l => l.toUpperCase())),
+      options: Logger.LEVEL_NAMES.concat(Logger.LEVEL_NAMES.map((l) => l.toUpperCase())),
       default: LoggerLevel[Logger.DEFAULT_LEVEL].toLowerCase(),
       required: false,
       description: messages.getMessage('loglevelFlagDescription'),
@@ -405,9 +405,9 @@ export const requiredBuiltinFlags = {
         val = val.toLowerCase();
         if (Logger.LEVEL_NAMES.includes(val)) return val;
         throw SfdxError.create('@salesforce/command', 'flags', 'InvalidLoggerLevelError', [val]);
-      }
+      },
     });
-  }
+  },
 };
 
 export const optionalBuiltinFlags = {
@@ -420,7 +420,7 @@ export const optionalBuiltinFlags = {
         parse: (val: string) => {
           if (sfdc.validateApiVersion(val)) return val;
           throw SfdxError.create('@salesforce/command', 'flags', 'InvalidApiVersionError', [val]);
-        }
+        },
       })
     );
   },
@@ -430,7 +430,7 @@ export const optionalBuiltinFlags = {
       opts || {},
       flags.boolean({
         description: resolve(opts, 'description', messages.getMessage('conciseFlagDescription')),
-        longDescription: resolve(opts, 'longDescription', messages.getMessage('conciseFlagLongDescription'))
+        longDescription: resolve(opts, 'longDescription', messages.getMessage('conciseFlagLongDescription')),
       })
     );
   },
@@ -440,7 +440,7 @@ export const optionalBuiltinFlags = {
       opts || {},
       flags.boolean({
         description: resolve(opts, 'description', messages.getMessage('quietFlagDescription')),
-        longDescription: resolve(opts, 'longDescription', messages.getMessage('quietFlagLongDescription'))
+        longDescription: resolve(opts, 'longDescription', messages.getMessage('quietFlagLongDescription')),
       })
     );
   },
@@ -455,7 +455,7 @@ export const optionalBuiltinFlags = {
           opts,
           'longDescription',
           messages.getMessage('targetdevhubusernameFlagLongDescription')
-        )
+        ),
       })
     );
   },
@@ -466,7 +466,7 @@ export const optionalBuiltinFlags = {
       flags.string({
         char: 'u',
         description: resolve(opts, 'description', messages.getMessage('targetusernameFlagDescription')),
-        longDescription: resolve(opts, 'longDescription', messages.getMessage('targetusernameFlagLongDescription'))
+        longDescription: resolve(opts, 'longDescription', messages.getMessage('targetusernameFlagLongDescription')),
       })
     );
   },
@@ -476,10 +476,10 @@ export const optionalBuiltinFlags = {
       opts || {},
       flags.boolean({
         description: resolve(opts, 'description', messages.getMessage('verboseFlagDescription')),
-        longDescription: resolve(opts, 'longDescription', messages.getMessage('verboseFlagLongDescription'))
+        longDescription: resolve(opts, 'longDescription', messages.getMessage('verboseFlagLongDescription')),
       })
     );
-  }
+  },
 };
 
 function resolve(opts: Optional<flags.Builtin>, key: keyof flags.Builtin, def: string): string {
@@ -590,7 +590,7 @@ function validateArrayValues(
 
 function validateArrayOptions<T>(kind: flags.Kind, raw: string, vals: T[], allowed: Set<T>) {
   validateValue(
-    allowed.size === 0 || vals.every(t => allowed.has(t)),
+    allowed.size === 0 || vals.every((t) => allowed.has(t)),
     raw,
     kind,
     ` ${messages.getMessage('FormattingMessageArrayOption', [Array.from(allowed).toString()])}`

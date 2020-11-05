@@ -1,6 +1,12 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import set = Reflect.set;
-import { expect } from 'chai';
 import * as os from 'os';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { AppInsights, buildPropertiesAndMeasurements, getCpus, getPlatformVersion } from '../../src/appInsights';
 
@@ -38,7 +44,7 @@ describe('AppInsights', () => {
       'common.os',
       'common.platformversion',
       'common.systemmemory',
-      'common.usertype'
+      'common.usertype',
     ];
     expect(Object.keys(actualBaseProps)).to.deep.equal(expectedBaseProps);
   });
