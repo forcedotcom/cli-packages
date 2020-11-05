@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Plugin } from 'fancy-test/lib/types';
 import * as oclifTest from '@oclif/test';
 import { command, Config, expect, FancyTypes } from '@oclif/test';
 import { AuthFields, SfdxProject } from '@salesforce/core';
@@ -27,10 +28,15 @@ loadConfig.root = ensure(module.parent).filename;
 
 const $$ = testSetup();
 
-const withOrg = (org: Partial<AuthFields> = {}, setAsDefault = true) => {
+function find(orgs: Dictionary<JsonMap>, predicate: (val: JsonMap) => boolean): Optional<JsonMap> {
+  return definiteValuesOf(orgs).filter(predicate)[0];
+}
+
+const withOrg = (org: Partial<AuthFields> = {}, setAsDefault = true): Plugin<Dictionary> => {
   return {
-    // tslint:disable-next-line:no-any TODO: properly type the dictionary
-    run(ctx: Dictionary<any>) {
+    // TODO: properly type the dictionary
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    run(ctx: Dictionary<any>): void {
       if (!ctx.orgs) {
         ctx.orgs = {};
       }
@@ -53,7 +59,8 @@ const withOrg = (org: Partial<AuthFields> = {}, setAsDefault = true) => {
 
       ctx.orgs[org.username].default = setAsDefault;
 
-      const readOrg = async function (this: { path: string }) {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      const readOrg = async function (this: { path: string }): Promise<JsonMap> {
         const path = this.path;
         const foundOrg = asJsonMap(
           find(ctx.orgs, (val) => {
@@ -63,7 +70,8 @@ const withOrg = (org: Partial<AuthFields> = {}, setAsDefault = true) => {
         );
         return foundOrg;
       };
-      const writeOrg = async function (this: { path: string }) {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      const writeOrg = async function (this: { path: string }): Promise<JsonMap> {
         const path = this.path;
         const foundOrg = asJsonMap(
           find(ctx.orgs, (val) => {
@@ -90,22 +98,20 @@ const withOrg = (org: Partial<AuthFields> = {}, setAsDefault = true) => {
   };
 };
 
-function find(orgs: Dictionary<JsonMap>, predicate: (val: JsonMap) => boolean): Optional<JsonMap> {
-  return definiteValuesOf(orgs).filter(predicate)[0];
-}
-
-const withConnectionRequest = (fakeFunction: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>) => {
+const withConnectionRequest = (
+  fakeFunction: (request: AnyJson, options?: AnyJson) => Promise<AnyJson>
+): Plugin<Dictionary> => {
   return {
-    run(ctx: Dictionary) {
+    run(): void {
       $$.fakeConnectionRequest = fakeFunction;
     },
   };
 };
 
-const withProject = (sfdxProjectJson?: JsonMap) => {
+const withProject = (sfdxProjectJson?: JsonMap): Plugin<unknown> => {
   return {
-    run(ctx: Dictionary) {
-      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').callsFake((path: string) => {
+    run(): void {
+      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').callsFake((path: string | undefined) => {
         return $$.localPathRetriever(path || $$.id);
       });
       const DEFAULT_PROJECT_JSON = {

@@ -107,8 +107,9 @@ let configAggregatorCreate: SinonStub;
 let jsonToStdout: boolean;
 
 async function mockStdout(test: (outLines: string[]) => Promise<void>) {
-  const oldStdoutWriter = process.stdout.write;
+  const oldStdoutWriter = process.stdout.write.bind(process.stdout);
   const lines: string[] = [];
+  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   process.stdout.write = (message) => {
     if (message) {
@@ -132,7 +133,8 @@ describe('SfdxCommand', () => {
       DEFAULT_INSTANCE_PROPS.configAggregator
     );
 
-    $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns({ is: () => false });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns({ is: () => false } as any);
 
     // Stub all UX methods to update the UX_OUTPUT object
     $$.SANDBOX.stub(UX.prototype, 'log').callsFake((args: string[]) => UX_OUTPUT.log.push(args));
@@ -164,7 +166,7 @@ describe('SfdxCommand', () => {
     env.setBoolean('SFDX_JSON_TO_STDOUT', jsonToStdout);
   });
 
-  // tslint:disable-next-line:no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function verifyCmdFlags(verifications: Dictionary<any>) {
     const merged = Object.assign({}, DEFAULT_CMD_PROPS.flags, verifications);
     const numOfFlagsMessage = 'Number of flag definitions for the command should match';
@@ -433,6 +435,7 @@ describe('SfdxCommand', () => {
 
       // Check that the first line of the logged output is `USAGE` once ANSI colors have been removed
       expect(lines.length).to.be.gte(1);
+      // eslint-disable-next-line no-control-regex
       const help = lines[0].slice(0, lines[0].indexOf('\n')).replace(/\u001b\[[0-9]+m/g, '');
       expect(help).to.equal('USAGE');
     });
@@ -461,6 +464,7 @@ describe('SfdxCommand', () => {
       expect(process.exitCode).to.equal(0);
       // Check that the first line of the logged output is `USAGE` once ANSI colors have been removed
       expect(lines.length).to.be.gte(1);
+      // eslint-disable-next-line no-control-regex
       const help = lines[0].slice(0, lines[0].indexOf('\n')).replace(/\u001b\[[0-9]+m/g, '');
       expect(help).to.equal('USAGE');
     });
@@ -684,6 +688,7 @@ describe('SfdxCommand', () => {
       public static result: SfdxResult = {
         tableColumnData,
         display() {
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           this.ux.log(`CUSTOM: ${this.data}`);
         },
       };
@@ -705,6 +710,7 @@ describe('SfdxCommand', () => {
       tableColumnData,
     };
     expect(testCommandMeta.cmdInstance['result']).to.deep.include(expectedResult);
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     verifyUXOutput({ log: [`CUSTOM: ${MyTestCommand.output}`] });
   });
 
@@ -712,6 +718,7 @@ describe('SfdxCommand', () => {
     // Run the command
     class TestCommand extends BaseTestCommand {}
     TestCommand['result']['display'] = function (this: Result) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       this.ux.log(`CUSTOM: ${this.data}`);
     };
     TestCommand.output = 'new string output';
@@ -731,8 +738,9 @@ describe('SfdxCommand', () => {
 
   it('should warn when apiVersion is being overridden via config', async () => {
     const apiVersion = '42.0';
-    const configAggregator = {
-      getInfo: (x: ConfigInfo) => ({ value: apiVersion }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const configAggregator: any = {
+      getInfo: () => ({ value: apiVersion }),
     };
     configAggregatorCreate.restore();
     configAggregatorCreate = $$.SANDBOX.stub(ConfigAggregator, 'create').returns(configAggregator);
@@ -751,14 +759,15 @@ describe('SfdxCommand', () => {
     };
     expect(testCommandMeta.cmdInstance['result']).to.include(expectedResult);
     verifyUXOutput({
-      warn: [`apiVersion configuration overridden at \"${apiVersion}\"`],
+      warn: [`apiVersion configuration overridden at "${apiVersion}"`],
     });
   });
 
   it('should NOT warn when apiVersion is overridden via a flag', async () => {
     const apiVersion = '42.0';
-    const configAggregator = {
-      getInfo: (x: ConfigInfo) => ({ value: apiVersion }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const configAggregator: any = {
+      getInfo: () => ({ value: apiVersion }),
     };
     configAggregatorCreate.restore();
     configAggregatorCreate = $$.SANDBOX.stub(ConfigAggregator, 'create').returns(configAggregator);
@@ -844,7 +853,8 @@ describe('SfdxCommand', () => {
     expect(emitSpy.calledOnceWith('cmdError'), expectationMsg).to.equal(true);
     expect(emitSpy.firstCall.args[0]).to.equal('cmdError');
     expect(emitSpy.firstCall.args[1]).to.be.instanceOf(Error);
-    expect(emitSpy.firstCall.args[2]).to.deep.equal(expectedFlags);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((emitSpy.firstCall.args as any)[2]).to.deep.equal(expectedFlags);
   });
 
   it('should NOT throw when supportsUsername and org create fails', async () => {
@@ -1090,6 +1100,7 @@ describe('SfdxCommand', () => {
       const create = flags[flagType];
       class TestCommand extends BaseTestCommand {
         public static flagsConfig = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
           // @ts-ignore TODO: why isn't `create` invokable?!
           doflag: create({ char: 'i', description: 'my desc' }),
         };
@@ -1194,6 +1205,7 @@ describe('SfdxCommand', () => {
       TestCommand.flagsConfig = {
         myflag: flags.string({
           char: 'm',
+          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
           // @ts-ignore ignore invalid longDescription value
           longDescription: false,
           description: 'my desc',
@@ -1207,6 +1219,7 @@ describe('SfdxCommand', () => {
     it('should validate description is defined', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore ignore error about not providing description
         myflag: flags.string({ char: 'm' }),
       };
@@ -1218,6 +1231,7 @@ describe('SfdxCommand', () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
         myflag: flags.string({
+          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
           // @ts-ignore ignore invalid char value length
           char: 'foo',
           description: 'bar',
@@ -1230,6 +1244,7 @@ describe('SfdxCommand', () => {
     it('should validate char is alphabetical', async () => {
       class TestCommand extends BaseTestCommand {}
       TestCommand.flagsConfig = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore ignore invalid char value
         myflag: flags.string({ char: '5', description: 'bar' }),
       };
@@ -1269,6 +1284,8 @@ describe('SfdxCommand', () => {
           description: 'my desc',
         }),
       };
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore Allow undefined array value against the compiler spec to test underlying engine
       const output = await TestCommand.run(['--myflag', undefined]);
       expect(output).to.equal(undefined);
@@ -1281,7 +1298,7 @@ describe('SfdxCommand', () => {
 
   describe('flags', () => {
     it('should support all possible flag types', async () => {
-      // tslint:disable-next-line:no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let inputs: Dictionary<any> = {};
 
       class FlagsTestCommand extends BaseTestCommand {

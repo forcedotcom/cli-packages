@@ -46,14 +46,14 @@ export class Result implements SfdxResult {
   public tableColumnData?: TableOptions;
   public ux!: UX; // assigned in SfdxCommand.init
 
-  constructor(config: SfdxResult = {}) {
+  public constructor(config: SfdxResult = {}) {
     this.tableColumnData = config.tableColumnData;
     if (config.display) {
       this.display = config.display.bind(this);
     }
   }
 
-  public display() {
+  public display(): void {
     if (this.tableColumnData) {
       if (Array.isArray(this.data) && this.data.length) {
         this.ux.table(this.data, this.tableColumnData);
@@ -85,29 +85,6 @@ export type VarargsConfig =
  * @see https://github.com/oclif/command
  */
 export abstract class SfdxCommand extends Command {
-  // Overrides @oclif/command static flags property.  Adds username flags
-  // if the command supports them.  Builds flags defined by the command's
-  // flagsConfig static property.
-  // tslint:disable-next-line no-any (matches oclif)
-  static get flags(): Flags.Input<any> {
-    return buildSfdxFlags(this.flagsConfig, {
-      targetdevhubusername: !!(this.supportsDevhubUsername || this.requiresDevhubUsername),
-      targetusername: !!(this.supportsUsername || this.requiresUsername),
-    });
-  }
-
-  static get usage(): string {
-    return DocOpts.generate(this);
-  }
-
-  public static getVarArgsConfig(): Partial<VarargsConfig> | undefined {
-    if (isBoolean(this.varargs)) {
-      return this.varargs ? {} : undefined;
-    }
-    // Don't let others muck with this commands config
-    return Object.assign({}, this.varargs);
-  }
-
   // TypeScript does not yet have assertion-free polymorphic access to a class's static side from the instance side
   protected get statics(): typeof SfdxCommand {
     return this.constructor as typeof SfdxCommand;
@@ -165,10 +142,10 @@ export abstract class SfdxCommand extends Command {
   protected result!: Result;
 
   // The parsed flags for easy reference by this command; assigned in init
-  protected flags!: OutputFlags<any>; // tslint:disable-line no-any
+  protected flags!: OutputFlags<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   // The parsed args for easy reference by this command; assigned in init
-  protected args!: OutputArgs<any>; // tslint:disable-line no-any
+  protected args!: OutputArgs<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   // The parsed varargs for easy reference by this command
   protected varargs?: JsonMap;
@@ -177,6 +154,14 @@ export abstract class SfdxCommand extends Command {
   protected readonly lifecycleEventNames: string[] = [];
 
   private isJson = false;
+
+  public static getVarArgsConfig(): Partial<VarargsConfig> | undefined {
+    if (isBoolean(this.varargs)) {
+      return this.varargs ? {} : undefined;
+    }
+    // Don't let others muck with this commands config
+    return Object.assign({}, this.varargs);
+  }
 
   public async _run<T>(): Promise<Optional<T>> {
     // If a result is defined for the command, use that.  Otherwise check for a
@@ -197,16 +182,6 @@ export abstract class SfdxCommand extends Command {
       await this.finally(err);
     }
   }
-
-  /**
-   * Actual command run code goes here.
-   *
-   * @returns {Promise<any>} Returns a promise
-   * @throws {Error | SfdxError} Throws an error. If the error is not an SfdxError, it will
-   * be wrapped in an SfdxError. If the error contains exitCode field, process.exitCode
-   * will set to it.
-   */
-  public abstract async run(): Promise<any>; // tslint:disable-line no-any (matches oclif)
 
   // Assign this.project if the command requires to be run from within a project.
   protected async assignProject(): Promise<void> {
@@ -286,7 +261,7 @@ export abstract class SfdxCommand extends Command {
     return true;
   }
 
-  protected async init() {
+  protected async init(): Promise<void> {
     // If we made it to the init method, the exit code should not be set yet. It will be
     // successful unless the base init or command throws an error.
     process.exitCode = 0;
@@ -298,6 +273,7 @@ export abstract class SfdxCommand extends Command {
 
     // Regex match on loglevel flag in argv and set on the root logger so the proper log level
     // is used.  If no match, the default root log level is used.
+    // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
     const loglevel = this.argv.join(' ').match(/--loglevel\s*=?\s*([a-z]+)/);
     if (loglevel) {
       (await Logger.root()).setLevel(Logger.getLevelByName(loglevel[1]));
@@ -307,6 +283,7 @@ export abstract class SfdxCommand extends Command {
 
     // If the -h flag is set in argv and not overridden by the subclass, emit help and exit.
     if (this.shouldEmitHelp()) {
+      // eslint-disable-next-line no-underscore-dangle
       this._help();
     }
 
@@ -378,9 +355,8 @@ export abstract class SfdxCommand extends Command {
     await this.hooksFromLifecycleEvent(this.lifecycleEventNames);
   }
 
-  // tslint:disable no-reserved-keywords
-  // tslint:disable-next-line no-any (matches oclif)
-  protected async catch(err: any) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  protected async catch(err: any): Promise<void> {
     // Let oclif handle exit signal errors.
     if (err.code === 'EEXIT') {
       throw err;
@@ -418,11 +394,13 @@ export abstract class SfdxCommand extends Command {
     }
     // Emit an event for the analytics plugin.  The ts-ignore is necessary
     // because TS is strict about the events that can be emitted on process.
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     process.emit('cmdError', err, Object.assign({}, this.flags, this.varargs), this.org || this.hubOrg);
   }
 
-  protected async finally(err: Optional<Error>) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  protected async finally(err: Optional<Error>): Promise<void> {
     // Only handle success since we're handling errors in the catch
     if (!err) {
       if (this.isJson) {
@@ -440,7 +418,7 @@ export abstract class SfdxCommand extends Command {
   }
 
   // If this command is deprecated, emit a warning
-  protected warnIfDeprecated() {
+  protected warnIfDeprecated(): void {
     if (this.statics.deprecated) {
       let def: DeprecationDefinition;
       if (has(this.statics.deprecated, 'version')) {
@@ -472,7 +450,10 @@ export abstract class SfdxCommand extends Command {
     }
   }
 
-  protected getJsonResultObject(result = this.result.data, status = process.exitCode || 0) {
+  protected getJsonResultObject(
+    result = this.result.data,
+    status = process.exitCode || 0
+  ): { status: number; result: AnyJson } {
     return { status, result };
   }
 
@@ -543,7 +524,7 @@ export abstract class SfdxCommand extends Command {
   /**
    * Initialize logger and ux for the command
    */
-  protected async initLoggerAndUx() {
+  protected async initLoggerAndUx(): Promise<void> {
     if (!this.logger) {
       this.logger = await Logger.child(this.statics.name);
     }
@@ -558,7 +539,8 @@ export abstract class SfdxCommand extends Command {
   /**
    * register events for command specific hooks
    */
-  private async hooksFromLifecycleEvent(lifecycleEventNames: string[]) {
+  private async hooksFromLifecycleEvent(lifecycleEventNames: string[]): Promise<void> { // eslint-disable-line @typescript-eslint/require-await, prettier/prettier
+    // eslint-disable-line prettier/prettier, @typescript-eslint/require-await
     const options = {
       Command: this.ctor,
       argv: this.argv,
@@ -573,4 +555,29 @@ export abstract class SfdxCommand extends Command {
       });
     });
   }
+
+  // Overrides @oclif/command static flags property.  Adds username flags
+  // if the command supports them.  Builds flags defined by the command's
+  // flagsConfig static property.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public static get flags(): Flags.Input<any> {
+    return buildSfdxFlags(this.flagsConfig, {
+      targetdevhubusername: !!(this.supportsDevhubUsername || this.requiresDevhubUsername),
+      targetusername: !!(this.supportsUsername || this.requiresUsername),
+    });
+  }
+
+  public static get usage(): string {
+    return DocOpts.generate(this);
+  }
+
+  /**
+   * Actual command run code goes here.
+   *
+   * @returns {Promise<any>} Returns a promise
+   * @throws {Error | SfdxError} Throws an error. If the error is not an SfdxError, it will
+   * be wrapped in an SfdxError. If the error contains exitCode field, process.exitCode
+   * will set to it.
+   */
+  public abstract async run(): Promise<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }

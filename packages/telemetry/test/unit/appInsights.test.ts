@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import set = Reflect.set;
 import * as os from 'os';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { AppInsights, buildPropertiesAndMeasurements, getCpus, getPlatformVersion } from '../../src/appInsights';
+import set = Reflect.set;
 
 describe('AppInsights', () => {
   const key = 'foo-bar-123';
@@ -162,14 +162,16 @@ describe('AppInsights', () => {
   });
 
   it('should handle missing os.cpus value', () => {
-    osStub = sandbox.stub(os, 'cpus').callsFake(() => {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    osStub = sandbox.stub(os, 'cpus').callsFake((() => undefined) as any);
     const actual = getCpus();
     expect(actual).to.equal('');
     expect(osStub.calledOnce).to.be.true;
   });
 
   it('should handle missing os release value', () => {
-    osStub = sandbox.stub(os, 'release').callsFake(() => {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    osStub = sandbox.stub(os, 'release').callsFake((() => undefined) as any);
     const actual = getPlatformVersion();
     expect(actual).to.equal('');
     expect(osStub.calledOnce).to.be.true;

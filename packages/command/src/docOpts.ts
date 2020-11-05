@@ -72,10 +72,6 @@ type FlagsType = FlagType[];
  * @param cmdDef
  */
 export class DocOpts<T extends typeof SfdxCommand> {
-  public static generate<T extends typeof SfdxCommand>(cmdDef: T): string {
-    return new DocOpts(cmdDef).toString();
-  }
-
   private cmd: T;
   private flags: Dictionary<FlagType>;
   private flagList: FlagsType;
@@ -85,13 +81,17 @@ export class DocOpts<T extends typeof SfdxCommand> {
     // Create a new map with references to the flags that we can manipulate.
     this.flags = {};
     this.flagList = definiteEntriesOf(this.cmd.flags)
-      .filter(([k, v]) => !v.hidden)
+      .filter(([, v]) => !v.hidden)
       .map(([k, v]) => {
         const { description, ...rest } = v;
         const flag = { description: ensure(description), ...rest, name: k };
         this.flags[k] = flag;
         return flag;
       });
+  }
+
+  public static generate<T extends typeof SfdxCommand>(cmdDef: T): string {
+    return new DocOpts(cmdDef).toString();
   }
 
   public toString(): string {
@@ -120,7 +120,7 @@ export class DocOpts<T extends typeof SfdxCommand> {
   /**
    * Group flags that dependOn (and) and are exclusive (or).
    */
-  private groupFlagElements() {
+  private groupFlagElements(): Dictionary<string> {
     const groups = this.categorizeFlags();
     const elementMap: Dictionary<string> = {};
 
@@ -146,7 +146,7 @@ export class DocOpts<T extends typeof SfdxCommand> {
       const remainingFlag = ensure(this.flags[remainingFlagName]);
 
       if (!remainingFlag.required) {
-        elementMap[remainingFlag.name] = `[${elementMap[remainingFlag.name]}]`;
+        elementMap[remainingFlag.name] = `[${elementMap[remainingFlag.name] || ''}]`;
       }
     }
     return elementMap;
@@ -171,28 +171,28 @@ export class DocOpts<T extends typeof SfdxCommand> {
     flagName: string,
     flagNames: string[],
     unionString: string
-  ) {
+  ): void {
     if (!this.flags[flagName]) {
       return;
     }
     let isRequired = ensure(this.flags[flagName]).required;
     if (!isBoolean(isRequired) || !isRequired) {
       isRequired = flagNames.reduce(
-        (required, toCombine) => required || this.cmd.flags[toCombine].required || false,
+        (required: boolean, toCombine) => required || this.cmd.flags[toCombine].required || false,
         false
       );
     }
 
     for (const toCombine of flagNames) {
-      elementMap[flagName] = `${elementMap[flagName]}${unionString}${elementMap[toCombine]}`;
+      elementMap[flagName] = `${elementMap[flagName] || ''}${unionString}${elementMap[toCombine] || ''}`;
       // We handled this flag, don't handle it again
       delete elementMap[toCombine];
       delete this.flags[toCombine];
     }
     if (isRequired) {
-      elementMap[flagName] = `(${elementMap[flagName]})`;
+      elementMap[flagName] = `(${elementMap[flagName] || ''})`;
     } else {
-      elementMap[flagName] = `[${elementMap[flagName]}]`;
+      elementMap[flagName] = `[${elementMap[flagName] || ''}]`;
     }
     // We handled this flag, don't handle it again
     delete this.flags[flagName];
@@ -205,7 +205,12 @@ export class DocOpts<T extends typeof SfdxCommand> {
    * For example, flags defined on the actual command should some before standard
    * fields like --json.
    */
-  private categorizeFlags() {
+  private categorizeFlags(): {
+    requiredFlags: FlagType[];
+    optionalFlags: FlagType[];
+    sometimesBuiltinFlags: FlagType[];
+    alwaysBuiltinFlags: FlagType[];
+  } {
     const alwaysBuiltinFlags = [];
     const alwaysBuiltinFlagKeys = Object.keys(requiredBuiltinFlags);
     const sometimesBuiltinFlags = [];
@@ -240,7 +245,7 @@ export class DocOpts<T extends typeof SfdxCommand> {
    * @param elementMap The map to add the elements to.
    * @param flagGroups The flags to generate elements for.
    */
-  private generateElements(elementMap: Dictionary<string> = {}, flagGroups: FlagsType) {
+  private generateElements(elementMap: Dictionary<string> = {}, flagGroups: FlagsType): string[] {
     const elementStrs = [];
     for (const flag of flagGroups) {
       const kind = ensure(getString(flag, 'kind'));

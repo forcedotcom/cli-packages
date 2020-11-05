@@ -7,12 +7,7 @@
 import { env } from '@salesforce/kit';
 import { ensure } from '@salesforce/ts-types';
 
-/*
- * Copyright (c) 2018, salesforce.com, inc.
- * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- */
+/* eslint-disable no-console */
 
 /**
  * A table option configuration type that can be the TableOptions as defined by
@@ -58,6 +53,24 @@ export class UX {
    */
   public static warnings: Set<string> = new Set<string>();
 
+  public cli: typeof cli;
+  private isOutputEnabled: boolean;
+
+  /**
+   * Do not directly construct instances of this class -- use {@link UX.create} instead.
+   */
+  public constructor(private logger: Logger, isOutputEnabled?: boolean, ux?: typeof cli) {
+    this.cli = ux || cli;
+
+    if (isBoolean(isOutputEnabled)) {
+      this.isOutputEnabled = isOutputEnabled;
+    } else {
+      // Respect the --json flag and SFDX_CONTENT_TYPE for consumers who don't explicitly check
+      const isContentTypeJSON = env.getString('SFDX_CONTENT_TYPE', '').toUpperCase() === 'JSON';
+      this.isOutputEnabled = !(process.argv.find((arg) => arg === '--json') || isContentTypeJSON);
+    }
+  }
+
   /**
    * Formats a deprecation warning for display to `stderr`, `stdout`, and/or logs.
    *
@@ -90,25 +103,6 @@ export class UX {
    */
   public static async create(): Promise<UX> {
     return new UX(await Logger.child('UX'));
-  }
-
-  public cli: typeof cli;
-
-  private isOutputEnabled: boolean;
-
-  /**
-   * Do not directly construct instances of this class -- use {@link UX.create} instead.
-   */
-  constructor(private logger: Logger, isOutputEnabled?: boolean, ux?: typeof cli) {
-    this.cli = ux || cli;
-
-    if (isBoolean(isOutputEnabled)) {
-      this.isOutputEnabled = isOutputEnabled;
-    } else {
-      // Respect the --json flag and SFDX_CONTENT_TYPE for consumers who don't explicitly check
-      const isContentTypeJSON = env.getString('SFDX_CONTENT_TYPE', '').toUpperCase() === 'JSON';
-      this.isOutputEnabled = !(process.argv.find((arg) => arg === '--json') || isContentTypeJSON);
-    }
   }
 
   /**
@@ -290,7 +284,8 @@ export class UX {
    * @param {SfdxTableOptions} options The {@link SfdxTableOptions} to use for formatting.
    * @returns {UX}
    */
-  // tslint:disable-next-line no-any (matches oclif)
+  // (allow any because matches oclif)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public table(rows: any[], options: TableOptions = {}): UX {
     if (this.isOutputEnabled) {
       // This is either an array of column names or an already built Partial<OclifTableOptions>

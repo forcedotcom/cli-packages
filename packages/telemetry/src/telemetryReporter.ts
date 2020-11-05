@@ -20,6 +20,19 @@ export { TelemetryOptions, Attributes, Properties, TelemetryClient } from './app
  * Reports telemetry events to app insights. We do not send if the config 'disableTelemetry' is set.
  */
 export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
+  // Keep a cache of config aggregator so we aren't loading it every time.
+  private static config: ConfigAggregator;
+
+  private options: TelemetryOptions;
+  private logger!: Logger;
+  private config!: ConfigAggregator;
+  private reporter!: AppInsights;
+
+  public constructor(options: TelemetryOptions) {
+    super(options);
+    this.options = options;
+  }
+
   /**
    * Determine if the telemetry event should be logged.
    * Setting the disableTelemetry config var to true will disable insights for errors and diagnostics.
@@ -32,19 +45,6 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
     const sfdxDisableInsights = configValue === 'true' || env.getBoolean('SFDX_DISABLE_INSIGHTS');
     const isEnabled = !sfdxDisableInsights;
     return isEnabled;
-  }
-
-  // Keep a cache of config aggregator so we aren't loading it every time.
-  private static config: ConfigAggregator;
-
-  private options: TelemetryOptions;
-  private logger!: Logger;
-  private config!: ConfigAggregator;
-  private reporter!: AppInsights;
-
-  constructor(options: TelemetryOptions) {
-    super(options);
-    this.options = options;
   }
 
   public async init(): Promise<void> {
@@ -73,7 +73,7 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
     this.reporter.stop();
   }
 
-  public async waitForConnection() {
+  public async waitForConnection(): Promise<void> {
     const canConnect = await this.testConnection();
     if (!canConnect) {
       throw new Error('Unable to connect to app insights.');
@@ -96,7 +96,7 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
         timeout,
         cancelToken: cancelRequest.token,
         // We want any status less than 500 to be resolved (not rejected)
-        validateStatus: (status: number) => status < 500,
+        validateStatus: (status: number): boolean => status < 500,
       };
       await axios.get(AppInsights.APP_INSIGHTS_SERVER, options);
       canConnect = true;

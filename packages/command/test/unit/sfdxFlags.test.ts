@@ -17,6 +17,12 @@ import { buildSfdxFlags, flags } from '../../src/sfdxFlags';
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/command', 'flags');
 
+class MissingPropertyError extends NamedError {
+  public constructor(property: string, flag: string) {
+    super(`Missing property '${property}' for '${flag}'`);
+  }
+}
+
 describe('SfdxFlags', () => {
   const containsRequiredFlags = (rv: flags.Output) => {
     expect(rv.json).to.include({ type: 'boolean', kind: 'boolean' });
@@ -52,6 +58,7 @@ describe('SfdxFlags', () => {
     it('should carry forward additional properties on builtins when forced (for legacy toolbelt compatibility)', () => {
       const rv = buildSfdxFlags(
         {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
           // @ts-ignore force setting the char to simulate a legacy toolbelt use case
           apiversion: flags.builtin({ char: 'a' }),
         },
@@ -391,9 +398,3 @@ describe('SfdxFlags', () => {
     });
   });
 });
-
-class MissingPropertyError extends NamedError {
-  constructor(property: string, flag: string) {
-    super(`Missing property '${property}' for '${flag}'`);
-  }
-}

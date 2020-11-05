@@ -31,9 +31,23 @@ import { Deprecation } from './ux';
 Messages.importMessagesDirectory(__dirname);
 const messages: Messages = Messages.loadMessages('@salesforce/command', 'flags');
 
+function validateValue(isValid: boolean, value: string, kind: string, correct?: string): string {
+  if (isValid) return value;
+  throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [value, kind, correct || '']);
+}
+
+function toValidatorFn(validator?: unknown): (val: string) => boolean {
+  return (val: string): boolean => {
+    if (isString(validator)) return new RegExp(validator).test(val);
+    if (isInstance(validator, RegExp)) return validator.test(val);
+    if (isFunction(validator)) return !!validator(val);
+    return true;
+  };
+}
+
 function merge<T>(kind: flags.Kind, flag: IFlag<T>, describable: flags.Describable): flags.Discriminated<flags.Any<T>> {
   if (has(flag, 'validate') && hasFunction(flag, 'parse')) {
-    const parse: <O>(val: string, ctx: unknown) => O = flag.parse;
+    const parse: <O>(val: string, ctx: unknown) => O = flag.parse.bind(flag);
     flag.parse = <O>(val: string, ctx: unknown): O => {
       validateValue(toValidatorFn(flag.validate)(val), val, kind);
       return parse(val, ctx);
@@ -96,7 +110,6 @@ function buildBoolean<T = boolean>(options: flags.Boolean<T>): flags.Discriminat
 function buildEnum<T>(options: flags.Enum<T>): flags.Discriminated<flags.Enum<T>> {
   return {
     kind: 'enum',
-    type: 'option',
     ...OclifFlags.enum(options),
     options: options.options,
     description: options.description,
@@ -109,6 +122,27 @@ function buildHelp(options: flags.BaseBoolean<boolean>): flags.Discriminated<fla
   return merge('help', OclifFlags.help(options), {
     description: ensure(flag.description),
   });
+}
+
+function validateBounds<T>(
+  kind: flags.Kind,
+  value: number,
+  bounds: flags.Bounds<T>,
+  extract: (t: T) => number
+): number {
+  if (bounds.min != null && value < extract(bounds.min)) {
+    throw new SfdxError(
+      `Expected ${kind} greater than or equal to ${extract(bounds.min)} but received ${value}`,
+      'InvalidFlagNumericBoundsError'
+    );
+  }
+  if (bounds.max != null && value > extract(bounds.max)) {
+    throw new SfdxError(
+      `Expected ${kind} less than or equal to ${extract(bounds.max)} but received ${value}`,
+      'InvalidFlagNumericBoundsError'
+    );
+  }
+  return value;
 }
 
 function buildInteger(options: flags.Number): flags.Discriminated<flags.Number> {
@@ -139,17 +173,46 @@ function buildVersion(options?: flags.BaseBoolean<boolean>): flags.Discriminated
 
 // sfdx
 
-function buildArray(options: flags.Array<string>): flags.Discriminated<flags.Array<string>>;
-function buildArray<T>(options: flags.MappedArray<T>): flags.Discriminated<flags.Array<T>>;
-function buildArray<T>(options: flags.Array | flags.MappedArray<T>): flags.Discriminated<flags.Array<T>> {
-  const kind = 'array';
-  return 'map' in options ? buildMappedArray(kind, options) : buildStringArray(kind, options);
+function validateArrayValues(
+  kind: flags.Kind,
+  raw: string,
+  vals: string[],
+  validator?: string | RegExp | ((val: string) => boolean)
+): void {
+  validateValue(
+    vals.every(toValidatorFn(validator)),
+    raw,
+    kind,
+    ` ${messages.getMessage('FormattingMessageArrayValue')}`
+  );
+}
+
+function validateArrayOptions<T>(kind: flags.Kind, raw: string, vals: T[], allowed: Set<T>): void {
+  validateValue(
+    allowed.size === 0 || vals.every((t) => allowed.has(t)),
+    raw,
+    kind,
+    ` ${messages.getMessage('FormattingMessageArrayOption', [Array.from(allowed).toString()])}`
+  );
+}
+
+function buildMappedArray<T>(kind: flags.Kind, options: flags.MappedArray<T>): flags.Discriminated<flags.Array<T>> {
+  const { options: values, ...rest } = options;
+  const allowed = new Set(values);
+  return option(kind, rest, (val: string): T[] => {
+    const vals = val.split(options.delimiter || ',');
+    validateArrayValues(kind, val, vals, options.validate);
+    const mappedVals = vals.map(options.map);
+    validateArrayOptions(kind, val, mappedVals, allowed);
+    return mappedVals;
+  });
 }
 
 function buildStringArray(kind: flags.Kind, options: flags.Array<string>): flags.Discriminated<flags.Array<string>> {
-  const { options: values, validate, ...rest } = options;
+  const { options: values, ...rest } = options;
   const allowed = new Set(values);
   return option(kind, rest, (val) => {
+    // eslint-disable-next-line no-useless-escape
     const regex = /\"(.*?)\"|\'(.*?)\'|,/g;
     const vals = val.split(regex).filter((i) => !!i);
 
@@ -159,16 +222,11 @@ function buildStringArray(kind: flags.Kind, options: flags.Array<string>): flags
   });
 }
 
-function buildMappedArray<T>(kind: flags.Kind, options: flags.MappedArray<T>): flags.Discriminated<flags.Array<T>> {
-  const { options: values, validate, ...rest } = options;
-  const allowed = new Set(values);
-  return option(kind, rest, (val: string): T[] => {
-    const vals = val.split(options.delimiter || ',');
-    validateArrayValues(kind, val, vals, options.validate);
-    const mappedVals = vals.map(options.map);
-    validateArrayOptions(kind, val, mappedVals, allowed);
-    return mappedVals;
-  });
+function buildArray(options: flags.Array<string>): flags.Discriminated<flags.Array<string>>;
+function buildArray<T>(options: flags.MappedArray<T>): flags.Discriminated<flags.Array<T>>;
+function buildArray<T>(options: flags.Array | flags.MappedArray<T>): flags.Discriminated<flags.Array<T>> {
+  const kind = 'array';
+  return 'map' in options ? buildMappedArray(kind, options) : buildStringArray(kind, options);
 }
 
 function buildDate(options: flags.DateTime): flags.Discriminated<flags.DateTime> {
@@ -410,6 +468,10 @@ export const requiredBuiltinFlags = {
   },
 };
 
+function resolve(opts: Optional<flags.Builtin>, key: keyof flags.Builtin, def: string): string {
+  return hasString(opts, key) ? opts[key] : def;
+}
+
 export const optionalBuiltinFlags = {
   apiversion(opts?: flags.Builtin): flags.Discriminated<flags.String> {
     return Object.assign(
@@ -482,10 +544,6 @@ export const optionalBuiltinFlags = {
   },
 };
 
-function resolve(opts: Optional<flags.Builtin>, key: keyof flags.Builtin, def: string): string {
-  return hasString(opts, key) ? opts[key] : def;
-}
-
 /**
  * The configuration of flags for an {@link SfdxCommand} class, except for the following:
  *
@@ -539,64 +597,6 @@ export type FlagsConfig = {
   targetusername?: never;
 };
 
-function validateValue(isValid: boolean, value: string, kind: string, correct?: string): string {
-  if (isValid) return value;
-  throw SfdxError.create('@salesforce/command', 'flags', 'InvalidFlagTypeError', [value, kind, correct || '']);
-}
-
-function validateBounds<T>(
-  kind: flags.Kind,
-  value: number,
-  bounds: flags.Bounds<T>,
-  extract: (t: T) => number
-): number {
-  if (bounds.min != null && value < extract(bounds.min)) {
-    throw new SfdxError(
-      `Expected ${kind} greater than or equal to ${extract(bounds.min)} but received ${value}`,
-      'InvalidFlagNumericBoundsError'
-    );
-  }
-  if (bounds.max != null && value > extract(bounds.max)) {
-    throw new SfdxError(
-      `Expected ${kind} less than or equal to ${extract(bounds.max)} but received ${value}`,
-      'InvalidFlagNumericBoundsError'
-    );
-  }
-  return value;
-}
-
-function toValidatorFn(validator?: unknown): (val: string) => boolean {
-  return (val: string) => {
-    if (isString(validator)) return new RegExp(validator).test(val);
-    if (isInstance(validator, RegExp)) return validator.test(val);
-    if (isFunction(validator)) return !!validator(val);
-    return true;
-  };
-}
-
-function validateArrayValues(
-  kind: flags.Kind,
-  raw: string,
-  vals: string[],
-  validator?: string | RegExp | ((val: string) => boolean)
-) {
-  validateValue(
-    vals.every(toValidatorFn(validator)),
-    raw,
-    kind,
-    ` ${messages.getMessage('FormattingMessageArrayValue')}`
-  );
-}
-
-function validateArrayOptions<T>(kind: flags.Kind, raw: string, vals: T[], allowed: Set<T>) {
-  validateValue(
-    allowed.size === 0 || vals.every((t) => allowed.has(t)),
-    raw,
-    kind,
-    ` ${messages.getMessage('FormattingMessageArrayOption', [Array.from(allowed).toString()])}`
-  );
-}
-
 /**
  * Validate the custom flag configuration. This includes:
  *
@@ -625,11 +625,15 @@ function validateCustomFlag<T>(key: string, flag: flags.Any<T>): flags.Any<T> {
   return flag;
 }
 
+function isBuiltin(flag: object): flag is flags.Builtin {
+  return hasString(flag, 'type') && flag.type === 'builtin';
+}
+
 /**
  * Builds flags for a command given a configuration object.  Supports the following use cases:
- *     1. Enabling common SFDX flags. E.g., { verbose: true }
- *     4. Defining typed flags. E.g., { myFlag: Flags.array({ char: '-a' }) }
- *     4. Defining custom typed flags. E.g., { myFlag: Flags.custom({ parse: (val) => parseInt(val, 10) }) }
+ * 1. Enabling common SFDX flags. E.g., { verbose: true }
+ * 4. Defining typed flags. E.g., { myFlag: Flags.array({ char: '-a' }) }
+ * 4. Defining custom typed flags. E.g., { myFlag: Flags.custom({ parse: (val) => parseInt(val, 10) }) }
  *
  * @param {FlagsConfig} flagsConfig The configuration object for a flag.  @see {@link FlagsConfig}
  * @param options Extra configuration options.
@@ -664,8 +668,4 @@ export function buildSfdxFlags(
   });
 
   return output;
-}
-
-function isBuiltin(flag: object): flag is flags.Builtin {
-  return hasString(flag, 'type') && flag.type === 'builtin';
 }

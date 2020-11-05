@@ -38,6 +38,45 @@ export interface TelemetryOptions {
 
 Messages.importMessagesDirectory(__dirname);
 
+export function getPlatformVersion(): string {
+  return (os.release() || '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3');
+}
+
+export function getCpus(): string {
+  const cpus = os.cpus();
+  if (cpus && cpus.length > 0) {
+    return `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})`;
+  } else {
+    return '';
+  }
+}
+
+function getSystemMemory(): string {
+  return `${(os.totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+function isAsimovKey(key: string): boolean {
+  return !!(key && key.startsWith('AIF-'));
+}
+
+export function buildPropertiesAndMeasurements(
+  attributes: Attributes
+): { properties: Properties; measurements: Measurements } {
+  const properties: Properties = {};
+  const measurements: Measurements = {};
+  Object.keys(attributes).forEach((key) => {
+    const value = attributes[key];
+    if (isString(value)) {
+      properties[key] = value;
+    } else if (isNumber(value)) {
+      measurements[key] = value;
+    } else if (isBoolean(value)) {
+      properties[key] = value.toString();
+    }
+  });
+  return { properties, measurements };
+}
+
 /**
  * This is a wrapper around appinsights sdk for convenience.
  *
@@ -54,7 +93,7 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
   private env!: Env;
   private gdprSensitiveKeys: string[] = [];
 
-  constructor(options: TelemetryOptions) {
+  public constructor(options: TelemetryOptions) {
     super(options);
     this.options = options;
 
@@ -122,12 +161,12 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
     this.appInsightsClient.trackMetric({ name: metricName, value, properties });
   }
 
-  public start() {
+  public start(): void {
     // Start data collection services
     appInsights.start();
   }
 
-  public stop() {
+  public stop(): void {
     this.appInsightsClient.flush();
     appInsights.dispose();
   }
@@ -182,47 +221,10 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
     return Object.assign({}, cleanedTags, this.options.contextTags);
   }
   // filters out non-GDPR compliant tags
-  private hideGDPRdata(tags: Properties) {
+  private hideGDPRdata(tags: Properties): Properties {
     this.gdprSensitiveKeys.forEach((key) => {
       tags[key] = AppInsights.GDPR_HIDDEN;
     });
     return tags;
   }
-}
-
-export function buildPropertiesAndMeasurements(attributes: Attributes) {
-  const properties: Properties = {};
-  const measurements: Measurements = {};
-  Object.keys(attributes).forEach((key) => {
-    const value = attributes[key];
-    if (isString(value)) {
-      properties[key] = value;
-    } else if (isNumber(value)) {
-      measurements[key] = value;
-    } else if (isBoolean(value)) {
-      properties[key] = value.toString();
-    }
-  });
-  return { properties, measurements };
-}
-
-export function getPlatformVersion(): string {
-  return (os.release() || '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3');
-}
-
-export function getCpus(): string {
-  const cpus = os.cpus();
-  if (cpus && cpus.length > 0) {
-    return `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})`;
-  } else {
-    return '';
-  }
-}
-
-function getSystemMemory(): string {
-  return `${(os.totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
-
-function isAsimovKey(key: string): boolean {
-  return !!(key && key.startsWith('AIF-'));
 }
