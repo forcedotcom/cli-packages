@@ -23,7 +23,8 @@ describe('TelemetryReporter', () => {
 
   afterEach(() => {
     sandbox.restore();
-    delete TelemetryReporter['config'];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (TelemetryReporter as any)['config'];
   });
 
   it('should send a telemetry event', async () => {
@@ -106,7 +107,8 @@ describe('TelemetryReporter', () => {
   it('should log to enable telemetry metric when disabled', async () => {
     sandbox.stub(ConfigAggregator.prototype, 'getPropertyValue').returns('true');
     const warn = sandbox.stub();
-    sandbox.stub(Logger, 'child').resolves({ warn, debug: sandbox.stub() });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sandbox.stub(Logger, 'child').resolves({ warn, debug: sandbox.stub() } as any);
     const options = { project, key };
     const reporter = await TelemetryReporter.create(options);
 
@@ -117,7 +119,8 @@ describe('TelemetryReporter', () => {
 
   it('should log to disable telemetry metric when enabled', async () => {
     const warn = sandbox.stub();
-    sandbox.stub(Logger, 'child').resolves({ warn, debug: sandbox.stub() });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sandbox.stub(Logger, 'child').resolves({ warn, debug: sandbox.stub() } as any);
     const options = { project, key };
     const reporter = await TelemetryReporter.create(options);
 
@@ -129,11 +132,13 @@ describe('TelemetryReporter', () => {
   it('should cache config aggregator', async () => {
     const stub = sandbox.stub(ConfigAggregator, 'create');
 
-    stub.resolves({ getPropertyValue: () => false });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    stub.resolves({ getPropertyValue: () => false } as any);
     expect(await TelemetryReporter.determineSfdxTelemetryEnabled()).to.be.true;
 
     stub.reset();
-    stub.resolves({ getPropertyValue: () => true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    stub.resolves({ getPropertyValue: () => true } as any);
     expect(await TelemetryReporter.determineSfdxTelemetryEnabled()).to.be.true;
   });
 

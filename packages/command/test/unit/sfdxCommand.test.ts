@@ -130,21 +130,49 @@ describe('SfdxCommand', () => {
 
     UX_OUTPUT = cloneJson(UX_OUTPUT_BASE);
     configAggregatorCreate = $$.SANDBOX.stub(ConfigAggregator, 'create').returns(
-      DEFAULT_INSTANCE_PROPS.configAggregator
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      Promise.resolve(DEFAULT_INSTANCE_PROPS.configAggregator) as any
     );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     $$.SANDBOX.stub(Global, 'getEnvironmentMode').returns({ is: () => false } as any);
 
     // Stub all UX methods to update the UX_OUTPUT object
-    $$.SANDBOX.stub(UX.prototype, 'log').callsFake((args: string[]) => UX_OUTPUT.log.push(args));
-    $$.SANDBOX.stub(UX.prototype, 'logJson').callsFake((args: AnyJson) => UX_OUTPUT.logJson.push(args));
-    $$.SANDBOX.stub(UX.prototype, 'error').callsFake((...args: string[]) => UX_OUTPUT.error.push(args));
-    $$.SANDBOX.stub(UX.prototype, 'errorJson').callsFake((args: AnyJson) => UX_OUTPUT.errorJson.push(args));
-    $$.SANDBOX.stub(UX.prototype, 'table').callsFake((args: string[]) => UX_OUTPUT.table.push(args));
-    $$.SANDBOX.stub(UX.prototype, 'warn').callsFake(function (this: UX, args: string[]) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $$.SANDBOX.stub(UX.prototype, 'log').callsFake(function (this: UX, ...args: any) {
+      UX_OUTPUT.log.push(args);
+      return this;
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $$.SANDBOX.stub(UX.prototype, 'logJson').callsFake(function (this: UX, obj: any) {
+      UX_OUTPUT.logJson.push(obj);
+      return this;
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $$.SANDBOX.stub(UX.prototype, 'error').callsFake(function (this: UX, ...args: any) {
+      UX_OUTPUT.error.push(args);
+      return this;
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $$.SANDBOX.stub(UX.prototype, 'errorJson').callsFake(function (this: UX, args: any) {
+      UX_OUTPUT.errorJson.push(args);
+      return this;
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $$.SANDBOX.stub(UX.prototype, 'table').callsFake(function (this: UX, args: any) {
+      UX_OUTPUT.table.push(args);
+      return this;
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $$.SANDBOX.stub(UX.prototype, 'warn').callsFake(function (this: UX, args: any) {
       UX_OUTPUT.warn.push(args);
       UX.warnings.add(util.format(args));
+      return this;
     });
 
     // Ensure BaseTestCommand['result'] is not defined before all tests
@@ -226,7 +254,8 @@ describe('SfdxCommand', () => {
   });
 
   it('should add SfdxCommand targetusername and apiversion flags with supportsUsername', async () => {
-    const fakeOrg = 'fake_org';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fakeOrg: any = 'fake_org';
     $$.SANDBOX.stub(Org, 'create').returns(fakeOrg);
     class TestCommand extends BaseTestCommand {}
     TestCommand['supportsUsername'] = true;
@@ -251,7 +280,8 @@ describe('SfdxCommand', () => {
   });
 
   it('should add SfdxCommand targetusername and apiversion flags with requiresUsername', async () => {
-    const fakeOrg = 'fake_org';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fakeOrg: any = 'fake_org';
     $$.SANDBOX.stub(Org, 'create').returns(fakeOrg);
     class TestCommand extends BaseTestCommand {}
     TestCommand['requiresUsername'] = true;
@@ -276,7 +306,8 @@ describe('SfdxCommand', () => {
   });
 
   it('should add SfdxCommand targetdevhubusername and apiversion flags with supportsDevhubUsername', async () => {
-    const fakeOrg = 'fake_devhub_org';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fakeOrg: any = 'fake_devhub_org';
     $$.SANDBOX.stub(Org, 'create').returns(fakeOrg);
     class TestCommand extends BaseTestCommand {}
     TestCommand['supportsDevhubUsername'] = true;
@@ -301,7 +332,8 @@ describe('SfdxCommand', () => {
   });
 
   it('should add SfdxCommand targetdevhubusername and apiversion flags with requiresDevhubUsername', async () => {
-    const fakeOrg = 'fake_devhub_org';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fakeOrg: any = 'fake_devhub_org';
     $$.SANDBOX.stub(Org, 'create').returns(fakeOrg);
     class TestCommand extends BaseTestCommand {}
     TestCommand['requiresDevhubUsername'] = true;
@@ -334,7 +366,8 @@ describe('SfdxCommand', () => {
         },
         getApiVersion: (version: string) => apiVersion,
       }),
-    });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
     // Run the command
     class ApiVersionCommand extends SfdxCommand {
       protected static requiresUsername = true;
@@ -348,7 +381,8 @@ describe('SfdxCommand', () => {
   });
 
   it('should add a project when requiresProject is true', async () => {
-    const fakeProject = 'fake_project';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fakeProject: any = 'fake_project';
     $$.SANDBOX.stub(SfdxProject, 'resolve').withArgs().returns(fakeProject);
     class TestCommand extends BaseTestCommand {}
     TestCommand['requiresProject'] = true;
@@ -685,7 +719,8 @@ describe('SfdxCommand', () => {
     };
     // Implement a new command here to ensure the compiler checks the shape of `result`
     class MyTestCommand extends BaseTestCommand {
-      public static result: SfdxResult = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      public static result: any = {
         tableColumnData,
         display() {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -771,7 +806,8 @@ describe('SfdxCommand', () => {
     };
     configAggregatorCreate.restore();
     configAggregatorCreate = $$.SANDBOX.stub(ConfigAggregator, 'create').returns(configAggregator);
-    const fakeOrg = 'fake_org';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fakeOrg: any = 'fake_org';
     $$.SANDBOX.stub(Org, 'create').returns(fakeOrg);
 
     // Run the command
@@ -850,7 +886,12 @@ describe('SfdxCommand', () => {
       json: true,
       foo: 'bar',
     };
-    expect(emitSpy.calledOnceWith('cmdError'), expectationMsg).to.equal(true);
+
+    expect(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      emitSpy.calledOnceWith('cmdError' as any, () => 'noop'),
+      expectationMsg
+    ).to.equal(true);
     expect(emitSpy.firstCall.args[0]).to.equal('cmdError');
     expect(emitSpy.firstCall.args[1]).to.be.instanceOf(Error);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
