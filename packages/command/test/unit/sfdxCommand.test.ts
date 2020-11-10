@@ -139,41 +139,20 @@ describe('SfdxCommand', () => {
 
     // Stub all UX methods to update the UX_OUTPUT object
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    $$.SANDBOX.stub(UX.prototype, 'log').callsFake(function (this: UX, ...args: any) {
-      UX_OUTPUT.log.push(args);
-      return this;
-    });
-
+    $$.SANDBOX.stub(UX.prototype, 'log').callsFake((args: any) => UX_OUTPUT.log.push(args) as any);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    $$.SANDBOX.stub(UX.prototype, 'logJson').callsFake(function (this: UX, obj: any) {
-      UX_OUTPUT.logJson.push(obj);
-      return this;
-    });
-
+    $$.SANDBOX.stub(UX.prototype, 'logJson').callsFake((args: any) => UX_OUTPUT.logJson.push(args) as any);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    $$.SANDBOX.stub(UX.prototype, 'error').callsFake(function (this: UX, ...args: any) {
-      UX_OUTPUT.error.push(args);
-      return this;
-    });
-
+    $$.SANDBOX.stub(UX.prototype, 'error').callsFake((...args: any[]) => UX_OUTPUT.error.push(args) as any);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    $$.SANDBOX.stub(UX.prototype, 'errorJson').callsFake(function (this: UX, args: any) {
-      UX_OUTPUT.errorJson.push(args);
-      return this;
-    });
-
+    $$.SANDBOX.stub(UX.prototype, 'errorJson').callsFake((args: any) => UX_OUTPUT.errorJson.push(args) as any);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    $$.SANDBOX.stub(UX.prototype, 'table').callsFake(function (this: UX, args: any) {
-      UX_OUTPUT.table.push(args);
-      return this;
-    });
-
+    $$.SANDBOX.stub(UX.prototype, 'table').callsFake((args: any[]) => UX_OUTPUT.table.push(args) as any);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    $$.SANDBOX.stub(UX.prototype, 'warn').callsFake(function (this: UX, args: any) {
+    $$.SANDBOX.stub(UX.prototype, 'warn').callsFake(function (this: UX, args: string[]) {
       UX_OUTPUT.warn.push(args);
       UX.warnings.add(util.format(args));
-      return this;
-    });
+    } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
     // Ensure BaseTestCommand['result'] is not defined before all tests
     BaseTestCommand.result = {};
@@ -887,11 +866,8 @@ describe('SfdxCommand', () => {
       foo: 'bar',
     };
 
-    expect(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      emitSpy.calledOnceWith('cmdError' as any, () => 'noop'),
-      expectationMsg
-    ).to.equal(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((emitSpy.calledOnceWith as any)('cmdError'), expectationMsg).to.equal(true);
     expect(emitSpy.firstCall.args[0]).to.equal('cmdError');
     expect(emitSpy.firstCall.args[1]).to.be.instanceOf(Error);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

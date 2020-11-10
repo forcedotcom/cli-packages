@@ -73,12 +73,27 @@ describe('AppInsights', () => {
     expect(actualTagsCount).to.be.greaterThan(providedTagsCount);
   });
 
-  it(`should replace GDPR sensitive value with ${AppInsights.GDPR_HIDDEN}`, async () => {
+  it(`should replace GDPR sensitive value with ${AppInsights.GDPR_HIDDEN} for roleInstance by default`, async () => {
     const options = { project, key };
     const reporter = await AppInsights.create(options);
     const actualTags = reporter.appInsightsClient ? reporter.appInsightsClient.context.tags : {};
 
     expect(actualTags['ai.cloud.roleInstance']).to.equal(AppInsights.GDPR_HIDDEN);
+  });
+
+  it(`should replace GDPR sensitive value with ${AppInsights.GDPR_HIDDEN} for provided keys`, async () => {
+    const options = { project, key, gdprSensitiveKeys: ['hello'] };
+    const reporter = await AppInsights.create(options);
+    const actualTags = reporter.appInsightsClient ? reporter.appInsightsClient.context.tags : {};
+    expect(actualTags['hello']).to.equal(AppInsights.GDPR_HIDDEN);
+  });
+
+  it('should setup app insights client with ai.user.id and ai.session.id tag from options', async () => {
+    const options = { project, key, userId: 'test-user-id', sessionId: 'test-session-id' };
+    const reporter = await AppInsights.create(options);
+    const actualTags = reporter?.appInsightsClient?.context?.tags;
+    expect(actualTags?.['ai.user.id']).to.equal('test-user-id');
+    expect(actualTags?.['ai.session.id']).to.equal('test-session-id');
   });
 
   it('should change url when using Asimov key', async () => {
@@ -89,8 +104,8 @@ describe('AppInsights', () => {
   });
 
   it('should separate string attributes from numeric attributes', () => {
-    const attributes = { foo: 'bar', baz: 5 };
-    const expectedProperties = { foo: 'bar' };
+    const attributes = { foo: 'bar', baz: 5, key: true };
+    const expectedProperties = { foo: 'bar', key: 'true' };
     const expectedMeasurements = { baz: 5 };
     const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
     expect(properties).to.deep.equal(expectedProperties);
