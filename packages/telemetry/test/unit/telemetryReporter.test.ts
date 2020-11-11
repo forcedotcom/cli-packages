@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { ConfigAggregator, Logger } from '@salesforce/core';
 import axios from 'axios';
 import { expect } from 'chai';
@@ -17,7 +23,8 @@ describe('TelemetryReporter', () => {
 
   afterEach(() => {
     sandbox.restore();
-    delete TelemetryReporter['config'];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (TelemetryReporter as any)['config'];
   });
 
   it('should send a telemetry event', async () => {
@@ -100,7 +107,8 @@ describe('TelemetryReporter', () => {
   it('should log to enable telemetry metric when disabled', async () => {
     sandbox.stub(ConfigAggregator.prototype, 'getPropertyValue').returns('true');
     const warn = sandbox.stub();
-    sandbox.stub(Logger, 'child').resolves({ warn, debug: sandbox.stub() });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sandbox.stub(Logger, 'child').resolves({ warn, debug: sandbox.stub() } as any);
     const options = { project, key };
     const reporter = await TelemetryReporter.create(options);
 
@@ -111,7 +119,8 @@ describe('TelemetryReporter', () => {
 
   it('should log to disable telemetry metric when enabled', async () => {
     const warn = sandbox.stub();
-    sandbox.stub(Logger, 'child').resolves({ warn, debug: sandbox.stub() });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sandbox.stub(Logger, 'child').resolves({ warn, debug: sandbox.stub() } as any);
     const options = { project, key };
     const reporter = await TelemetryReporter.create(options);
 
@@ -123,11 +132,13 @@ describe('TelemetryReporter', () => {
   it('should cache config aggregator', async () => {
     const stub = sandbox.stub(ConfigAggregator, 'create');
 
-    stub.resolves({ getPropertyValue: () => false });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    stub.resolves({ getPropertyValue: () => false } as any);
     expect(await TelemetryReporter.determineSfdxTelemetryEnabled()).to.be.true;
 
     stub.reset();
-    stub.resolves({ getPropertyValue: () => true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    stub.resolves({ getPropertyValue: () => true } as any);
     expect(await TelemetryReporter.determineSfdxTelemetryEnabled()).to.be.true;
   });
 

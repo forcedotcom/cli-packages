@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson } from '@salesforce/ts-types';
 import { expect } from 'chai';
@@ -24,7 +30,7 @@ describe('doc opts', () => {
   it('shows optional varargs object', () => {
     class ItCommand extends TestCommand {
       public static varargs = {
-        required: false
+        required: false,
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -33,7 +39,7 @@ describe('doc opts', () => {
   it('shows required varargs', () => {
     class ItCommand extends TestCommand {
       public static varargs = {
-        required: true
+        required: true,
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -45,8 +51,8 @@ describe('doc opts', () => {
         testflag: flags.string({
           description: 'test',
           required: true,
-          char: 'f'
-        })
+          char: 'f',
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -57,8 +63,8 @@ describe('doc opts', () => {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.boolean({
           description: 'test',
-          char: 'f'
-        })
+          char: 'f',
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -70,8 +76,8 @@ describe('doc opts', () => {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.array({
           description: 'test',
-          char: 'f'
-        })
+          char: 'f',
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -83,8 +89,8 @@ describe('doc opts', () => {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.enum({
           description: 'test',
-          options: ['a', 'b']
-        })
+          options: ['a', 'b'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -95,8 +101,8 @@ describe('doc opts', () => {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.url({
           description: 'test',
-          char: 's'
-        })
+          char: 's',
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -108,8 +114,8 @@ describe('doc opts', () => {
         testflag: flags.url({
           description: 'test',
           char: 's',
-          hidden: true
-        })
+          hidden: true,
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -120,8 +126,8 @@ describe('doc opts', () => {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.url({
           description: 'test',
-          char: 's'
-        })
+          char: 's',
+        }),
       };
       public requiresusername = true;
     }
@@ -135,9 +141,9 @@ describe('doc opts', () => {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.url({
           description: 'test',
-          char: 's'
+          char: 's',
         }),
-        quiet: flags.builtin({})
+        quiet: flags.builtin({}),
       };
       public requiresusername = true;
     }
@@ -153,13 +159,13 @@ describe('doc opts', () => {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.url({
           description: 'test',
-          char: 's'
+          char: 's',
         }),
         testflag2: flags.string({
           description: 'test',
           char: 'f',
-          dependsOn: ['testflag']
-        })
+          dependsOn: ['testflag'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -171,13 +177,13 @@ describe('doc opts', () => {
         testflag: flags.url({
           description: 'test',
           char: 's',
-          required: true
+          required: true,
         }),
         testflag2: flags.string({
           description: 'test',
           char: 'f',
-          dependsOn: ['testflag']
-        })
+          dependsOn: ['testflag'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -192,14 +198,14 @@ describe('doc opts', () => {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.url({
           description: 'test',
-          char: 's'
+          char: 's',
         }),
         testflag2: flags.string({
           description: 'test',
           char: 'f',
           required: true,
-          dependsOn: ['testflag']
-        })
+          dependsOn: ['testflag'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -211,13 +217,13 @@ describe('doc opts', () => {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.url({
           description: 'test',
-          char: 's'
+          char: 's',
         }),
         testflag2: flags.string({
           description: 'test',
           char: 'f',
-          exclusive: ['testflag']
-        })
+          exclusive: ['testflag'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -229,13 +235,13 @@ describe('doc opts', () => {
         testflag: flags.url({
           description: 'test',
           char: 's',
-          required: true
+          required: true,
         }),
         testflag2: flags.string({
           description: 'test',
           char: 'f',
-          exclusive: ['testflag']
-        })
+          exclusive: ['testflag'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -246,14 +252,14 @@ describe('doc opts', () => {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.url({
           description: 'test',
-          char: 's'
+          char: 's',
         }),
         testflag2: flags.string({
           description: 'test',
           char: 'f',
           required: true,
-          exclusive: ['testflag']
-        })
+          exclusive: ['testflag'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -265,14 +271,14 @@ describe('doc opts', () => {
       public static flagsConfig: FlagsConfig = {
         testflag: flags.url({
           description: 'test',
-          char: 's'
+          char: 's',
         }),
         testflag2: flags.string({
           description: 'test',
           char: 'f',
           required: true,
-          exclusive: ['testflag']
-        })
+          exclusive: ['testflag'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -284,13 +290,13 @@ describe('doc opts', () => {
         testflag: flags.url({
           description: 'test',
           char: 's',
-          exclusive: ['testflag2']
+          exclusive: ['testflag2'],
         }),
         testflag2: flags.string({
           description: 'test',
           char: 'f',
-          exclusive: ['testflag']
-        })
+          exclusive: ['testflag'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -302,13 +308,13 @@ describe('doc opts', () => {
         testflag: flags.url({
           description: 'test',
           char: 's',
-          dependsOn: ['testflag2']
+          dependsOn: ['testflag2'],
         }),
         testflag2: flags.string({
           description: 'test',
           char: 'f',
-          dependsOn: ['testflag']
-        })
+          dependsOn: ['testflag'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -321,13 +327,13 @@ describe('doc opts', () => {
         testflag: flags.url({
           description: 'test',
           char: 's',
-          required: true
+          required: true,
         }),
         testflag2: flags.string({
           description: 'test',
           char: 'f',
-          dependsOn: ['testflag']
-        })
+          dependsOn: ['testflag'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -340,14 +346,14 @@ describe('doc opts', () => {
           description: 'test',
           char: 's',
           required: true,
-          dependsOn: ['testflag2']
+          dependsOn: ['testflag2'],
         }),
         testflag2: flags.string({
           description: 'test',
           char: 'f',
           required: true,
-          dependsOn: ['testflag']
-        })
+          dependsOn: ['testflag'],
+        }),
       };
     }
     const usage = DocOpts.generate(ItCommand);
@@ -371,14 +377,14 @@ describe('doc opts', () => {
             description: 'test',
             char: 's',
             required: true,
-            dependsOn: ['testflag2']
+            dependsOn: ['testflag2'],
           }),
           testflag2: flags.string({
             description: 'test',
             char: 'f',
             required: true,
-            dependsOn: ['testflag']
-          })
+            dependsOn: ['testflag'],
+          }),
         };
       }
       const usage = DocOpts.generate(ItCommand);

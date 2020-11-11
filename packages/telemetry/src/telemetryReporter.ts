@@ -1,8 +1,14 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import * as os from 'os';
 import { ConfigAggregator, Logger } from '@salesforce/core';
 import { AsyncCreatable, env } from '@salesforce/kit';
 
 import axios from 'axios';
-import * as os from 'os';
 import { AppInsights, Attributes, Properties, TelemetryOptions } from './appInsights';
 import { TelemetryClient } from './exported';
 
@@ -14,6 +20,19 @@ export { TelemetryOptions, Attributes, Properties, TelemetryClient } from './app
  * Reports telemetry events to app insights. We do not send if the config 'disableTelemetry' is set.
  */
 export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
+  // Keep a cache of config aggregator so we aren't loading it every time.
+  private static config: ConfigAggregator;
+
+  private options: TelemetryOptions;
+  private logger!: Logger;
+  private config!: ConfigAggregator;
+  private reporter!: AppInsights;
+
+  public constructor(options: TelemetryOptions) {
+    super(options);
+    this.options = options;
+  }
+
   /**
    * Determine if the telemetry event should be logged.
    * Setting the disableTelemetry config var to true will disable insights for errors and diagnostics.
@@ -26,19 +45,6 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
     const sfdxDisableInsights = configValue === 'true' || env.getBoolean('SFDX_DISABLE_INSIGHTS');
     const isEnabled = !sfdxDisableInsights;
     return isEnabled;
-  }
-
-  // Keep a cache of config aggregator so we aren't loading it every time.
-  private static config: ConfigAggregator;
-
-  private options: TelemetryOptions;
-  private logger!: Logger;
-  private config!: ConfigAggregator;
-  private reporter!: AppInsights;
-
-  constructor(options: TelemetryOptions) {
-    super(options);
-    this.options = options;
   }
 
   public async init(): Promise<void> {
@@ -67,7 +73,7 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
     this.reporter.stop();
   }
 
-  public async waitForConnection() {
+  public async waitForConnection(): Promise<void> {
     const canConnect = await this.testConnection();
     if (!canConnect) {
       throw new Error('Unable to connect to app insights.');
@@ -90,7 +96,7 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
         timeout,
         cancelToken: cancelRequest.token,
         // We want any status less than 500 to be resolved (not rejected)
-        validateStatus: (status: number) => status < 500
+        validateStatus: (status: number): boolean => status < 500,
       };
       await axios.get(AppInsights.APP_INSIGHTS_SERVER, options);
       canConnect = true;
@@ -108,6 +114,7 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
 
   /**
    * Sends message to child process.
+   *
    * @param eventName {string} - name of the event you want published.
    * @param attributes {Attributes} - map of properties to publish alongside the event.
    */
@@ -119,6 +126,7 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
 
   /**
    * Sends exception to child process.
+   *
    * @param exception {Error} - exception you want published.
    * @param measurements {Measurements} - map of measurements to publish alongside the event.
    */
@@ -133,6 +141,7 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
 
   /**
    * Publishes diagnostic information to app insights dashboard
+   *
    * @param message {string} - trace message to sen to app insights.
    * @param properties {Properties} - map of properties to publish alongside the event.
    */
@@ -144,6 +153,7 @@ export class TelemetryReporter extends AsyncCreatable<TelemetryOptions> {
 
   /**
    * Publishes metric to app insights dashboard
+   *
    * @param name {string} - name of the metric you want published
    * @param value {number} - value of the metric
    * @param properties {Properties} - map of properties to publish alongside the event.
