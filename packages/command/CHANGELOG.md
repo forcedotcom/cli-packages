@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.0.4](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@3.0.3...@salesforce/command@3.0.4) (2020-11-11)
+
+**Note:** Version bump only for package @salesforce/command
+
+
+
+
+
 ## [3.0.3](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@3.0.2...@salesforce/command@3.0.3) (2020-09-03)
 
 
