@@ -616,10 +616,10 @@ export type FlagsConfig = {
 /**
  * Validate the custom flag configuration. This includes:
  *
- * 1. The flag name is in all lowercase.
- * 2. A string description is provided.
- * 3. If a char attribute is provided, it is one alphabetical character in length.
- * 4. If a long description is provided, it is a string.
+ * - The flag name is in all lowercase.
+ * - A string description is provided.
+ * - If a char attribute is provided, it is one alphabetical character in length.
+ * - If a long description is provided, it is a string.
  *
  * @param {SfdxFlagDefinition} flag The flag configuration.
  * @param {string} key The flag name.
@@ -648,8 +648,8 @@ function isBuiltin(flag: object): flag is flags.Builtin {
 /**
  * Builds flags for a command given a configuration object.  Supports the following use cases:
  * 1. Enabling common SFDX flags. E.g., { verbose: true }
- * 4. Defining typed flags. E.g., { myFlag: Flags.array({ char: '-a' }) }
- * 4. Defining custom typed flags. E.g., { myFlag: Flags.custom({ parse: (val) => parseInt(val, 10) }) }
+ * 2. Defining typed flags. E.g., { myFlag: Flags.array({ char: '-a' }) }
+ * 3. Defining custom typed flags. E.g., { myFlag: Flags.custom({ parse: (val) => parseInt(val, 10) }) }
  *
  * @param {FlagsConfig} flagsConfig The configuration object for a flag.  @see {@link FlagsConfig}
  * @param options Extra configuration options.
