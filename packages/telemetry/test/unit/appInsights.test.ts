@@ -1,8 +1,14 @@
-import set = Reflect.set;
-import { expect } from 'chai';
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import * as os from 'os';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { AppInsights, buildPropertiesAndMeasurements, getCpus, getPlatformVersion } from '../../src/appInsights';
+import set = Reflect.set;
 
 describe('AppInsights', () => {
   const key = 'foo-bar-123';
@@ -38,7 +44,7 @@ describe('AppInsights', () => {
       'common.os',
       'common.platformversion',
       'common.systemmemory',
-      'common.usertype'
+      'common.usertype',
     ];
     expect(Object.keys(actualBaseProps)).to.deep.equal(expectedBaseProps);
   });
@@ -67,12 +73,27 @@ describe('AppInsights', () => {
     expect(actualTagsCount).to.be.greaterThan(providedTagsCount);
   });
 
-  it(`should replace GDPR sensitive value with ${AppInsights.GDPR_HIDDEN}`, async () => {
+  it(`should replace GDPR sensitive value with ${AppInsights.GDPR_HIDDEN} for roleInstance by default`, async () => {
     const options = { project, key };
     const reporter = await AppInsights.create(options);
     const actualTags = reporter.appInsightsClient ? reporter.appInsightsClient.context.tags : {};
 
     expect(actualTags['ai.cloud.roleInstance']).to.equal(AppInsights.GDPR_HIDDEN);
+  });
+
+  it(`should replace GDPR sensitive value with ${AppInsights.GDPR_HIDDEN} for provided keys`, async () => {
+    const options = { project, key, gdprSensitiveKeys: ['hello'] };
+    const reporter = await AppInsights.create(options);
+    const actualTags = reporter.appInsightsClient ? reporter.appInsightsClient.context.tags : {};
+    expect(actualTags['hello']).to.equal(AppInsights.GDPR_HIDDEN);
+  });
+
+  it('should setup app insights client with ai.user.id and ai.session.id tag from options', async () => {
+    const options = { project, key, userId: 'test-user-id', sessionId: 'test-session-id' };
+    const reporter = await AppInsights.create(options);
+    const actualTags = reporter?.appInsightsClient?.context?.tags;
+    expect(actualTags?.['ai.user.id']).to.equal('test-user-id');
+    expect(actualTags?.['ai.session.id']).to.equal('test-session-id');
   });
 
   it('should change url when using Asimov key', async () => {
@@ -83,8 +104,8 @@ describe('AppInsights', () => {
   });
 
   it('should separate string attributes from numeric attributes', () => {
-    const attributes = { foo: 'bar', baz: 5 };
-    const expectedProperties = { foo: 'bar' };
+    const attributes = { foo: 'bar', baz: 5, key: true };
+    const expectedProperties = { foo: 'bar', key: 'true' };
     const expectedMeasurements = { baz: 5 };
     const { properties, measurements } = buildPropertiesAndMeasurements(attributes);
     expect(properties).to.deep.equal(expectedProperties);
@@ -156,14 +177,16 @@ describe('AppInsights', () => {
   });
 
   it('should handle missing os.cpus value', () => {
-    osStub = sandbox.stub(os, 'cpus').callsFake(() => {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    osStub = sandbox.stub(os, 'cpus').callsFake((() => undefined) as any);
     const actual = getCpus();
     expect(actual).to.equal('');
     expect(osStub.calledOnce).to.be.true;
   });
 
   it('should handle missing os release value', () => {
-    osStub = sandbox.stub(os, 'release').callsFake(() => {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    osStub = sandbox.stub(os, 'release').callsFake((() => undefined) as any);
     const actual = getPlatformVersion();
     expect(actual).to.equal('');
     expect(osStub.calledOnce).to.be.true;

@@ -1,17 +1,19 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { env } from '@salesforce/kit';
 import { ensure } from '@salesforce/ts-types';
 
-/*
- * Copyright (c) 2018, salesforce.com, inc.
- * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- */
+/* eslint-disable no-console */
 
 /**
  * A table option configuration type that can be the TableOptions as defined by
  * [oclif/cli-ux](https://github.com/oclif/cli-ux/blob/master/src/styled/table.ts) or a string array of table keys to be used as table headers
  * for simple tables.
+ *
  * @typedef {object} SfdxTableOptions
  * @property {TableOptions | string[]} options
  */
@@ -19,6 +21,7 @@ import { ensure } from '@salesforce/ts-types';
 /**
  * A prompt option configuration as defined by
  * [oclif/cli-ux](https://github.com/oclif/cli-ux/blob/master/src/prompt.ts).
+ *
  * @typedef {object} IPromptOptions
  * @property {string} prompt The prompt string displayed to the user.
  * @property {'normal' | 'mask' | 'hide'} type `Normal` does not hide the user input, `mask` hides the user input after the user presses `ENTER`, and `hide` hides the user input as it is being typed.
@@ -27,6 +30,7 @@ import { ensure } from '@salesforce/ts-types';
 /**
  * An action option configuration as defined by
  * [oclif/cli-ux](https://github.com/oclif/cli-ux/blob/master/src/action/base.ts).
+ *
  * @typedef {object} OclifActionOptions
  * @property {boolean} stdout The option to display to stdout or not.
  */
@@ -44,9 +48,28 @@ import { TableColumn, TableOptions as OclifTableOptions } from 'cli-ux/lib/style
 export class UX {
   /**
    * Collection of warnings that can be accessed and manipulated later.
+   *
    * @type {Set<string>}
    */
   public static warnings: Set<string> = new Set<string>();
+
+  public cli: typeof cli;
+  private isOutputEnabled: boolean;
+
+  /**
+   * Do not directly construct instances of this class -- use {@link UX.create} instead.
+   */
+  public constructor(private logger: Logger, isOutputEnabled?: boolean, ux?: typeof cli) {
+    this.cli = ux || cli;
+
+    if (isBoolean(isOutputEnabled)) {
+      this.isOutputEnabled = isOutputEnabled;
+    } else {
+      // Respect the --json flag and SFDX_CONTENT_TYPE for consumers who don't explicitly check
+      const isContentTypeJSON = env.getString('SFDX_CONTENT_TYPE', '').toUpperCase() === 'JSON';
+      this.isOutputEnabled = !(process.argv.find((arg) => arg === '--json') || isContentTypeJSON);
+    }
+  }
 
   /**
    * Formats a deprecation warning for display to `stderr`, `stdout`, and/or logs.
@@ -80,25 +103,6 @@ export class UX {
    */
   public static async create(): Promise<UX> {
     return new UX(await Logger.child('UX'));
-  }
-
-  public cli: typeof cli;
-
-  private isOutputEnabled: boolean;
-
-  /**
-   * Do not directly construct instances of this class -- use {@link UX.create} instead.
-   */
-  constructor(private logger: Logger, isOutputEnabled?: boolean, ux?: typeof cli) {
-    this.cli = ux || cli;
-
-    if (isBoolean(isOutputEnabled)) {
-      this.isOutputEnabled = isOutputEnabled;
-    } else {
-      // Respect the --json flag and SFDX_CONTENT_TYPE for consumers who don't explicitly check
-      const isContentTypeJSON = env.getString('SFDX_CONTENT_TYPE', '').toUpperCase() === 'JSON';
-      this.isOutputEnabled = !(process.argv.find(arg => arg === '--json') || isContentTypeJSON);
-    }
   }
 
   /**
@@ -136,6 +140,7 @@ export class UX {
 
   /**
    * Prompt the user for input.
+   *
    * @param {string} name The string that the user sees when prompted for information.
    * @param {IPromptOptions} options A prompt option configuration.
    * @returns {Promise<string>} The user input to the prompt.
@@ -146,6 +151,7 @@ export class UX {
 
   /**
    * Prompt the user for confirmation.
+   *
    * @param {string} message The message displayed to the user.
    * @returns {Promise<boolean>} Returns `true` if the user inputs 'y' or 'yes', and `false` if the user inputs 'n' or 'no'.
    */
@@ -155,6 +161,7 @@ export class UX {
 
   /**
    * Start a spinner action after displaying the given message.
+   *
    * @param {string} message The message displayed to the user.
    * @param {string} status The status displayed to the user.
    * @param {OclifActionOptions} opts The options to select whereas spinner will output to stderr or stdout.
@@ -167,6 +174,7 @@ export class UX {
 
   /**
    * Pause the spinner and call the given function.
+   *
    * @param {function} fn The function to be called in the pause.
    * @param {string} icon The string displayed to the user.
    * @returns {T} The result returned by the passed in function.
@@ -179,6 +187,7 @@ export class UX {
 
   /**
    * Update the spinner status.
+   *
    * @param {string} status The message displayed to the user.
    */
   public setSpinnerStatus(status?: string): void {
@@ -189,6 +198,7 @@ export class UX {
 
   /**
    * Get the spinner status.
+   *
    * @returns {Optional<string>}
    */
   public getSpinnerStatus(): Optional<string> {
@@ -199,6 +209,7 @@ export class UX {
 
   /**
    * Stop the spinner action.
+   *
    * @param {string} message The message displayed to the user.
    */
   public stopSpinner(message?: string): void {
@@ -273,7 +284,8 @@ export class UX {
    * @param {SfdxTableOptions} options The {@link SfdxTableOptions} to use for formatting.
    * @returns {UX}
    */
-  // tslint:disable-next-line no-any (matches oclif)
+  // (allow any because matches oclif)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public table(rows: any[], options: TableOptions = {}): UX {
     if (this.isOutputEnabled) {
       // This is either an array of column names or an already built Partial<OclifTableOptions>
@@ -284,8 +296,8 @@ export class UX {
             key: col,
             label: col
               .split(/(?=[A-Z])|[-_\s]/)
-              .map(w => w.toUpperCase())
-              .join(' ')
+              .map((w) => w.toUpperCase())
+              .join(' '),
           });
         }
         this.cli.table(rows, { columns: tableColumns });
@@ -369,7 +381,8 @@ export type Deprecation = {
     }
   | {
       messageOverride: string;
-    });
+    }
+);
 
 /**
  * A deprecation warning message configuration type.  A typical instance can pass `name`,
@@ -387,4 +400,5 @@ export type DeprecationDefinition = {
     }
   | {
       messageOverride: string;
-    });
+    }
+);

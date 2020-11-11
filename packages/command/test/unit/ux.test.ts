@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { Logger } from '@salesforce/core';
@@ -220,18 +220,18 @@ describe('UX', () => {
     const depConfig = {
       type: 'command',
       name: 'apex:test:qq',
-      version: 42
+      version: 42,
     };
-    const expectedMsg = `The ${depConfig.type} "${
-      depConfig.name
-    }" has been deprecated and will be removed in v${depConfig.version + 1}.0 or later.`;
+    const expectedMsg = `The ${depConfig.type} "${depConfig.name}" has been deprecated and will be removed in v${
+      depConfig.version + 1
+    }.0 or later.`;
     expect(UX.formatDeprecationWarning(depConfig)).to.equal(expectedMsg);
   });
 
   it('formatDeprecationWarning should display a custom message', () => {
     const depConfig = {
       messageOverride: "Don't do what Donny Dont does.",
-      message: 'Do this instead.'
+      message: 'Do this instead.',
     };
     const expectedMsg = `${depConfig.messageOverride} ${depConfig.message}`;
     expect(UX.formatDeprecationWarning(depConfig)).to.equal(expectedMsg);
@@ -243,11 +243,11 @@ describe('UX', () => {
       name: 'apex:test:qq',
       version: 42,
       to: 'apex.test.pewpew',
-      message: 'Need more pew pew, less qq!'
+      message: 'Need more pew pew, less qq!',
     };
-    let expectedMsg = `The ${depConfig.type} "${
-      depConfig.name
-    }" has been deprecated and will be removed in v${depConfig.version + 1}.0 or later.`;
+    let expectedMsg = `The ${depConfig.type} "${depConfig.name}" has been deprecated and will be removed in v${
+      depConfig.version + 1
+    }.0 or later.`;
     expectedMsg += ` Use "${depConfig.to}" instead. ${depConfig.message}`;
     expect(UX.formatDeprecationWarning(depConfig)).to.equal(expectedMsg);
   });
@@ -259,10 +259,11 @@ describe('UX', () => {
       name: 'apex:test:qq',
       version: `${version}.0`,
       to: 'apex.test.pewpew',
-      message: 'Need more pew pew, less qq!'
+      message: 'Need more pew pew, less qq!',
     };
-    let expectedMsg = `The ${depConfig.type} "${depConfig.name}" has been deprecated and will be removed in v${version +
-      1}.0 or later.`;
+    let expectedMsg = `The ${depConfig.type} "${depConfig.name}" has been deprecated and will be removed in v${
+      version + 1
+    }.0 or later.`;
     expectedMsg += ` Use "${depConfig.to}" instead. ${depConfig.message}`;
     expect(UX.formatDeprecationWarning(depConfig)).to.equal(expectedMsg);
   });
@@ -276,7 +277,7 @@ describe('UX', () => {
     const tableData = [
       { foo: 'amazing!', bar: 3, baz: true },
       { foo: 'incredible!', bar: 0, baz: false },
-      { foo: 'truly amazing!', bar: 9, baz: true }
+      { foo: 'truly amazing!', bar: 9, baz: true },
     ];
 
     const ux1 = ux.table(tableData);
@@ -288,29 +289,30 @@ describe('UX', () => {
   });
 
   it('table() should log to the logger and output in table format when output IS enabled with simple column config', () => {
-    const retVal: any = {}; // tslint:disable-line:no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const retVal: any = {};
     const info = $$.SANDBOX.stub($$.TEST_LOGGER, 'info');
+    const wildKey = 'some wildAnd-Crazy_key';
+    const tableData = [
+      { foo: 'amazing!', bar: 3, baz: true },
+      { foo: 'incredible!', bar: 0, baz: false },
+      { foo: 'truly amazing!', bar: 9, baz: true },
+    ];
+    const expectedOptions = {
+      columns: [
+        { key: 'foo', label: 'FOO' },
+        { key: 'bar', label: 'BAR' },
+        { key: 'baz', label: 'BAZ' },
+        { key: wildKey, label: 'SOME WILD AND CRAZY KEY' },
+      ],
+    };
     const tableGetter = () => (x: typeof tableData, y: typeof expectedOptions) => {
       retVal.x = x;
       retVal.y = y;
     };
     $$.SANDBOX.stub(cli, 'table').get(tableGetter);
     const ux = new UX($$.TEST_LOGGER, true, cli);
-    const tableData = [
-      { foo: 'amazing!', bar: 3, baz: true },
-      { foo: 'incredible!', bar: 0, baz: false },
-      { foo: 'truly amazing!', bar: 9, baz: true }
-    ];
-    const wildKey = 'some wildAnd-Crazy_key';
     const options = ['foo', 'bar', 'baz', wildKey];
-    const expectedOptions = {
-      columns: [
-        { key: 'foo', label: 'FOO' },
-        { key: 'bar', label: 'BAR' },
-        { key: 'baz', label: 'BAZ' },
-        { key: wildKey, label: 'SOME WILD AND CRAZY KEY' }
-      ]
-    };
 
     const ux1 = ux.table(tableData, options);
 
@@ -324,16 +326,10 @@ describe('UX', () => {
   it('table() should log to the logger and output in table format when output IS enabled with complex column config', () => {
     const retVal: Dictionary = {};
     const info = $$.SANDBOX.stub($$.TEST_LOGGER, 'info');
-    const tableGetter = () => (x: typeof tableData, y: typeof options) => {
-      retVal.x = x;
-      retVal.y = y;
-    };
-    $$.SANDBOX.stub(cli, 'table').get(tableGetter);
-    const ux = new UX($$.TEST_LOGGER, true, cli);
     const tableData = [
       { foo: 'amazing!', bar: 3, baz: true },
       { foo: 'incredible!', bar: 0, baz: false },
-      { foo: 'truly amazing!', bar: 9, baz: true }
+      { foo: 'truly amazing!', bar: 9, baz: true },
     ];
     const options = {
       columns: [
@@ -341,12 +337,19 @@ describe('UX', () => {
         {
           key: 'bar',
           label: '*** BAR ***',
-          // tslint:disable-next-line no-any (matches oclif)
-          format: (val: any) => (val != null ? val.toString() : '')
+          // (matches oclif)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          format: (val: any) => (val != null ? val.toString() : ''),
         },
-        { key: 'baz', label: 'ZaB' }
-      ]
+        { key: 'baz', label: 'ZaB' },
+      ],
     };
+    const tableGetter = () => (x: typeof tableData, y: typeof options) => {
+      retVal.x = x;
+      retVal.y = y;
+    };
+    $$.SANDBOX.stub(cli, 'table').get(tableGetter);
+    const ux = new UX($$.TEST_LOGGER, true, cli);
 
     const ux1 = ux.table(tableData, options);
 
@@ -399,7 +402,7 @@ describe('UX', () => {
       expect(start.called).to.equal(true);
       expect(start.firstCall.args[0]).to.equal('test message');
       expect(start.firstCall.args[1]).to.equal('test status');
-      expect(start.firstCall.args[2].stdout).to.equal(true);
+      expect(start.firstCall.args[2]?.stdout).to.equal(true);
     });
 
     it("startSpinner() shouldn't call action.start()", () => {
