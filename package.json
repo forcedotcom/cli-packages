@@ -4,7 +4,7 @@
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build",
-    "ci-docs": "yarn sfdx-ci-docs",
+    "ci-docs": "yarn sf-ci-docs",
     "ci-test": "nyc yarn test",
     "clean": "lerna run clean",
     "clean-all": "lerna run clean-all",
@@ -14,7 +14,7 @@
     "install": "yarn sf-lerna-install",
     "lint": "lerna run lint",
     "lint-fix": "lerna run lint -- --fix",
-    "postclean-all": "yarn sfdx-clean all",
+    "postclean-all": "yarn sf-clean all",
     "prepack": "lerna run prepack",
     "test": "lerna run test"
   },
