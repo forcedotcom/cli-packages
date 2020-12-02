@@ -373,6 +373,20 @@ describe('SfdxFlags', () => {
         expect(array.parse("'1,2',3,4,'5,6'")).to.deep.equal(['1,2', '3', '4', '5,6']);
         expect(array.parse("1,'2, 3','4, 5',6")).to.deep.equal(['1', '2, 3', '4, 5', '6']);
       });
+
+      it('should strip whitespace from parsed array members', () => {
+        const array = flags.array({ description: 'test' });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1, 2, 3, 4, 5')).to.deep.equal(['1', '2', '3', '4', '5']);
+        expect(array.parse('1 ,2 ,3 ,4 ,5')).to.deep.equal(['1', '2', '3', '4', '5']);
+      });
+
+      it('should strip whitespace from parsed mapped string array members', () => {
+        const array = flags.array({ description: 'test', map: (v: string) => `${v}x` });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1, 2, 3, 4, 5')).to.deep.equal(['1x', '2x', '3x', '4x', '5x']);
+        expect(array.parse('1 ,2 ,3 ,4 ,5')).to.deep.equal(['1x', '2x', '3x', '4x', '5x']);
+      });
     });
 
     describe('usage', () => {
