@@ -210,11 +210,21 @@ function validateArrayOptions<T>(kind: flags.Kind, raw: string, vals: T[], allow
   );
 }
 
+const convertArrayFlagToArray = (flagValue: string, delimiter = ','): string[] => {
+  // don't split on delimiter if it's inside a single or double-quoted substring
+  // eslint-disable-next-line no-useless-escape
+  const regex = new RegExp(`\"(.*?)\"|\'(.*?)\'|${delimiter}`);
+  return flagValue
+    .split(regex)
+    .filter((i) => !!i)
+    .map((i) => i.trim());
+};
+
 function buildMappedArray<T>(kind: flags.Kind, options: flags.MappedArray<T>): flags.Discriminated<flags.Array<T>> {
   const { options: values, ...rest } = options;
   const allowed = new Set(values);
   return option(kind, rest, (val: string): T[] => {
-    const vals = val.split(options.delimiter || ',').map((value) => value.trim());
+    const vals = convertArrayFlagToArray(val, options.delimiter);
     validateArrayValues(kind, val, vals, options.validate);
     const mappedVals = vals.map(options.map);
     validateArrayOptions(kind, val, mappedVals, allowed);
@@ -226,13 +236,7 @@ function buildStringArray(kind: flags.Kind, options: flags.Array<string>): flags
   const { options: values, ...rest } = options;
   const allowed = new Set(values);
   return option(kind, rest, (val) => {
-    // eslint-disable-next-line no-useless-escape
-    const regex = /\"(.*?)\"|\'(.*?)\'|,/g;
-    const vals = val
-      .split(regex)
-      .filter((i) => !!i)
-      .map((i) => i.trim());
-
+    const vals = convertArrayFlagToArray(val, options.delimiter);
     validateArrayValues(kind, val, vals, options.validate);
     validateArrayOptions(kind, val, vals, allowed);
     return vals;
