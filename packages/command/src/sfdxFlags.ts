@@ -214,7 +214,7 @@ function buildMappedArray<T>(kind: flags.Kind, options: flags.MappedArray<T>): f
   const { options: values, ...rest } = options;
   const allowed = new Set(values);
   return option(kind, rest, (val: string): T[] => {
-    const vals = val.split(options.delimiter || ',');
+    const vals = val.split(options.delimiter || ',').map((value) => value.trim());
     validateArrayValues(kind, val, vals, options.validate);
     const mappedVals = vals.map(options.map);
     validateArrayOptions(kind, val, mappedVals, allowed);
@@ -228,7 +228,10 @@ function buildStringArray(kind: flags.Kind, options: flags.Array<string>): flags
   return option(kind, rest, (val) => {
     // eslint-disable-next-line no-useless-escape
     const regex = /\"(.*?)\"|\'(.*?)\'|,/g;
-    const vals = val.split(regex).filter((i) => !!i);
+    const vals = val
+      .split(regex)
+      .filter((i) => !!i)
+      .map((i) => i.trim());
 
     validateArrayValues(kind, val, vals, options.validate);
     validateArrayOptions(kind, val, vals, allowed);
