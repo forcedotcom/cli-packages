@@ -361,7 +361,7 @@ describe('SfdxFlags', () => {
         );
       });
 
-      it('should handle various arrangments of comma separated lists without errors', () => {
+      it('should handle various arrangements of comma separated lists without errors', () => {
         const array = flags.array({ description: 'test' });
         if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
         expect(array.parse('"1, 2, 3, 4, 5, 6"')).to.deep.equal(['1, 2, 3, 4, 5, 6']);
@@ -372,6 +372,18 @@ describe('SfdxFlags', () => {
         expect(array.parse("'1,2','3,4','5,6'")).to.deep.equal(['1,2', '3,4', '5,6']);
         expect(array.parse("'1,2',3,4,'5,6'")).to.deep.equal(['1,2', '3', '4', '5,6']);
         expect(array.parse("1,'2, 3','4, 5',6")).to.deep.equal(['1', '2, 3', '4, 5', '6']);
+      });
+
+      it('should handle custom delimiter', () => {
+        const array = flags.array({ description: 'test', delimiter: ';' });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1;2;3;4;5')).to.deep.equal(['1', '2', '3', '4', '5']);
+      });
+
+      it('should handle custom delimiter with mappedArray', () => {
+        const array = flags.array({ description: 'test', delimiter: ';', map: (v: string) => `${v}x` });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1;2;3;4;5')).to.deep.equal(['1x', '2x', '3x', '4x', '5x']);
       });
 
       it('should strip whitespace from parsed array members', () => {
@@ -386,6 +398,18 @@ describe('SfdxFlags', () => {
         if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
         expect(array.parse('1, 2, 3, 4, 5')).to.deep.equal(['1x', '2x', '3x', '4x', '5x']);
         expect(array.parse('1 ,2 ,3 ,4 ,5')).to.deep.equal(['1x', '2x', '3x', '4x', '5x']);
+      });
+
+      it('should handle custom delimiter and whitespace', () => {
+        const array = flags.array({ description: 'test', delimiter: ';' });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1; 2; 3; 4; 5')).to.deep.equal(['1', '2', '3', '4', '5']);
+      });
+
+      it('should handle custom delimiter with mappedArray and whitespace', () => {
+        const array = flags.array({ description: 'test', delimiter: ';', map: (v: string) => `${v}x` });
+        if (!hasFunction(array, 'parse')) throw new MissingPropertyError('parse', 'array');
+        expect(array.parse('1; 2; 3; 4; 5')).to.deep.equal(['1x', '2x', '3x', '4x', '5x']);
       });
     });
 
