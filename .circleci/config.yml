@@ -63,10 +63,14 @@ jobs:
       - run: *test
       - run: *coverage
       - save_cache: *save-cache
-  node-10:
+  node-14:
     <<: *node-test
     docker:
-      - image: node:10
+      - image: node:14
+  node-12:
+    <<: *node-test
+    docker:
+      - image: node:12
   release:
     <<: *defaults
     steps:
@@ -86,25 +90,6 @@ jobs:
           name: Publishing
           command: lerna publish --conventional-commits -y
       - save_cache: *save-cache
-  merge:
-    <<: *defaults
-    steps:
-      - add_ssh_keys: *ssh-config
-      - checkout
-      - restore_cache: *restore-cache
-      - run: *install
-      - run: *bootstrap
-      - run: *build
-      - run: *gh-config
-      - run:
-          name: Merging
-          command: |
-            git fetch
-            git checkout develop
-            git pull origin develop
-            git merge origin/master
-            git push origin develop
-      - save_cache: *save-cache
   ci-docs:
     <<: *defaults
     steps:
@@ -123,20 +108,17 @@ workflows:
   cli-packages:
     jobs:
       - node-latest
-      - node-10
+      - node-14
+      - node-12
       - release:
           filters:
-            branches: { only: master }
+            branches: { only: main }
           requires:
             - node-latest
-            - node-10
-      - merge:
-          filters:
-            branches: { only: master }
-          requires:
-            - release
+            - node-14
+            - node-12
       - ci-docs:
           filters:
-            branches: { only: master }
+            branches: { only: main }
           requires:
             - release
