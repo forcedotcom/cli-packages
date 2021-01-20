@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+    release-management: salesforce/npm-release-management@4
+
 _refs:
   cwd: &cwd ~/jobs
   ssh-config: &ssh-config
@@ -122,6 +125,10 @@ workflows:
   version: 2
   cli-packages:
     jobs:
+      - release-management/test-package-windows:
+          filters:
+            branches:
+              ignore: master
       - node-latest
       - node-10
       - release:
@@ -130,6 +137,7 @@ workflows:
           requires:
             - node-latest
             - node-10
+            - release-management/test-package-windows
       - merge:
           filters:
             branches: { only: master }
