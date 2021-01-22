@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.1.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@3.0.5...@salesforce/command@3.1.0) (2021-01-22)
+
+
+### Bug Fixes
+
+* shared code/tests for custom array delimiter ([3c6074f](https://github.com/forcedotcom/cli-packages/commit/3c6074f92d0d3ceefc5ad9c7095df5d08502d1cc))
+
+
+### Features
+
+* array flags trim whitespace ([0e08d55](https://github.com/forcedotcom/cli-packages/commit/0e08d55abc6c5201e249f1b3219dd4b38167c6b4))
+
+
+
+
+
 ## [3.0.5](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@3.0.4...@salesforce/command@3.0.5) (2020-11-13)
 
 **Note:** Version bump only for package @salesforce/command
