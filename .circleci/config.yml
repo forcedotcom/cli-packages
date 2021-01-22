@@ -33,8 +33,7 @@ _refs:
   coverage: &coverage
     name: Submitting code coverage to codecov
     command: |
-      ./node_modules/.bin/nyc report --reporter text-lcov > coverage.lcov
-      curl -s https://codecov.io/bash | bash
+      # yarn codecov
   gh-config: &gh-config
     name: Configuring GitHub
     command: |
