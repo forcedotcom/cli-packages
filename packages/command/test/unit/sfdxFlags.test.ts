@@ -26,7 +26,7 @@ class MissingPropertyError extends NamedError {
 describe('SfdxFlags', () => {
   const containsRequiredFlags = (rv: flags.Output) => {
     expect(rv.json).to.include({ type: 'boolean', kind: 'boolean' });
-    expect(rv.loglevel).to.include({ optionType: 'enum', kind: 'enum' });
+    expect(rv.loglevel).to.include({ type: 'option', kind: 'enum' });
   };
 
   describe('buildSfdxFlags', () => {

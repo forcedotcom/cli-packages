@@ -12,7 +12,6 @@ import * as util from 'util';
 import { IConfig } from '@oclif/config';
 import {
   ConfigAggregator,
-  ConfigInfo,
   Global,
   Lifecycle,
   Logger,
@@ -85,7 +84,7 @@ const DEFAULT_INSTANCE_PROPS = {
   args: {},
   isJson: false,
   logger: $$.TEST_LOGGER,
-  configAggregator: { getInfo: (x: ConfigInfo) => ({ value: undefined }) },
+  configAggregator: { getInfo: () => ({ value: undefined }) },
   org: undefined,
   hubOrg: undefined,
   project: undefined,
@@ -343,7 +342,7 @@ describe('SfdxCommand', () => {
         setApiVersion: (version: string) => {
           apiVersion = version;
         },
-        getApiVersion: (version: string) => apiVersion,
+        getApiVersion: () => apiVersion,
       }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);

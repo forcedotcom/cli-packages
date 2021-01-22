@@ -20,7 +20,7 @@ _refs:
     command: npm install -g lerna
   install: &install
     name: Install dependencies
-    command: .circleci/greenkeeper
+    command: yarn
   bootstrap: &bootstrap
     name: Bootstraping
     command: yarn bootstrap
@@ -29,12 +29,11 @@ _refs:
     command: yarn build
   test: &test
     name: Testing
-    command: yarn ci-test
+    command: yarn test
   coverage: &coverage
     name: Submitting code coverage to codecov
     command: |
-      ./node_modules/.bin/nyc report --reporter text-lcov > coverage.lcov
-      curl -s https://codecov.io/bash | bash
+      # yarn codecov
   gh-config: &gh-config
     name: Configuring GitHub
     command: |
