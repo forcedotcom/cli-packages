@@ -59,9 +59,10 @@ function isAsimovKey(key: string): boolean {
   return !!(key && key.startsWith('AIF-'));
 }
 
-export function buildPropertiesAndMeasurements(
-  attributes: Attributes
-): { properties: Properties; measurements: Measurements } {
+export function buildPropertiesAndMeasurements(attributes: Attributes): {
+  properties: Properties;
+  measurements: Measurements;
+} {
   const properties: Properties = {};
   const measurements: Measurements = {};
   Object.keys(attributes).forEach((key) => {
@@ -197,7 +198,7 @@ export class AppInsights extends AsyncCreatable<TelemetryOptions> {
   /**
    * Builds the properties to send with every event
    *
-   * @return {Properties} map of base properites and properties provided when class was created
+   * @return {Properties} map of base properties and properties provided when class was created
    */
   private buildCommonProperties(): Properties {
     const baseProperties: Properties = {
