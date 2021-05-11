@@ -29,7 +29,7 @@ _refs:
     command: yarn build
   test: &test
     name: Testing
-    command: yarn ci-test
+    command: yarn test
   gh-config: &gh-config
     name: Configuring GitHub
     command: |
