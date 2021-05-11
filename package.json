@@ -15,11 +15,9 @@
     "lint-fix": "lerna run lint -- --fix",
     "postclean-all": "yarn sf-clean all",
     "prepack": "lerna run prepack",
-    "test": "lerna run test",
-    "codecov": "codecov --disable=gcov"
+    "test": "lerna run test"
   },
   "devDependencies": {
-    "codecov": "^3.7.1",
     "cz-conventional-changelog": "^3.2.0",
     "@salesforce/dev-scripts": "^0.6.2",
     "husky": "^4.2.5",

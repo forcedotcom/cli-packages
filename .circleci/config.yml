@@ -30,10 +30,6 @@ _refs:
   test: &test
     name: Testing
     command: yarn test
-  coverage: &coverage
-    name: Submitting code coverage to codecov
-    command: |
-      # yarn codecov
   gh-config: &gh-config
     name: Configuring GitHub
     command: |
@@ -60,7 +56,6 @@ jobs:
       - run: *bootstrap
       - run: *build
       - run: *test
-      - run: *coverage
       - save_cache: *save-cache
   node-14:
     <<: *node-test
