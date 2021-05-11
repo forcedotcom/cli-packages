@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [2.0.6](https://github.com/forcedotcom/cli-packages/compare/@salesforce/telemetry@2.0.5...@salesforce/telemetry@2.0.6) (2021-05-11)
+
+**Note:** Version bump only for package @salesforce/telemetry
+
+
+
+
+
 ## [2.0.5](https://github.com/forcedotcom/cli-packages/compare/@salesforce/telemetry@2.0.4...@salesforce/telemetry@2.0.5) (2021-01-22)
 
 **Note:** Version bump only for package @salesforce/telemetry
