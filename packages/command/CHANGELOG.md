@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.1](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@3.1.0...@salesforce/command@3.1.1) (2021-06-03)
+
+
+### Bug Fixes
+
+* bump core version in command ([dcaf37c](https://github.com/forcedotcom/cli-packages/commit/dcaf37cc5c47713b3f24c365b1c434db036dc9a9))
+
+
+
+
+
 # [3.1.0](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@3.0.5...@salesforce/command@3.1.0) (2021-01-22)
 
 
