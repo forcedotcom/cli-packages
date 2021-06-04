@@ -82,7 +82,8 @@ jobs:
           command: git status
       - run:
           name: Publishing
-          command: lerna publish --conventional-commits -y
+          # no-verify-access solves https://github.com/lerna/lerna/issues/2788
+          command: lerna publish --no-verify-access --conventional-commits -y
       - save_cache: *save-cache
   ci-docs:
     <<: *defaults
