@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.1.3](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@3.1.1...@salesforce/command@3.1.3) (2021-06-04)
+
+
+### Bug Fixes
+
+* publish using npm automation token ([9b5e8ad](https://github.com/forcedotcom/cli-packages/commit/9b5e8adbc84fa38c31eafb1ee7a8d5fef2fbf15b))
+
+
+
+
+
 ## [3.1.1](https://github.com/forcedotcom/cli-packages/compare/@salesforce/command@3.1.0...@salesforce/command@3.1.1) (2021-06-03)
 
 
