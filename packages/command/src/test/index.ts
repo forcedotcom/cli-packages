@@ -111,7 +111,8 @@ const withConnectionRequest = (
 const withProject = (sfdxProjectJson?: JsonMap): Plugin<unknown> => {
   return {
     run(): void {
-      $$.SANDBOX.stub(SfdxProject, 'resolveProjectPath').callsFake((path: string | undefined) => {
+      $$.SANDBOXES.PROJECT.restore();
+      $$.SANDBOXES.PROJECT.stub(SfdxProject, 'resolveProjectPath').callsFake((path: string | undefined) => {
         return $$.localPathRetriever(path || $$.id);
       });
       const DEFAULT_PROJECT_JSON = {
