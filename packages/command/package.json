@@ -36,9 +36,9 @@
     "@oclif/parser": "^3.8.3",
     "@oclif/plugin-help": "^2.2.0",
     "@oclif/test": "^1.2.4",
-    "@salesforce/core": "^2.23.4",
-    "@salesforce/kit": "^1.2.2",
-    "@salesforce/ts-types": "^1.2.0",
+    "@salesforce/core": "^2.28.0",
+    "@salesforce/kit": "^1.5.17",
+    "@salesforce/ts-types": "^1.5.20",
     "chalk": "^2.4.2",
     "cli-ux": "^4.9.3"
   },
